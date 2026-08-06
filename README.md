@@ -1,16 +1,34 @@
-# React + Vite
+# O&O Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+2026 멋쟁이사자처럼 중앙 해커톤 1조 오레오팀의 프론트엔드 레포지토리입니다.
 
-Currently, two official plugins are available:
+## 프로젝트 소개
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+오프라인과 온라인의 경험을 연결하는 서비스를 개발합니다.
 
-## React Compiler
+## 기술 스택
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React
+- JavaScript
+- Vite
+- React Router DOM
+- styled-components
+- Axios
+- Zustand
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 폴더 구조
+
+```text
+src
+├─ apis          # 서버 API 요청 관련
+├─ assets        # 이미지, 아이콘, 폰트
+├─ components    # 공통 컴포넌트
+├─ contexts      # Context API 기반 공용 상태
+├─ hooks         # 커스텀 훅
+├─ pages         # 페이지 컴포넌트
+├─ router        # 페이지 경로 설정
+├─ styles        # theme, 전역 및 공통 스타일
+├─ App.jsx
+└─ main.jsx
+```
