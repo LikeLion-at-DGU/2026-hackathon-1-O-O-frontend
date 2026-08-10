@@ -1,5 +1,11 @@
+import React from "react";
+
 function HomePage() {
-  return <div>홈페이지</div>;
+  return (
+    <>
+      <h1>홈 페이지입니다.</h1>
+    </>
+  );
 }
 
 export default HomePage;
