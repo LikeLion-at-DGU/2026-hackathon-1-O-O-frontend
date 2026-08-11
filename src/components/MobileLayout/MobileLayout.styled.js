@@ -4,7 +4,9 @@ export const PageBackground = styled.div`
   display: flex;
   justify-content: center;
 
+  width: 100%;
   min-height: 100dvh;
+
   background-color: #eeeeee;
 `;
 
@@ -19,9 +21,11 @@ export const MobileContainer = styled.div`
 `;
 
 export const MainContent = styled.main`
-  min-height: calc(100dvh - 72px);
+  min-height: ${({ $showHeader }) =>
+    $showHeader ? "calc(100dvh - 72px)" : "100dvh"};
 
-  background-color: #ffffff;
-  border-radius: 2px 2px 0 0;
+  background-color: ${({ $showHeader }) =>
+    $showHeader ? "#ffffff" : "#222222"};
+
   overflow: hidden;
 `;
