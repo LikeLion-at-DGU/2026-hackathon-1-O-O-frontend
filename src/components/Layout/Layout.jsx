@@ -1,6 +1,7 @@
 import * as S from "./Layout.styled";
 import MobileLayout from "../MobileLayout/MobileLayout";
 import { Outlet } from "react-router-dom";
+import ChatMessage from "../ChatMessage/ChatMessage";
 
 function Layout() {
   return (
@@ -10,7 +11,7 @@ function Layout() {
       </S.Content>
 
       <S.Chat>
-        어쩌고 저쩌고
+        <ChatMessage/>
       </S.Chat>
 
       <S.Line
