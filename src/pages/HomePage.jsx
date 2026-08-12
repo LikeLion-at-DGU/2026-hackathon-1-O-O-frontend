@@ -1,9 +1,10 @@
 import React from "react";
+import Layout from "../components/Layout/Layout";
 
 function HomePage() {
   return (
     <>
-      <h1>홈 페이지입니다.</h1>
+      <h1>홈페이지입니다</h1>
     </>
   );
 }
