@@ -1,10 +1,14 @@
 import React from "react";
+import MobileLayout from "../components/MobileLayout/MobileLayout";
+import FloorMap from "../components/FloorMap/FloorMap";
+import HomeContent from "../components/HomeContent/HomeContent";
 
 function HomePage() {
   return (
-    <>
-      <h1>홈 페이지입니다.</h1>
-    </>
+      <MobileLayout>
+        <FloorMap />
+         <HomeContent />
+      </MobileLayout>
   );
 }
 
