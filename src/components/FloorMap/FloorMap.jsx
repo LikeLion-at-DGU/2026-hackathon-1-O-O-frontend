@@ -29,7 +29,7 @@ export default function FloorMap() {
     <div
         style={{
             width: "100%",
-            height: "100vh",
+            height: "300px",
             backgroundColor: "#F8F8F8",
             display: "flex",
             justifyContent: "center",
