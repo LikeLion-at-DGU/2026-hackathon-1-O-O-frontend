@@ -11,7 +11,7 @@ function Layout() {
       </S.Content>
 
       <S.Chat>
-        <ChatMessage/>
+        {/* <ChatMessage/> 여기가 뭔가 문제가 있는거 같은뎅 */}
       </S.Chat>
 
       <S.Line
@@ -21,15 +21,6 @@ function Layout() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <line
-          x1="2.5"
-          y1="2.5"
-          x2="2.5"
-          y2="47.5"
-          stroke="#D1CCC7"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
       </S.Line>
 
       <S.GoChat>

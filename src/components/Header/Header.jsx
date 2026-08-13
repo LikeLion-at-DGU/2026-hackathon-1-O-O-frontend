@@ -1,13 +1,23 @@
+import React from "react";
+import styled from "styled-components";
 import * as S from "./Header.styled";
+import SoundButton from "../SoundButton";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Header() {
+
     return (
         <S.HeaderContainer>
-            <S.Logo>O&O</S.Logo>
+            <Link to="/home" style={{ textDecoration: "none", color: "inherit" }}>
+                <S.Logo>
+                    <S.LogoText>O</S.LogoText>
+                    <S.Ampersand>&</S.Ampersand>
+                    <S.LogoText>O</S.LogoText>
+                </S.Logo>
+            </Link>
 
-            <S.SoundButton type="button" aria-label="소리 켜기">
-                🔊
-            </S.SoundButton>
+            <SoundButton />
         </S.HeaderContainer>
     );
 }

@@ -1,8 +1,8 @@
 import React from "react";
 
 export default function PlusButton({
-  cx = 328,
-  cy = 268,
+  cx = 325.5,
+  cy = 264,
   isOpen = false,
   onClick,
 }) {

@@ -1,5 +1,5 @@
 import * as S from "./HomeContent.style";
-import GreetingBear from "../../assets/images/GreetingBear.png";
+import GreetingBear from "../../assets/hello.png";
 
 function HomeContent() {
   return (

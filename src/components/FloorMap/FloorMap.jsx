@@ -189,8 +189,8 @@ export default function FloorMap({ showGuideMessage = false }) {
                 <svg viewBox="0 0 363 300" width="100%" height="100%">
                     <g style={{ pointerEvents: "auto"}}>
                         <PlusButton 
-                            cx={328} 
-                            cy={268} 
+                            cx={337} 
+                            cy={275} 
                             isOpen={isGuideOpen} 
                             onClick={(e) => {
                                 e.stopPropagation();
