@@ -6,8 +6,8 @@ import HomeContent from "../components/HomeContent/HomeContent";
 function HomePage() {
   return (
       <MobileLayout>
-        <FloorMap />
-         <HomeContent />
+        <FloorMap showGuideMessage/>
+        <HomeContent />
       </MobileLayout>
   );
 }
