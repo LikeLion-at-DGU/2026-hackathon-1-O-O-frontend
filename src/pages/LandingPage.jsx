@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import * as S from "./LandingPage.styled";
+import { BgmManager } from "../components/SoundButton";
 
 function LandingPage() {
     const navigate = useNavigate();
@@ -20,7 +21,10 @@ function LandingPage() {
 
                         <S.EnterButton
                             type="button"
-                            onClick={() => navigate("/home")}
+                            onClick={() => {
+                                BgmManager.play().catch((err) => console.log("음악 재생 실패:", err));
+                                navigate("/home")}
+                            }
                         >
                             입장하기
                         </S.EnterButton>

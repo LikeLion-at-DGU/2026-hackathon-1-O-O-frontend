@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const HeaderContainer = styled.header`
   width: 100%;
-   height: 103px;
+  height: 103px;
   padding: 51px 16px 14px 19px;
 
 
@@ -16,14 +16,32 @@ export const HeaderContainer = styled.header`
   margin-bottom : 24px;
 `;
 
-export const Logo = styled.h1`
-  margin: 0;
+export const Logo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  color: #ffffff;
-  font-family: serif;
+`;
+
+export const LogoText = styled.span`
+  color: #F3EEE3;
+
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 32px;
-  line-height: 38px;
   font-weight: 700;
+  line-height: 1;
+`;
+
+export const Ampersand = styled.span`
+  margin: 0 2px;
+  padding-top: 12px;
+
+  color: #8C6239;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
 `;
 
 export const SoundButton = styled.button`
