@@ -22,7 +22,7 @@ export default function FloorPlan2({ activeZone, onZoneClick, isGuideOpen }) {
 
             {/* 구역 8 */}
             <g
-                onClick={() => onZoneClick("8")}
+                onClick={() => onZoneClick(8)}
                 style={{ cursor: isGuideOpen ? "default" : "pointer" }}
             >
                 <rect x="24.5" y="185" width="310" height="33" rx="10" fill={getZoneColor("8")} />
@@ -34,7 +34,7 @@ export default function FloorPlan2({ activeZone, onZoneClick, isGuideOpen }) {
 
             {/* 구역 9 */}
             <g
-                onClick={() => onZoneClick("9")}
+                onClick={() => onZoneClick(9)}
                 style={{ cursor: isGuideOpen ? "default" : "pointer" }}
             >
                 <rect x="118.5" y="237" width="44" height="27" rx="10" fill={getZoneColor("9")} />
@@ -45,7 +45,7 @@ export default function FloorPlan2({ activeZone, onZoneClick, isGuideOpen }) {
 
             {/* 구역 10 */}
             <g
-                onClick={() => onZoneClick("10")}
+                onClick={() => onZoneClick(10)}
                 style={{ cursor: isGuideOpen ? "default" : "pointer" }}
             >
                 <rect x="200.5" y="237" width="44" height="27" rx="10" fill={getZoneColor("10")} />

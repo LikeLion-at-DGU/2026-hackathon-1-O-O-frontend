@@ -17,7 +17,7 @@ export const Chat = styled.div`
   align-items: flex-start;
   gap: 10px;
 
-  border: 2px solid black;
+  /* border: 2px solid black; */
 
   margin: 0 auto 16px;
 `;
