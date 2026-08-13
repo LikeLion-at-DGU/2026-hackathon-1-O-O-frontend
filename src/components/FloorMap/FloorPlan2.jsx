@@ -54,12 +54,6 @@ export default function FloorPlan2({ activeZone, onZoneClick, isGuideOpen }) {
                 </text>
             </g>
 
-            <PlusButton 
-                cx={328}
-                cy={268}
-                isOpen={isGuideOpen} 
-                onClick={() => onZoneClick("plus")} 
-            />
         </svg>
     );
 }
