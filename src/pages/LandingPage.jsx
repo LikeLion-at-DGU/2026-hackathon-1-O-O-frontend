@@ -15,18 +15,14 @@ function LandingPage() {
                         <S.LogoText>O</S.LogoText>
                     </S.Logo>
 
-                    <S.Question>입장하시겠습니까?</S.Question>
 
                     <S.ButtonContainer>
-                        <S.CancelButton type="button">
-                            아니오
-                        </S.CancelButton>
 
                         <S.EnterButton
                             type="button"
-                            onClick={() => navigate("/guide")}
+                            onClick={() => navigate("/home")}
                         >
-                            예
+                            입장하기
                         </S.EnterButton>
                     </S.ButtonContainer>
                 </S.Content>
