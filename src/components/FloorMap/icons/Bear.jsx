@@ -4,8 +4,6 @@ import { TEXT_STYLES, COLORS } from "../FloorMap.style";
 export default function BearEntrance({ x = 82, y = 235, onClick }) {
   return (
     <g
-      onClick={onClick}
-      style={{ cursor: "pointer" }}
       transform={`translate(${x}, ${y})`}
     >
       <path

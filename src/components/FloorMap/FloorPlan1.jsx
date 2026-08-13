@@ -1,5 +1,4 @@
 import React from "react";
-
 import Bear from "./icons/Bear";
 import PlusButton from "./icons/PlusButton";
 
@@ -8,7 +7,7 @@ import {
     TEXT_STYLES,
 } from "./FloorMap.style";
 
-export default function FloorPlanSVG({
+export default function FloorPlan1({
     activeZone,
     onZoneClick,
     isGuideOpen = false,
@@ -37,10 +36,10 @@ export default function FloorPlanSVG({
         >
             {/* 바깥 전체 배경 */}
             <rect
-                x="12"
-                y="10"
-                width="339"
-                height="280"
+                x="0"
+                y="0"
+                width="363"
+                height="300"
                 rx="20"
                 fill={COLORS.background}
             />
@@ -53,16 +52,16 @@ export default function FloorPlanSVG({
                 }}
             >
                 <rect
-                    x="32"
-                    y="30"
-                    width="31"
-                    height="240"
+                    x="21.5"
+                    y="20"
+                    width="33"
+                    height="260"
                     rx="10"
                     style={getZoneStyle(1)}
                 />
 
                 <text
-                    x="47.5"
+                    x="38"
                     y="150"
                     style={TEXT_STYLES.numberText}
                 >
@@ -78,16 +77,16 @@ export default function FloorPlanSVG({
                 }}
             >
                 <rect
-                    x="300"
-                    y="30"
-                    width="31"
-                    height="240"
+                    x="310"
+                    y="20"
+                    width="33"
+                    height="260"
                     rx="10"
                     style={getZoneStyle(2)}
                 />
 
                 <text
-                    x="315.5"
+                    x="326.5"
                     y="150"
                     style={TEXT_STYLES.numberText}
                 >
@@ -103,17 +102,17 @@ export default function FloorPlanSVG({
                 }}
             >
                 <rect
-                    x="88"
-                    y="30"
-                    width="75"
+                    x="80.5"
+                    y="20"
+                    width="80"
                     height="15"
                     rx="7.5"
                     style={getZoneStyle(5)}
                 />
 
                 <text
-                    x="125.5"
-                    y="37.5"
+                    x="120.5"
+                    y="27.5"
                     style={TEXT_STYLES.numberText}
                 >
                     5
@@ -128,17 +127,17 @@ export default function FloorPlanSVG({
                 }}
             >
                 <rect
-                    x="200"
-                    y="30"
-                    width="75"
+                    x="204.5"
+                    y="20"
+                    width="80"
                     height="15"
                     rx="7.5"
                     style={getZoneStyle(6)}
                 />
 
                 <text
-                    x="237.5"
-                    y="37.5"
+                    x="244.5"
+                    y="27.5"
                     style={TEXT_STYLES.numberText}
                 >
                     6
@@ -153,17 +152,17 @@ export default function FloorPlanSVG({
                 }}
             >
                 <rect
-                    x="125"
-                    y="100"
-                    width="113"
-                    height="61"
+                    x="120"
+                    y="95"
+                    width="123"
+                    height="67"
                     rx="10"
                     style={getZoneStyle(3)}
                 />
 
                 <text
                     x="181.5"
-                    y="130.5"
+                    y="128.5"
                     style={TEXT_STYLES.numberText}
                 >
                     3
@@ -178,17 +177,17 @@ export default function FloorPlanSVG({
                 }}
             >
                 <rect
-                    x="163"
-                    y="185"
-                    width="37"
-                    height="25"
-                    rx="8"
+                    x="160"
+                    y="188"
+                    width="44"
+                    height="27"
+                    rx="10"
                     style={getZoneStyle(4)}
                 />
 
                 <text
-                    x="181.5"
-                    y="197.5"
+                    x="182"
+                    y="201.5"
                     style={TEXT_STYLES.numberText}
                 >
                     4
@@ -203,29 +202,29 @@ export default function FloorPlanSVG({
                 }}
             >
                 <circle
-                    cx="181.5"
-                    cy="235"
+                    cx="182"
+                    cy="240"
                     r="9"
                     style={getZoneStyle(7)}
                 />
 
                 <circle
-                    cx="164"
-                    cy="254"
+                    cx="162"
+                    cy="260"
                     r="9"
                     style={getZoneStyle(7)}
                 />
 
                 <circle
-                    cx="199"
-                    cy="254"
+                    cx="202"
+                    cy="260"
                     r="9"
                     style={getZoneStyle(7)}
                 />
 
                 <text
                     x="181.5"
-                    y="255"
+                    y="259"
                     style={TEXT_STYLES.numberText}
                 >
                     7
@@ -236,24 +235,7 @@ export default function FloorPlanSVG({
             <Bear
                 x={82}
                 y={235}
-                onClick={() =>
-                    onZoneClick("entrance")
-                }
             />
-
-            {/* 
-        가이드가 닫혔을 때만 기존 + 버튼 표시
-        가이드가 열리면 FloorMap.jsx의 - 버튼이 표시됨
-      */}
-            {!isGuideOpen && (
-                <PlusButton
-                    cx={328}
-                    cy={268}
-                    onClick={() =>
-                        onZoneClick("plus")
-                    }
-                />
-            )}
         </svg>
     );
 }
