@@ -10,7 +10,7 @@ export const HeaderContainer = styled.header`
   align-items: center;
   justify-content: space-between;
 
-  background-color: #1f1f1f;
+  background: var(--Gallery-Cream, #F3EEE3);
   box-sizing: border-box; 
 `;
 
@@ -23,12 +23,13 @@ export const Logo = styled.div`
 `;
 
 export const LogoText = styled.span`
-  color: #F3EEE3;
+ color: var(--Deep-Slate, #222);
 
   font-family: Georgia, "Times New Roman", serif;
   font-size: 32px;
   font-weight: 700;
   line-height: 1;
+
 `;
 
 export const Ampersand = styled.span`

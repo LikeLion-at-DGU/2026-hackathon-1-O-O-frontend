@@ -2,8 +2,14 @@ import * as S from "./Layout.styled";
 import MobileLayout from "../MobileLayout/MobileLayout";
 import { Outlet } from "react-router-dom";
 import ChatMessage from "../ChatMessage/ChatMessage";
+import bearImage from "../../assets/bear.png";
+import { useNavigate } from "react-router-dom";
+import ChatPage from "../../pages/ChatPage";
 
 function Layout() {
+
+  const navigate = useNavigate();
+  
   return (
     <MobileLayout>
       <S.Content>
@@ -11,7 +17,18 @@ function Layout() {
       </S.Content>
 
       <S.Chat>
-        {/* <ChatMessage/> 여기가 뭔가 문제가 있는거 같은뎅 */}
+        <ChatMessage
+          type="assistant"
+          profileImage={bearImage}
+        >
+        저와 함께 MCM을 경험해 보아요!
+          <br />
+         각 상품을 눌러 궁금한 점을 알아보세요.
+      </ChatMessage>
+
+        <ChatMessage type="user">
+           1번 진열대 클릭
+        </ChatMessage>
       </S.Chat>
 
       <S.Line
@@ -23,7 +40,7 @@ function Layout() {
       >
       </S.Line>
 
-      <S.GoChat>
+      <S.GoChat  onClick={() => navigate("/chat")}>
         채팅으로 대화하기
 
         <svg

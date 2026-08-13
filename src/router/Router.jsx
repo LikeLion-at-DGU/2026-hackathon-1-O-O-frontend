@@ -7,6 +7,7 @@ import ShelfPage from "../pages/ShelfPage";
 import ProductPage from "../pages/ProductPage";
 import GuidePage from "../pages/GuidePage";
 import Layout from "../components/Layout/Layout";
+import ChatPage from "../pages/ChatPage";
 
 function Router() {
   return (
@@ -16,6 +17,10 @@ function Router() {
 
       {/* 홈 페이지 */}
       <Route path="/home" element={<HomePage />} />
+
+      {/* 채팅 페이지 */}
+      <Route path="/chat" element={<ChatPage />} />
+
 
       {/* Layout을 사용하는 페이지 */}
       <Route element={<Layout />}>
