@@ -1,53 +1,46 @@
 import styled from "styled-components";
 import { COLORS } from "../FloorMap/FloorMap.style";
 
-// 실제 진열대 스타일
 export const shelfStyles = {
-    container: {
-        width: "100%",
-        maxWidth: "363px",
-        height: "300px",
-        padding: "16px",
+  // 📌 1. 진열장 전체 외곽 프레임
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between", 
+    gap: "10px",
+    width: "100%",
+    maxWidth: "363px",
+    height: "300px",
+    backgroundColor: COLORS.zoneDefault,
+    borderRadius: "20px",
+    padding: "12px",
+    boxSizing: "border-box",
+    margin: "0 auto",
+  },
 
-        backgroundColor: COLORS.zoneDefault,
-        borderRadius: "20px",
+  // 📌 2. 각 층별 선반 박스
+  tier: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    alignItems: "center",
+    justifyItems: "center",
+    backgroundColor: COLORS.background,
+    borderRadius: "14px",
+    height: "82px",
+    padding: "4px 8px",
+    boxSizing: "border-box",
+  },
 
-        boxSizing: "border-box",
-
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-    },
-
-    tier: {
-        width: "100%",
-        height: "126px",
-
-        backgroundColor: COLORS.background,
-        borderRadius: "14px",
-
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-around",
-
-        padding: "0 20px",
-        boxSizing: "border-box",
-    },
-
-    productSlot: {
-        width: "100px",
-        height: "100px",
-
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        fontSize: "56px",
-        cursor: "pointer",
-    },
+  // 📌 3. 상품 슬롯
+  productSlot: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 };
 
-// ShelfPage와 ProductPage에서 사용하는 스타일
 export const PageContainer = styled.div`
   width: 100%;
   min-height: 100%;
