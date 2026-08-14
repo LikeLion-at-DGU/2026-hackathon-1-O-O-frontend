@@ -37,6 +37,8 @@ export const GoChat = styled.div`
 
   margin-right: 20px;
   gap: 8px;
+  margin-bottom: 24px;
+  cursor: pointer;
 `;
 
 export const Line = styled.svg`

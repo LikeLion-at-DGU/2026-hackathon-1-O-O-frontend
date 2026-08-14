@@ -1,11 +1,15 @@
 import Header from "../Header/Header";
 import * as S from "./MobileLayout.styled";
 
-function MobileLayout({ children, showHeader = true }) {
+function MobileLayout({
+  children,
+  showHeader = true,
+  header = <Header />,
+}) {
   return (
     <S.PageBackground>
       <S.MobileContainer>
-        {showHeader && <Header />}
+        {showHeader && header}
 
         <S.MainContent $showHeader={showHeader}>
           {children}

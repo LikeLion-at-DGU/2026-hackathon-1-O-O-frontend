@@ -47,7 +47,7 @@ export default function FloorMap({ showGuideMessage = false }) {
 
     const handleFirstGuideClick = (event) => {
         event.stopPropagation();
-        setIsGuideMessageVisible(false);
+        navigate("/map");
     };
 
     const handleGuideClose = (event) => {

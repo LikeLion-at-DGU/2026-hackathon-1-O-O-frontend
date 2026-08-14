@@ -27,26 +27,26 @@ function ShelfPage() {
     }, [zoneId, selectedZoneId, selectShelf]);
 
     return (
-        <S.PageContainer>
-            <S.ShelfArea>
+        // <S.PageContainer>
+        //     <S.ShelfArea>
                 <Shelf />
-            </S.ShelfArea>
+        //     </S.ShelfArea>
 
-            <S.ChatArea>
-                <ChatMessage
-                    type="assistant"
-                    profileImage={bearImage}
-                >
-                    저와 함께 MCM을 경험해 보아요!
-                    <br />
-                    각 상품을 눌러 궁금한 점을 알아보세요.
-                </ChatMessage>
+        //     {/* <S.ChatArea>
+        //         <ChatMessage
+        //             type="assistant"
+        //             profileImage={bearImage}
+        //         >
+        //             저와 함께 MCM을 경험해 보아요!
+        //             <br />
+        //             각 상품을 눌러 궁금한 점을 알아보세요.
+        //         </ChatMessage>
 
-                <ChatMessage type="user">
-                    {zoneId}번 진열대 클릭
-                </ChatMessage>
-            </S.ChatArea>
-        </S.PageContainer>
+        //         <ChatMessage type="user">
+        //             {zoneId}번 진열대 클릭
+        //         </ChatMessage>
+        //     </S.ChatArea> */}
+        // </S.PageContainer>
     );
 }
 
