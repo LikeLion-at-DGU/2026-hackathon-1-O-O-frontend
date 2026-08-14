@@ -80,19 +80,13 @@ export default function FloorMap({ showGuideMessage = false }) {
             {/* 🚀 스와이프 영역 */}
             <Swiper
                 modules={[Pagination]}
-                spaceBetween={0}
+                spaceBetween={20}
                 slidesPerView={1}
                 pagination={{ clickable: true }}
+                initialSlide={1}
                 style={{ width: "100%", height: "100%" }}
             >
-                {/* 1페이지 */}
-                <SwiperSlide>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
-                        <div style={{ width: "363px", height: "300px", position: "relative" }}>
-                            <FloorPlan1 activeZone={activeZone} onZoneClick={handleZoneClick} isGuideOpen={isGuideOpen} />
-                        </div>
-                    </div>
-                </SwiperSlide>
+                
 
                 {/* 2페이지 */}
                 <SwiperSlide>
@@ -102,7 +96,16 @@ export default function FloorMap({ showGuideMessage = false }) {
                         </div>
                     </div>
                 </SwiperSlide>
+                {/* 1페이지 */}
+                <SwiperSlide>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
+                        <div style={{ width: "363px", height: "300px", position: "relative" }}>
+                            <FloorPlan1 activeZone={activeZone} onZoneClick={handleZoneClick} isGuideOpen={isGuideOpen} />
+                        </div>
+                    </div>
+                </SwiperSlide>
             </Swiper>
+            
             
             {/* 1. 지도를 눌러 보세요! 안내 */}
             {!isGuideOpen && isGuideMessageVisible && (
