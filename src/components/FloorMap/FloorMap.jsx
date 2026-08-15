@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import "swiper/css";
@@ -25,6 +25,9 @@ export default function FloorMap({ showGuideMessage = false }) {
     const [isGuideOpen, setIsGuideOpen] = useState(false);
     const navigate = useNavigate();
 
+    const outletContext = useOutletContext();
+    const setSelectedZone = outletContext?.setSelectedZone;
+
     const handleZoneClick = (zoneId) => {
         if (isGuideMessageVisible) return;
 
@@ -38,12 +41,13 @@ export default function FloorMap({ showGuideMessage = false }) {
         setActiveZone(zoneId);
         console.log(`📌 선택된 구역: ${zoneId}`);
 
-        if (zoneId === "entrance") {
-            navigate("/entrance");
-        } else {
+        if (setSelectedZone) {
+            setSelectedZone(zoneId);
+            }
+
+            // 진열대 상세 페이지로 이동
             navigate(`/shelf/${zoneId}`);
-        }
-    };
+        };
 
     const handleFirstGuideClick = (event) => {
         event.stopPropagation();

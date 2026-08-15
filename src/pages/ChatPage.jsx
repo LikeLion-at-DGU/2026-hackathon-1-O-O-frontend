@@ -5,28 +5,12 @@ import styled from "styled-components";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import ChatMessage from "../components/ChatMessage/ChatMessage";
 import bearImage from "../assets/bear.png";
+import Header from "../components/Header/Header";
+import useChatStore from "../stores/useChatStore";
 
 function ChatPage() {
   const navigate = useNavigate();
-
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: "assistant",
-      text: (
-        <>
-          저와 함께 MCM을 경험해 보아요!
-          <br />
-          각 상품을 눌러 궁금한 점을 알아보세요.
-        </>
-      ),
-    },
-    {
-      id: 2,
-      type: "user",
-      text: "1번 진열대 클릭",
-    },
-  ]);
+  const { messages, addCustomMessage } = useChatStore();
 
   const [inputValue, setInputValue] = useState("");
 
@@ -48,22 +32,13 @@ function ChatPage() {
     // 공백만 입력한 경우 전송하지 않음
     if (!trimmedValue) return;
 
-    const newMessage = {
-      id: Date.now(),
-      type: "user",
-      text: trimmedValue,
-    };
-
-    setMessages((previousMessages) => [
-      ...previousMessages,
-      newMessage,
-    ]);
+    addCustomMessage("user", trimmedValue);
 
     setInputValue("");
   };
 
   return (
-    <MobileLayout header={<ChatHeader />}>
+    <MobileLayout header={<Header theme="light" />}>
       <ChatPageContainer>
         <MessageArea>
           {messages.map((message) => (
