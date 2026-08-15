@@ -1,8 +1,8 @@
 import React from "react";
 
 export default function PlusButton({
-  cx = 325.5,
-  cy = 264,
+  cx = 11.5,
+  cy = 12,
   isOpen = false,
   onClick,
 }) {
@@ -24,7 +24,7 @@ export default function PlusButton({
 
       {/* 가로선: +와 - 모두 표시 */}
       <path
-        d={`M ${cx - 7} ${cy} L ${cx + 7} ${cy}`}
+        d={`M ${cx - 6} ${cy} L ${cx + 6} ${cy}`}
         stroke="#222222"
         strokeWidth="2"
         strokeLinecap="round"
@@ -34,7 +34,7 @@ export default function PlusButton({
       {/* 세로선: 가이드가 닫혀 있을 때만 표시 */}
       {!isOpen && (
         <path
-          d={`M ${cx} ${cy - 7} L ${cx} ${cy + 7}`}
+          d={`M ${cx} ${cy - 6} L ${cx} ${cy + 6}`}
           stroke="#222222"
           strokeWidth="2"
           strokeLinecap="round"
