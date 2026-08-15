@@ -80,4 +80,10 @@ const BackChat = styled.div`
   gap: 8px;
 
   cursor: pointer;
+
+  
+  &:hover {
+  color: var(--Deep-Slate, #222);
+  }
+
 `;

@@ -39,6 +39,10 @@ export const GoChat = styled.div`
   gap: 8px;
   margin-bottom: 24px;
   cursor: pointer;
+
+  &:hover {
+  color: var(--Deep-Slate, #222);
+  }
 `;
 
 export const Line = styled.svg`
