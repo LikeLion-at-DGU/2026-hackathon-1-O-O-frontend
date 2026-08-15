@@ -14,7 +14,75 @@ function HomeContent() {
           방문을 환영합니다.
         </S.Title>
 
-        <S.GreetingBear src={GreetingBear} alt="" />
+        <S.BearWrapper>
+          <S.BearShadow>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="109"
+              height="43"
+              viewBox="0 0 109 43"
+              fill="none"
+            >
+              <g filter="url(#bearShadowBlur)">
+                <ellipse
+                  cx="54.3125"
+                  cy="23.6875"
+                  rx="50.3125"
+                  ry="15.3125"
+                  fill="black"
+                  fillOpacity="0.25"
+                />
+                <ellipse
+                  cx="26.9688"
+                  cy="8.375"
+                  rx="14.2188"
+                  ry="4.375"
+                  fill="black"
+                  fillOpacity="0.25"
+                />
+                <ellipse
+                  cx="79.4688"
+                  cy="8.375"
+                  rx="14.2188"
+                  ry="4.375"
+                  fill="black"
+                  fillOpacity="0.25"
+                />
+              </g>
+
+              <defs>
+                <filter
+                  id="bearShadowBlur"
+                  x="0"
+                  y="0"
+                  width="108.625"
+                  height="43"
+                  filterUnits="userSpaceOnUse"
+                  colorInterpolationFilters="sRGB"
+                >
+                  <feFlood
+                    floodOpacity="0"
+                    result="BackgroundImageFix"
+                  />
+
+                  <feBlend
+                    mode="normal"
+                    in="SourceGraphic"
+                    in2="BackgroundImageFix"
+                    result="shape"
+                  />
+
+                  <feGaussianBlur
+                    stdDeviation="2"
+                    result="effect1_foregroundBlur"
+                  />
+                </filter>
+              </defs>
+            </svg>
+          </S.BearShadow>
+
+          <S.GreetingBear src={GreetingBear} alt="" />
+        </S.BearWrapper>
       </S.Greeting>
 
       <S.SubTitle>
@@ -23,22 +91,26 @@ function HomeContent() {
 
       <S.Description>
         회고적이면서도 미래지향적인 2026 가을-겨울 컬렉션은 뮌헨의
-        <br />
+        
         문화와 음악을 통해 MCM 50주년을 기념하며, 최첨단 소재와 미래
-        <br />
+        
         지향적인 스타일을 조화롭게 담아냈습니다. 스터드 디테일의 실루엣
-        <br />
+        
         과 혁신적인 가죽 제품은 예술과 기술, 여행이 교차하는 하우스의
-        <br />
+        
         정체성을 드러냅니다.
-      </S.Description>
+
+         {/* 이거 br 안 빼면 모바일 크기 별로 문단 이상하게 나뉠 것 같아서 일단 지웟어용 */}
+      </S.Description> 
 
       <S.SubTitle>
         MCM 소개
       </S.SubTitle>
 
       <S.Section>
-        <S.SectionTitle>뮌헨에서 시작된 아이콘</S.SectionTitle>
+        <S.SectionTitle>
+          뮌헨에서 시작된 아이콘
+        </S.SectionTitle>
 
         <S.Text>
           1976년 뮌헨의 황금기에 탄생한 MCM은 자유로운 제트족과
@@ -51,7 +123,9 @@ function HomeContent() {
           시대를 초월하여 변치 않는 MCM만의 아이콘으로 사랑받고 있습니다.
         </S.Text>
 
-        <S.SectionTitle>기능을 따르는 장인정신</S.SectionTitle>
+        <S.SectionTitle>
+          기능을 따르는 장인정신
+        </S.SectionTitle>
 
         <S.Text>
           MCM 디자인의 중심에는 "형태는 기능을 따른다"는 바우하우스
@@ -63,7 +137,9 @@ function HomeContent() {
           의도된 디테일로 완성된 감각적인 디자인을 선보입니다.
         </S.Text>
 
-        <S.SectionTitle>문화적 대화와 지속 가능한 미래</S.SectionTitle>
+        <S.SectionTitle>
+          문화적 대화와 지속 가능한 미래
+        </S.SectionTitle>
 
         <S.Text>
           MCM은 음악, 스포츠, 예술 전반을 아우르며 끊임없이 혁신적인
