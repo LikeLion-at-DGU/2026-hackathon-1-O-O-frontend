@@ -1,11 +1,13 @@
 import React from "react";
 import { useParams } from "react-router-dom";
+import { createPortal } from "react-dom";
 
 import ChatMessage from "../components/ChatMessage/ChatMessage";
 import useChatStore from "../stores/useChatStore";
 
 import bearImage from "../assets/bear.png";
 import * as S from "../components/Shelf/Shelf.style";
+import { MessageBubble } from "../components/ChatMessage/ChatMessage.styled";
 
 function ProductPage() {
     const { productId } = useParams();
@@ -18,10 +20,18 @@ function ProductPage() {
         (state) => state.selectedProduct
     );
 
+    const selectQuestion = useChatStore((state) => state.selectQuestion);
+
     const productName =
         selectedProduct?.name?.split(" - ")[1] ??
         selectedProduct?.name ??
         "선택한 상품";
+
+    const PRODUCT_INFO = {
+        "재질": selectedProduct?.material || "고급 비세토스 코팅 캔버스 소재입니다.",
+        "가격": selectedProduct?.price || "공식 판매가 1,250,000원입니다.",
+        "디자인 의도": selectedProduct?.concept || "클래식한 헤리티지를 현대적으로 재해석했습니다.",
+    };
 
     const handleQuestionClick = (question) => {
         console.log(
@@ -30,6 +40,8 @@ function ProductPage() {
 
         // 다음 단계에서 질문별 챗봇 답변을 연결하면 됩니다.
     };
+
+    const chatSlot = document.getElementById("chat-bottom-slot");
 
     return (
         <S.PageContainer>
@@ -43,64 +55,28 @@ function ProductPage() {
                     선택한 상품 ID: {productId}
                 </S.ProductInfo>
             </S.ProductArea>
-
-            <S.ChatArea>
-                {/* 기존 챗봇 안내 메시지 */}
-                <ChatMessage
-                    type="assistant"
-                    profileImage={bearImage}
-                >
-                    저와 함께 MCM을 경험해 보아요!
-                    <br />
-                    각 상품을 눌러 궁금한 점을 알아보세요.
-                </ChatMessage>
-
-                {/* 이전 진열대 클릭 메시지 유지 */}
-                {selectedZoneId && (
-                    <ChatMessage type="user">
-                        {selectedZoneId}번 진열대 클릭
-                    </ChatMessage>
-                )}
-
-                {/* 새 상품 클릭 메시지 추가 */}
-                {selectedProduct && (
-                    <ChatMessage type="user">
-                        {productName} 상품 클릭
-                    </ChatMessage>
-                )}
-
-                {/* 예시 질문 */}
-                {selectedProduct && (
-                    <S.QuestionButtons>
-                        <S.QuestionButton
-                            type="button"
-                            onClick={() =>
-                                handleQuestionClick("가격")
-                            }
-                        >
-                            가격
-                        </S.QuestionButton>
-
-                        <S.QuestionButton
-                            type="button"
-                            onClick={() =>
-                                handleQuestionClick("재질")
-                            }
-                        >
-                            재질
-                        </S.QuestionButton>
-
-                        <S.QuestionButton
-                            type="button"
-                            onClick={() =>
-                                handleQuestionClick("디자인 의도")
-                            }
-                        >
-                            디자인 의도
-                        </S.QuestionButton>
-                    </S.QuestionButtons>
-                )}
-            </S.ChatArea>
+        {chatSlot &&
+        createPortal(
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "8px" }}>
+                {["가격", "재질", "디자인 의도"].map((q) => (
+                <MessageBubble
+                    key={q}
+                    as="button"
+                    $type="user"
+                    onClick={() => handleQuestionClick(q)}
+                    style={{
+                        cursor: "pointer",
+                        border: "none",
+                        outline: "none",
+                        borderRadius: "16px",
+                    }}
+                    >
+                    {q}
+                </MessageBubble>
+                ))}
+            </div>,
+            chatSlot
+            )}
         </S.PageContainer>
     );
 }

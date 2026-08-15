@@ -26,7 +26,7 @@ export const MessageBubble = styled.div`
 
   color: #ffffff;
   background-color: ${({ $isAssistant }) =>
-    $isAssistant ? "#1f1f1f" : "#9a6b3b"};
+    $isAssistant ? "#1f1f1f" : "#8C6239"};
 
   font-size: 13px;
   font-weight: 400;
