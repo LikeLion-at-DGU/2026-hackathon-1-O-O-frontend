@@ -23,11 +23,11 @@ function Layout() {
         >
         저와 함께 MCM을 경험해 보아요!
           <br />
-         각 상품을 눌러 궁금한 점을 알아보세요.
+          각 상품을 눌러 궁금한 점을 알아보세요.
       </ChatMessage>
 
         <ChatMessage type="user">
-           1번 진열대 클릭
+            1번 진열대 클릭
         </ChatMessage>
       </S.Chat>
 
