@@ -84,7 +84,14 @@ export default function FloorMap({ showGuideMessage = false }) {
                 slidesPerView={1}
                 pagination={{ clickable: true }}
                 initialSlide={1}
-                style={{ width: "100%", height: "100%" }}
+                style={{ width: "100%", height: "100%",
+                    "--swiper-pagination-color": "#222", /* 활성화된 점 색상 */
+                    "--swiper-pagination-bullet-inactive-color": "#D1CCC7", /* 비활성 점 색상 */
+                    "--swiper-pagination-bullet-inactive-opacity": "1", /*점 불투명도*/
+                    "--swiper-pagination-bullet-size": "5px", /* 점 크기 */
+                    "--swiper-pagination-bottom": "8px", /* 하단 여백 */
+                    "--swiper-pagination-bullet-horizontal-gap": "2.5px", /*점과 점 사이 간격*/
+                    }}
             >
                 
 
@@ -192,8 +199,8 @@ export default function FloorMap({ showGuideMessage = false }) {
                 <svg viewBox="0 0 363 300" width="100%" height="100%">
                     <g style={{ pointerEvents: "auto"}}>
                         <PlusButton 
-                            cx={337} 
-                            cy={275} 
+                            cx={25} 
+                            cy={24} 
                             isOpen={isGuideOpen} 
                             onClick={(e) => {
                                 e.stopPropagation();

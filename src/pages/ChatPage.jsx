@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 import MobileLayout from "../components/MobileLayout/MobileLayout";
-import ChatHeader from "../components/ChatHeader/ChatHeader";
 import ChatMessage from "../components/ChatMessage/ChatMessage";
 import bearImage from "../assets/bear.png";
 
