@@ -22,7 +22,7 @@ export const MobileContainer = styled.div`
 
 export const MainContent = styled.main`
   min-height: ${({ $showHeader }) =>
-    $showHeader ? "calc(100dvh - 72px)" : "100dvh"};
+    $showHeader ? "calc(100dvh - 103px)" : "100dvh"};
 
   background-color: ${({ $showHeader }) =>
     $showHeader ? "#ffffff" : "#222222"};

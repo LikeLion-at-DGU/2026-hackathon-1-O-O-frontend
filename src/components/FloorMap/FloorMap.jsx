@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import "swiper/css";
@@ -10,13 +10,16 @@ import FloorPlan1 from "./FloorPlan1";
 import FloorPlan2 from "./FloorPlan2";
 
 const GUIDE_ITEMS = [
-    { id: 1, text: "F/W 신상품" },
-    { id: 2, text: "가방" },
-    { id: 3, text: "의류" },
-    { id: 4, text: "액세서리" },
-    { id: 5, text: "슈즈" },
-    { id: 6, text: "지갑" },
-    { id: 7, text: "주얼리" },
+    { id: 1, text: "토트백" },
+    { id: 2, text: "백팩" },
+    { id: 3, text: "쇼퍼백" },
+    { id: 4, text: "악세서리" },
+    { id: 5, text: "여성 의류" },
+    { id: 6, text: "남성 의류" },
+    { id: 7, text: "F/W 신상" },
+    { id: 8, text: "트래블 백" },
+    { id: 9, text: "파우치" },
+    { id: 10, text: "지갑" },
 ];
 
 export default function FloorMap({ showGuideMessage = false }) {
@@ -24,6 +27,9 @@ export default function FloorMap({ showGuideMessage = false }) {
     const [isGuideMessageVisible, setIsGuideMessageVisible] = useState(showGuideMessage);
     const [isGuideOpen, setIsGuideOpen] = useState(false);
     const navigate = useNavigate();
+
+    const outletContext = useOutletContext();
+    const setSelectedZone = outletContext?.setSelectedZone;
 
     const handleZoneClick = (zoneId) => {
         if (isGuideMessageVisible) return;
@@ -38,12 +44,13 @@ export default function FloorMap({ showGuideMessage = false }) {
         setActiveZone(zoneId);
         console.log(`📌 선택된 구역: ${zoneId}`);
 
-        if (zoneId === "entrance") {
-            navigate("/entrance");
-        } else {
+        if (setSelectedZone) {
+            setSelectedZone(zoneId);
+            }
+
+            // 진열대 상세 페이지로 이동
             navigate(`/shelf/${zoneId}`);
-        }
-    };
+        };
 
     const handleFirstGuideClick = (event) => {
         event.stopPropagation();
@@ -84,7 +91,14 @@ export default function FloorMap({ showGuideMessage = false }) {
                 slidesPerView={1}
                 pagination={{ clickable: true }}
                 initialSlide={1}
-                style={{ width: "100%", height: "100%" }}
+                style={{ width: "100%", height: "100%",
+                    "--swiper-pagination-color": "#222", /* 활성화된 점 색상 */
+                    "--swiper-pagination-bullet-inactive-color": "#D1CCC7", /* 비활성 점 색상 */
+                    "--swiper-pagination-bullet-inactive-opacity": "1", /*점 불투명도*/
+                    "--swiper-pagination-bullet-size": "5px", /* 점 크기 */
+                    "--swiper-pagination-bottom": "8px", /* 하단 여백 */
+                    "--swiper-pagination-bullet-horizontal-gap": "2.5px", /*점과 점 사이 간격*/
+                    }}
             >
                 
 
@@ -121,15 +135,19 @@ export default function FloorMap({ showGuideMessage = false }) {
                         width: "363px",
                         height: "300px",
                         borderRadius: "20px",
-                        backgroundColor: "rgba(60, 60, 60, 0.55)",
+                        backgroundColor: "rgba(0, 0, 0, 0.50)",
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
+                        color: "#E5E3E0",
                         fontSize: "14px",
-                        fontWeight: "500",
+                        fontweight: "var(--Font-weight-Light, 300)",
+                        fontFamily: "Pretendard",
+                        fontStyle: "normal",
                         cursor: "pointer",
                         zIndex: 20, // 스와이퍼보다 위에 표시
                         
+                        lineheight: "140%",
                     }}
                 >
                     지도를 눌러 보세요!
@@ -192,8 +210,8 @@ export default function FloorMap({ showGuideMessage = false }) {
                 <svg viewBox="0 0 363 300" width="100%" height="100%">
                     <g style={{ pointerEvents: "auto"}}>
                         <PlusButton 
-                            cx={337} 
-                            cy={275} 
+                            cx={25} 
+                            cy={24} 
                             isOpen={isGuideOpen} 
                             onClick={(e) => {
                                 e.stopPropagation();

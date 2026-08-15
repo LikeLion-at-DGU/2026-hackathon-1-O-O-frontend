@@ -7,6 +7,7 @@ export const Content = styled.div`
   border-radius: 20px;
   background: #e5e3e0;
   margin: 24px auto;
+  flex-shrink: 0;
 `;
 
 export const Chat = styled.div`
@@ -20,6 +21,34 @@ export const Chat = styled.div`
   /* border: 2px solid black; */
 
   margin: 0 auto 16px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px; /* 텍스트와 스크롤바 간격 */
+
+  /* !!!!!!여기 스크롤 아직 수정중 일단 급한대로 끼워넣음 */
+
+  /* 🚀 스크롤바 너비 */
+  &::-webkit-scrollbar {
+    width: 6px;
+    display: block;
+  }
+
+  /* 🚀 스크롤바 배경(트랙) 투명 처리 */
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* 🚀 스크롤바 막대(Thumb) 디자인 */
+  &::-webkit-scrollbar-thumb {
+    background: #E4E4E7; /* 연한 그레이 색상 */
+    border-radius: 10px;
+  }
+
+  /* 마우스 호버 시 살짝 진하게 */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #D4D4D8;
+  }
 `;
 
 export const GoChat = styled.div`

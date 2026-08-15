@@ -25,7 +25,7 @@ export class BgmManager {
     }
 }
 
-export default function SoundButton() {
+export default function SoundButton({ isLight = false }) {
     const [isMuted, setIsMuted] = useState(BgmManager.audio.paused);
 
     useEffect(() => {
@@ -54,6 +54,9 @@ export default function SoundButton() {
         }
     };
 
+    const currentIcon = isMuted ? SoundOffIcon : SoundOnIcon;
+    const iconColor = isLight ? "#222222" :"#F3EEE3";
+
     return (
         <div style={{ display: "inline-block" }}>
             <button
@@ -69,11 +72,75 @@ export default function SoundButton() {
                     justifyContent: "center",
                 }}
             >
-                <img
-                    src={isMuted ? SoundOffIcon : SoundOnIcon}
-                    alt={isMuted ? "음소거" : "소리 켜짐"}
-                    style={{ width: "24px", height: "24px" }}
-                />
+                <>
+                {isMuted ? (
+                /* 🔇 음소거 아이콘 */
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+                        <mask
+                        id="mask0_47_599"
+                        style={{ maskType: "alpha" }}
+                        maskUnits="userSpaceOnUse"
+                        x="15"
+                        y="9"
+                        width="7"
+                        height="7"
+                        >
+                        <path d="M15 9H21.5V15.5H15V9Z" fill="white" />
+                        </mask>
+                        <g mask="url(#mask0_47_599)">
+                        <path
+                            d="M20.3675 10.143L16.1245 14.3855M16.125 10.143L20.3675 14.3855"
+                            stroke={iconColor}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                        </g>
+                        <path
+                        d="M12 3V21C8.5 21 5.8995 16.42 5.8995 16.42H3C2.73478 16.42 2.48043 16.3146 2.29289 16.1271C2.10536 15.9396 2 15.6852 2 15.42V8.505C2 8.23978 2.10536 7.98543 2.29289 7.79789C2.48043 7.61036 2.73478 7.505 3 7.505H5.8995C5.8995 7.505 8.5 3 12 3Z"
+                        fill={iconColor}
+                        stroke={iconColor}
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                        />
+                    </svg>
+                    ) : (
+                    /* 🔊 사운드 On 아이콘 */
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+                        <path
+                        d="M12 3V21C8.5 21 5.8995 16.42 5.8995 16.42H3C2.73478 16.42 2.48043 16.3146 2.29289 16.1271C2.10536 15.9396 2 15.6852 2 15.42V8.505C2 8.23978 2.10536 7.98543 2.29289 7.79789C2.48043 7.61036 2.73478 7.505 3 7.505H5.8995C5.8995 7.505 8.5 3 12 3Z"
+                        fill={iconColor}
+                        stroke={iconColor}
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                        />
+                        <path
+                        d="M15 9C16.5092 9.95027 18.6222 12.4807 15 15"
+                        stroke={iconColor}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        />
+                        <path
+                        d="M17.5 7C19.7639 8.58379 22.9333 12.8011 17.5 17"
+                        stroke={iconColor}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        />
+                    </svg>
+                    )}
+                </>
             </button>
         </div>
     );

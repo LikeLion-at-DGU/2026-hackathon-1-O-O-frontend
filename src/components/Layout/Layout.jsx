@@ -1,14 +1,21 @@
 import * as S from "./Layout.styled";
 import MobileLayout from "../MobileLayout/MobileLayout";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import ChatMessage from "../ChatMessage/ChatMessage";
 import bearImage from "../../assets/bear.png";
-import { useNavigate } from "react-router-dom";
+import { useState,useEffect, useRef } from "react";
 import ChatPage from "../../pages/ChatPage";
+import useChatStore from "../../stores/useChatStore";
 
 function Layout() {
 
   const navigate = useNavigate();
+  const { messages } = useChatStore();
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
   
   return (
     <MobileLayout>
@@ -17,18 +24,19 @@ function Layout() {
       </S.Content>
 
       <S.Chat>
-        <ChatMessage
-          type="assistant"
-          profileImage={bearImage}
-        >
-        저와 함께 MCM을 경험해 보아요!
-          <br />
-         각 상품을 눌러 궁금한 점을 알아보세요.
-      </ChatMessage>
+        {messages.map((msg) => (
+          <ChatMessage
+            key={msg.id}
+            type={msg.type}
+            profileImage={msg.type === "assistant" ? bearImage : undefined}
+          >
+            {msg.text}
+          </ChatMessage>
+        ))}
 
-        <ChatMessage type="user">
-           1번 진열대 클릭
-        </ChatMessage>
+        {/* ProductPage 질문 버튼이 들어갈 자리 */}
+        <div id="chat-bottom-slot" style={{ width: "100%" }} />
+        <div ref={chatEndRef} />
       </S.Chat>
 
       <S.Line

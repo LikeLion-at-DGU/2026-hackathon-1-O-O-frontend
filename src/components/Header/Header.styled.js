@@ -1,19 +1,21 @@
 import styled from "styled-components";
 
 export const HeaderContainer = styled.header`
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
   width: 100%;
   height: 103px;
   padding: 51px 16px 14px 19px;
-
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  background-color: #1f1f1f;
-  box-sizing: border-box; 
+  background-color: ${({ $isLight }) => ($isLight ? "#F3EEE3" : "#222")};
+  box-sizing: border-box;
 `;
-
 export const Logo = styled.div`
   display: flex;
   align-items: center;
@@ -23,7 +25,7 @@ export const Logo = styled.div`
 `;
 
 export const LogoText = styled.span`
-  color: #F3EEE3;
+  color: ${({ $isLight }) => ($isLight ? "#222" : "#F3EEE3")};
 
   font-family: Georgia, "Times New Roman", serif;
   font-size: 32px;
