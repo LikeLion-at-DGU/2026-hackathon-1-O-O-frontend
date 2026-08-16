@@ -5,7 +5,7 @@ import { Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import PlusButton from "./icons/PlusButton";
-
+import styled from "styled-components";
 import FloorPlan1 from "./FloorPlan1";
 import FloorPlan2 from "./FloorPlan2";
 
@@ -123,7 +123,7 @@ export default function FloorMap({ showGuideMessage = false }) {
             
             {/* 1. 지도를 눌러 보세요! 안내 */}
             {!isGuideOpen && isGuideMessageVisible && (
-                <div
+                <ClickMap
                     role="button"
                     tabIndex={0}
                     onClick={handleFirstGuideClick}
@@ -146,11 +146,12 @@ export default function FloorMap({ showGuideMessage = false }) {
                         fontStyle: "normal",
                         cursor: "pointer",
                         zIndex: 20, // 스와이퍼보다 위에 표시
+                        
                         lineheight: "140%",
                     }}
                 >
                     지도를 눌러 보세요!
-                </div>
+                </ClickMap>
             )}
 
             {/* 2. 진열대 안내 (+ 버튼 클릭 시) */}
@@ -224,3 +225,11 @@ export default function FloorMap({ showGuideMessage = false }) {
         </div>
     );
 }
+
+const ClickMap = styled.div `
+    color: #FFFFFF;
+
+      &:hover {
+    color: var(--Deep-Slate, #222);
+        }
+`

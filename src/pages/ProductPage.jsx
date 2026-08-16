@@ -9,9 +9,59 @@ import bearImage from "../assets/bear.png";
 import * as S from "../components/Shelf/Shelf.style";
 import { MessageBubble } from "../components/ChatMessage/ChatMessage.styled";
 
+import { getProduct } from "../api/products";
+import { useState,useEffect } from "react";
+import { sendEvent } from "../api/events";
+
 function ProductPage() {
     const { productId } = useParams();
 
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+    const fetchProduct = async () => {
+    try {
+        const response = await getProduct(productId);
+
+        setProduct(response.data);
+
+        const visitId = sessionStorage.getItem("visit_id");
+
+        if (visitId) {
+        await sendEvent({
+            visit_id: visitId,
+            event_type: "PRODUCT_VIEW",
+            product_id: Number(productId),
+        });
+        }
+    } catch (error) {
+        console.error("상품 조회 실패:", error);
+    } finally {
+        setLoading(false);
+    }
+    };
+
+    fetchProduct();
+    }, [productId]);
+
+    const handleProductClick = async () => {
+    const visitId = sessionStorage.getItem("visit_id");
+
+    if (!visitId) {
+    console.warn("visit_id가 없습니다.");
+    return;
+    }
+
+    await sendEvent({
+    visit_id: visitId,
+    event_type: "PRODUCT_CLICK",
+    product_id: product.id,
+    });
+
+    };
+
+   
     const selectedZoneId = useChatStore(
         (state) => state.selectedZoneId
     );
@@ -33,13 +83,22 @@ function ProductPage() {
         "디자인 의도": selectedProduct?.concept || "클래식한 헤리티지를 현대적으로 재해석했습니다.",
     };
 
-    const handleQuestionClick = (question) => {
-        console.log(
-            `${productName}에 대한 질문: ${question}`
-        );
+  const handleQuestionClick = async (question) => {
+    const visitId = sessionStorage.getItem("visit_id");
 
-        // 다음 단계에서 질문별 챗봇 답변을 연결하면 됩니다.
-    };
+    if (visitId) {
+        await sendEvent({
+            visit_id: visitId,
+            event_type: "QUESTION_CLICK",
+            product_id: Number(productId),
+            question,
+        }); 
+    }
+
+    console.log(
+        `${productName}에 대한 질문: ${question}`
+    );
+};
 
     const chatSlot = document.getElementById("chat-bottom-slot");
 
@@ -47,14 +106,38 @@ function ProductPage() {
         <S.PageContainer>
             {/* 현재는 임시 상품 상세 영역 */}
             <S.ProductArea>
-                <S.ProductTitle>
-                    {productName}
-                </S.ProductTitle>
+    {loading ? (
+        <S.ProductInfo>
+            상품을 불러오는 중...
+        </S.ProductInfo>
+    ) : !product ? (
+        <S.ProductInfo>
+            상품을 찾을 수 없습니다.
+        </S.ProductInfo>
+    ) : (
+        <>
+            <S.ProductTitle>
+                {product.name}
+            </S.ProductTitle>
 
-                <S.ProductInfo>
-                    선택한 상품 ID: {productId}
-                </S.ProductInfo>
-            </S.ProductArea>
+            <S.ProductInfo>
+                선택한 상품 ID: {product.id}
+            </S.ProductInfo>
+
+            <S.ProductInfo>
+                가격: {product.price.toLocaleString()}원
+            </S.ProductInfo>
+
+            <S.ProductInfo>
+                카테고리: {product.category}
+            </S.ProductInfo>
+
+            <S.ProductInfo>
+                {product.description}
+            </S.ProductInfo>
+        </>
+    )}
+</S.ProductArea>
         {chatSlot &&
         createPortal(
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "8px" }}>
