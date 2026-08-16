@@ -57,7 +57,7 @@
         { id: "p-42", name: "클래식 벨트백", price: "720,000원", imageUrl: "/images/42-Photoroom.png" },
         { id: "p-43", name: "클래식 벨트백", price: "720,000원", imageUrl: "/images/43-Photoroom.png" },
         { id: "p-44", name: "클래식 벨트백", price: "720,000원", imageUrl: "/images/44-Photoroom.png" },
-        { id: "p-45", name: "클래식 벨트백", price: "720,000원", imageUrl: "/images/45 -Photoroom.png" },
+        { id: "p-45", name: "클래식 벨트백", price: "720,000원", imageUrl: "/images/45-Photoroom.png" },
     ],
 
 
