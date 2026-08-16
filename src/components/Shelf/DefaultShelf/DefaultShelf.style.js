@@ -8,11 +8,11 @@ export const Container = styled.div`
   gap: 10px;
 
   width: 100%;
-  max-width: 363px;
+  width: 363px;
   height: 300px;
 
   margin: 0 auto;
-  padding: 12px;
+  padding: 20px 19.5px 20px;
 
   box-sizing: border-box;
 
@@ -28,7 +28,7 @@ export const Tier = styled.div`
   align-items: center;
   justify-items: center;
 
-  height: 82px;
+  height: 80px;
 
   padding: 4px 8px;
 

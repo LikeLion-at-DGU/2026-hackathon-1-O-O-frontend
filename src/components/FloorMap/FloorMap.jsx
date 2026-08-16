@@ -41,8 +41,8 @@ export default function FloorMap({ showGuideMessage = false }) {
 
         if (isGuideOpen) return;
 
-        setActiveZone(zoneId);
-        console.log(`📌 선택된 구역: ${zoneId}`);
+        // setActiveZone(zoneId);
+        // console.log(`📌 선택된 구역: ${zoneId}`);
 
         if (setSelectedZone) {
             setSelectedZone(zoneId);

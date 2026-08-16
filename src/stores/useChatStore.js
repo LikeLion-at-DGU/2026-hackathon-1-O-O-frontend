@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+let lastShelfLogAt = 0;
+let lastShelfLogZone = null;
+
 const INITIAL_MESSAGES = [
     {
         id: "init",
@@ -20,20 +23,37 @@ const INITIAL_MESSAGES = [
         // 🚀 누적 대화 기록 배열 (초기 곰돌이 안내 메시지 포함)
         messages: INITIAL_MESSAGES,
 
-        // 1. 진열대 클릭 시
+        // 1. 진열대 클릭 시        
+
+        // ...create((set, get) => ({
         selectShelf: (zoneId) =>
-            set((state) => {
-                const text = `${zoneId}번 진열대 클릭`;
-                const lastMsg = state.messages[state.messages.length - 1];
+        set((state) => {
+            const zone = Number(zoneId);
+            const now = Date.now();
 
-                // 방금 전 메시지와 똑같으면 중복 추가 안 함
-                if (lastMsg?.text === text) return { selectedZoneId: zoneId };
+            // ✅ 1) 현재 보고 있는 구역과 같으면 로그 없이 상태만 유지
+            if (state.selectedZoneId === zone) {
+            return { selectedZoneId: zone };
+            }
 
-                return {
-                selectedZoneId: zoneId,
-                messages: [...state.messages, { id: Date.now(), type: "user", text }],
-                };
-            }),
+            // ✅ 2) 400ms 안에 들어온 왕복 이벤트는 잔여 이벤트로 보고 폐기
+            //    (5→4 스와이프가 4,5,4 로 세 번 들어와도 첫 번째만 통과)
+            if (now - lastShelfLogAt < 400) {
+            return { selectedZoneId: zone };
+            }
+
+            lastShelfLogAt = now;
+            lastShelfLogZone = zone;
+
+            return {
+            selectedZoneId: zone,
+            messages: [
+                ...state.messages,
+                { id: now, type: "user", text: `${zone}번 진열대 클릭` },
+            ],
+            };
+        }),
+
 
         // 2. 상품 클릭 시
         selectProduct: (product) =>
