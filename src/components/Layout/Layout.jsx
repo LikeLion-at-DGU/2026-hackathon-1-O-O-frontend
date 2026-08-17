@@ -7,6 +7,7 @@ import { useState,useEffect, useRef } from "react";
 import ChatPage from "../../pages/ChatPage";
 import useChatStore from "../../stores/useChatStore";
 
+
 function Layout() {
 
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ function Layout() {
         <Outlet />
       </S.Content>
 
+    <S.Containerbottom>
       <S.Chat>
         {messages.map((msg) => (
           <ChatMessage
@@ -64,6 +66,7 @@ function Layout() {
           />
         </svg>
       </S.GoChat>
+      </S.Containerbottom>
     </MobileLayout>
   );
 }

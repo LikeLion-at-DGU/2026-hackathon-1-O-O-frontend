@@ -10,6 +10,19 @@ export const Content = styled.div`
   flex-shrink: 0;
 `;
 
+
+export const Containerbottom = styled.div`
+position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #F4F2EE;
+  /* padding-top: 16px; */
+  /* box-shadow: inset 0px 12px 15px -5px rgba(0, 0, 0, 0.15); */
+  background-color: #F5F4F1;
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, transparent 24px);
+    background-attachment: scroll;
+`
+
 export const Chat = styled.div`
   display: flex;
   width: 364px;
@@ -25,24 +38,27 @@ export const Chat = styled.div`
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 6px; /* 텍스트와 스크롤바 간격 */
+  padding-top: 24px; 
+  padding-bottom: 24px;
 
-  /* !!!!!!여기 스크롤 아직 수정중 일단 급한대로 끼워넣음 */
 
   /* 🚀 스크롤바 너비 */
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
     display: block;
   }
 
   /* 🚀 스크롤바 배경(트랙) 투명 처리 */
   &::-webkit-scrollbar-track {
     background: transparent;
+    margin: 20px 0 0 0;
   }
 
   /* 🚀 스크롤바 막대(Thumb) 디자인 */
   &::-webkit-scrollbar-thumb {
-    background: #E4E4E7; /* 연한 그레이 색상 */
+    background: #D1CCC7; /* 연한 그레이 색상 */
     border-radius: 10px;
+  
   }
 
   /* 마우스 호버 시 살짝 진하게 */
@@ -59,6 +75,7 @@ export const GoChat = styled.div`
   font-style: normal;
   font-weight: 300;
   line-height: 140%;
+  padding-bottom: 16px;
 
   display: flex;
   justify-content: flex-end;
