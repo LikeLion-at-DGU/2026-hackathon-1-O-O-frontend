@@ -88,9 +88,9 @@
 
         // 📌 7구역 (79번 ~ 87번 / 총 9개)
     7: [
-        { id: "p-71", name: "Stark 디스코 비세토스 백팩", price: "1,450,000원", imageUrl: "/images/71-Photoroom.png" },
-        { id: "p-72", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/72-Photoroom.png" },
-        { id: "p-73", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/73-Photoroom.png" },
+        { id: "p-58", name: "Stark 디스코 비세토스 백팩", price: "1,450,000원", imageUrl: "/images/58-Photoroom.png" },
+        { id: "p-59", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/59-Photoroom.png" },
+        { id: "p-60", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/60-Photoroom.png" },
     ],
 
 
