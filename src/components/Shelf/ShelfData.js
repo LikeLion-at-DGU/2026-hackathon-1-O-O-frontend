@@ -88,18 +88,11 @@
 
         // 📌 7구역 (79번 ~ 87번 / 총 9개)
     7: [
-        { id: "p-19", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/79-Photoroom.png" },
-        { id: "p-20", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/80-Photoroom.png" },
-        { id: "p-21", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/81-Photoroom.png" },
-        { id: "p-22", name: "동전 지갑", price: "210,000원", imageUrl: "/images/82-Photoroom.png" },
-        { id: "p-23", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/83-Photoroom.png" },
-        { id: "p-24", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/84-Photoroom.png" },
-        { id: "p-25", name: "리버서블 버킷햇", price: "290,000원", imageUrl: "/images/85-Photoroom.png" },
-        { id: "p-26", name: "선글라스 케이스", price: "240,000원", imageUrl: "/images/86-Photoroom.png" },
-        { id: "p-27", name: "가죽 키홀더", price: "170,000원", imageUrl: "/images/87-Photoroom.png" },
+        { id: "p-71", name: "Stark 디스코 비세토스 백팩", price: "1,450,000원", imageUrl: "/images/71-Photoroom.png" },
+        { id: "p-72", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/72-Photoroom.png" },
+        { id: "p-73", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/73-Photoroom.png" },
     ],
 
-        // 📌 8구역 (79번 ~ 87번 / 총 9개)
-    
+
 
     };
