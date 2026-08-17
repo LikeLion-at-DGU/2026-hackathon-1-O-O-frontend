@@ -11,6 +11,7 @@ import useChatStore from "../../stores/useChatStore";
 import DefaultShelf from "./DefaultShelf/DefaultShelf";
 import Shelf04 from "./Shelf04/Shelf04";
 import BackButton from "./icon/BackButton";
+import { sendEvent } from "../../api/events";
 
 const ZONES = [1, 2, 3, 4, 5, 6, 7];
 const clamp = (v) => Math.max(1, Math.min(7, Number(v) || 1));
@@ -53,11 +54,23 @@ export default function Shelf() {
     navigate(`/shelf/${zone}`, { replace: true });
   };
 
-  const handleProductClick = (product) => {
-    if (!product) return;
-    selectProduct(product);
-    navigate(`/product/${product.id}`);
-  };
+  const handleProductClick = async (product) => {
+  if (!product) return;
+
+  const visitId = sessionStorage.getItem("visit_id");
+
+  // 상품 클릭 이벤트 저장
+  if (visitId) {
+    await sendEvent({
+      visit_id: visitId,
+      event_type: "PRODUCT_CLICK",
+      product_id: product.id,
+    });
+  }
+
+  selectProduct(product);
+  navigate(`/product/${product.id}`);
+};
 
   return (
     <div
