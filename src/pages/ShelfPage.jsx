@@ -29,7 +29,7 @@ function ShelfPage() {
     return (
         // <S.PageContainer>
         //     <S.ShelfArea>
-                <Shelf />
+                <Shelf/>
         //     </S.ShelfArea>
 
         //     {/* <S.ChatArea>

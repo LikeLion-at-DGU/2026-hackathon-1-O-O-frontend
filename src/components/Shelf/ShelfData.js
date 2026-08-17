@@ -68,28 +68,22 @@
 
         // 📌 5구역 (79번 ~ 87번 / 총 9개)
     5: [
-        { id: "p-19", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/79-Photoroom.png" },
-        { id: "p-20", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/80-Photoroom.png" },
-        { id: "p-21", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/81-Photoroom.png" },
-        { id: "p-22", name: "동전 지갑", price: "210,000원", imageUrl: "/images/82-Photoroom.png" },
-        { id: "p-23", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/83-Photoroom.png" },
-        { id: "p-24", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/84-Photoroom.png" },
-        { id: "p-25", name: "리버서블 버킷햇", price: "290,000원", imageUrl: "/images/85-Photoroom.png" },
-        { id: "p-26", name: "선글라스 케이스", price: "240,000원", imageUrl: "/images/86-Photoroom.png" },
-        { id: "p-27", name: "가죽 키홀더", price: "170,000원", imageUrl: "/images/87-Photoroom.png" },
+        { id: "p-46", name: "모노그램 래더 벨트가 더해진 별자리 데님 재킷", price: "1,450,000원", imageUrl: "/images/46-Photoroom.png" },
+        { id: "p-47", name: "별자리 데님 진", price: "980,000원", imageUrl: "/images/47-Photoroom.png" },
+        { id: "p-48", name: "모노그램 크롭 티셔츠", price: "890,000원", imageUrl: "/images/48-Photoroom.png" },
+        { id: "p-49", name: "울 트윌 모노그램 팬츠", price: "210,000원", imageUrl: "/images/49-Photoroom.png" },
+        { id: "p-50", name: "디스코 시퀸 티셔츠", price: "310,000원", imageUrl: "/images/50-Photoroom.png" },
+        { id: "p-51", name: "루넥스 데님 오버올 스커트", price: "340,000원", imageUrl: "/images/51-Photoroom.png" },
     ],
 
         // 📌 6구역 (79번 ~ 87번 / 총 9개)
     6: [
-        { id: "p-19", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/79-Photoroom.png" },
-        { id: "p-20", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/80-Photoroom.png" },
-        { id: "p-21", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/81-Photoroom.png" },
-        { id: "p-22", name: "동전 지갑", price: "210,000원", imageUrl: "/images/82-Photoroom.png" },
-        { id: "p-23", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/83-Photoroom.png" },
-        { id: "p-24", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/84-Photoroom.png" },
-        { id: "p-25", name: "리버서블 버킷햇", price: "290,000원", imageUrl: "/images/85-Photoroom.png" },
-        { id: "p-26", name: "선글라스 케이스", price: "240,000원", imageUrl: "/images/86-Photoroom.png" },
-        { id: "p-27", name: "가죽 키홀더", price: "170,000원", imageUrl: "/images/87-Photoroom.png" },
+        { id: "p-52", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/52-Photoroom.png" },
+        { id: "p-53", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/53-Photoroom.png" },
+        { id: "p-54", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/54-Photoroom.png" },
+        { id: "p-55", name: "동전 지갑", price: "210,000원", imageUrl: "/images/55-Photoroom.png" },
+        { id: "p-56", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/56-Photoroom.png" },
+        { id: "p-57", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/57-Photoroom.png" },
     ],
 
         // 📌 7구역 (79번 ~ 87번 / 총 9개)
@@ -106,45 +100,6 @@
     ],
 
         // 📌 8구역 (79번 ~ 87번 / 총 9개)
-    8: [
-        { id: "p-19", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/79-Photoroom.png" },
-        { id: "p-20", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/80-Photoroom.png" },
-        { id: "p-21", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/81-Photoroom.png" },
-        { id: "p-22", name: "동전 지갑", price: "210,000원", imageUrl: "/images/82-Photoroom.png" },
-        { id: "p-23", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/83-Photoroom.png" },
-        { id: "p-24", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/84-Photoroom.png" },
-        { id: "p-25", name: "리버서블 버킷햇", price: "290,000원", imageUrl: "/images/85-Photoroom.png" },
-        { id: "p-26", name: "선글라스 케이스", price: "240,000원", imageUrl: "/images/86-Photoroom.png" },
-        { id: "p-27", name: "가죽 키홀더", price: "170,000원", imageUrl: "/images/87-Photoroom.png" },
-    ],
-
-        // 📌 9구역 (79번 ~ 87번 / 총 9개)
-    9: [
-        { id: "p-19", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/79-Photoroom.png" },
-        { id: "p-20", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/80-Photoroom.png" },
-        { id: "p-21", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/81-Photoroom.png" },
-        { id: "p-22", name: "동전 지갑", price: "210,000원", imageUrl: "/images/82-Photoroom.png" },
-        { id: "p-23", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/83-Photoroom.png" },
-        { id: "p-24", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/84-Photoroom.png" },
-        { id: "p-25", name: "리버서블 버킷햇", price: "290,000원", imageUrl: "/images/85-Photoroom.png" },
-        { id: "p-26", name: "선글라스 케이스", price: "240,000원", imageUrl: "/images/86-Photoroom.png" },
-        { id: "p-27", name: "가죽 키홀더", price: "170,000원", imageUrl: "/images/87-Photoroom.png" },
-    ],
-
-        // 📌 10구역 (79번 ~ 87번 / 총 9개)
-    10: [
-        { id: "p-19", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/79-Photoroom.png" },
-        { id: "p-20", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/80-Photoroom.png" },
-        { id: "p-21", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/81-Photoroom.png" },
-        { id: "p-22", name: "동전 지갑", price: "210,000원", imageUrl: "/images/82-Photoroom.png" },
-        { id: "p-23", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/83-Photoroom.png" },
-        { id: "p-24", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/84-Photoroom.png" },
-        { id: "p-25", name: "리버서블 버킷햇", price: "290,000원", imageUrl: "/images/85-Photoroom.png" },
-        { id: "p-26", name: "선글라스 케이스", price: "240,000원", imageUrl: "/images/86-Photoroom.png" },
-        { id: "p-27", name: "가죽 키홀더", price: "170,000원", imageUrl: "/images/87-Photoroom.png" },
-    ],
-
-
-
+    
 
     };
