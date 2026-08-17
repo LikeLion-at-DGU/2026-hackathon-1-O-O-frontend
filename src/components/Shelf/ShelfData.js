@@ -68,22 +68,22 @@
 
         // 📌 5구역 (79번 ~ 87번 / 총 9개)
     5: [
-        { id: "p-46", name: "모노그램 래더 벨트가 더해진 별자리 데님 재킷", price: "1,450,000원", imageUrl: "/images/46-Photoroom.png" },
-        { id: "p-47", name: "별자리 데님 진", price: "980,000원", imageUrl: "/images/47-Photoroom.png" },
-        { id: "p-48", name: "모노그램 크롭 티셔츠", price: "890,000원", imageUrl: "/images/48-Photoroom.png" },
-        { id: "p-49", name: "울 트윌 모노그램 팬츠", price: "210,000원", imageUrl: "/images/49-Photoroom.png" },
-        { id: "p-50", name: "디스코 시퀸 티셔츠", price: "310,000원", imageUrl: "/images/50-Photoroom.png" },
-        { id: "p-51", name: "루넥스 데님 오버올 스커트", price: "340,000원", imageUrl: "/images/51-Photoroom.png" },
+        { id: "p-46", name: "모노그램 래더 벨트가 더해진 별자리 데님 재킷", price: "1390000", imageUrl: "/images/46-Photoroom.png" },
+        { id: "p-47", name: "별자리 데님 진", price: "790000", imageUrl: "/images/47-Photoroom.png" },
+        { id: "p-48", name: "모노그램 크롭 티셔츠", price: "890000", imageUrl: "/images/48-Photoroom.png" },
+        { id: "p-49", name: "울 트윌 모노그램 팬츠", price: "690000", imageUrl: "/images/49-Photoroom.png" },
+        { id: "p-50", name: "디스코 시퀸 티셔츠", price: "450000", imageUrl: "/images/50-Photoroom.png" },
+        { id: "p-51", name: "루넥스 데님 오버올 스커트", price: "890000", imageUrl: "/images/51-Photoroom.png" },
     ],
 
         // 📌 6구역 (79번 ~ 87번 / 총 9개)
     6: [
-        { id: "p-52", name: "라지 백팩", price: "1,450,000원", imageUrl: "/images/52-Photoroom.png" },
-        { id: "p-53", name: "미디엄 쇼퍼백", price: "980,000원", imageUrl: "/images/53-Photoroom.png" },
-        { id: "p-54", name: "체인 숄더백", price: "890,000원", imageUrl: "/images/54-Photoroom.png" },
-        { id: "p-55", name: "동전 지갑", price: "210,000원", imageUrl: "/images/55-Photoroom.png" },
-        { id: "p-56", name: "머니클립 지갑", price: "310,000원", imageUrl: "/images/56-Photoroom.png" },
-        { id: "p-57", name: "폰 케이스 파우치", price: "340,000원", imageUrl: "/images/57-Photoroom.png" },
+        { id: "p-52", name: "50주년 기념 티셔츠", price: "390000", imageUrl: "/images/52-Photoroom.png" },
+        { id: "p-53", name: "모노그램 카고 팬츠 ECONYL®", price: "990000", imageUrl: "/images/53-Photoroom.png" },
+        { id: "p-54", name: "모노그램 패치 포켓 티셔츠", price: "330000", imageUrl: "/images/54-Photoroom.png" },
+        { id: "p-55", name: "에센셜 로고 폰테 쇼츠", price: "410000", imageUrl: "/images/55-Photoroom.png" },
+        { id: "p-56", name: "모노그램 프린트 가죽이 더해진 울 트윌 재킷", price: "1490000", imageUrl: "/images/56-Photoroom.png" },
+        { id: "p-57", name: "모노그램 프린트 가죽이 더해진 울 트윌 팬츠", price: "990000", imageUrl: "/images/57-Photoroom.png" },
     ],
 
         // 📌 7구역 (79번 ~ 87번 / 총 9개)
