@@ -16,8 +16,14 @@ function Header() {
                     <S.LogoText>O</S.LogoText>
                 </S.Logo>
             </Link>
-
+            
+            <S.ButtonWrapper>
+            <S.Finish>
+                관람 마치기
+            </S.Finish>
             <SoundButton />
+            </S.ButtonWrapper>
+        
         </S.HeaderContainer>
     );
 }
