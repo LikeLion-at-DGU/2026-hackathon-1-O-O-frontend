@@ -29,6 +29,7 @@ export const MessageBubble = styled.div`
     $isAssistant ? "#1f1f1f" : "#8C6239"};
 
   font-size: 13px;
+  font-family: "Pretendard";
   font-weight: 400;
   line-height: 1.5;
   word-break: keep-all;
