@@ -25,7 +25,7 @@ export class BgmManager {
     }
 }
 
-export default function SoundButton({ isLight = false }) {
+export default function SoundButton() {
     const [isMuted, setIsMuted] = useState(BgmManager.audio.paused);
 
     useEffect(() => {
@@ -55,7 +55,7 @@ export default function SoundButton({ isLight = false }) {
     };
 
     const currentIcon = isMuted ? SoundOffIcon : SoundOnIcon;
-    const iconColor = isLight ? "#222222" :"#F3EEE3";
+    const iconColor = "#F3EEE3";
 
     return (
         <div style={{ display: "inline-block" }}>
