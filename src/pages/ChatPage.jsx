@@ -38,7 +38,7 @@ function ChatPage() {
   };
 
   return (
-    <MobileLayout header={<Header theme="light" />}>
+    <MobileLayout>
       <ChatPageContainer>
         <MessageArea>
           {messages.map((message) => (

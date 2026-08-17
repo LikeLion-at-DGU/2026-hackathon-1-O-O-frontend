@@ -13,7 +13,7 @@ export const HeaderContainer = styled.header`
   align-items: center;
   justify-content: space-between;
 
-  background-color: ${({ $isLight }) => ($isLight ? "#F3EEE3" : "#222")};
+  background-color: #222;
   box-sizing: border-box;
 `;
 export const Logo = styled.div`
@@ -25,7 +25,7 @@ export const Logo = styled.div`
 `;
 
 export const LogoText = styled.span`
-  color: ${({ $isLight }) => ($isLight ? "#222" : "#F3EEE3")};
+  color: #F3EEE3;
 
   font-family: Georgia, "Times New Roman", serif;
   font-size: 32px;

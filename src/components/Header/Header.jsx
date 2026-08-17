@@ -5,21 +5,19 @@ import SoundButton from "../SoundButton";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-// header 기본값 dark, chat페이지만 light
-function Header({ theme = "dark" }) {
-    const isLight = theme === "light";
+function Header() {
 
     return (
-        <S.HeaderContainer $isLight={isLight}>
+        <S.HeaderContainer>
             <Link to="/home" style={{ textDecoration: "none", color: "inherit" }}>
                 <S.Logo>
-                    <S.LogoText $isLight={isLight}>O</S.LogoText>
+                    <S.LogoText>O</S.LogoText>
                     <S.Ampersand>&</S.Ampersand>
-                    <S.LogoText $isLight={isLight}>O</S.LogoText>
+                    <S.LogoText>O</S.LogoText>
                 </S.Logo>
             </Link>
 
-            <SoundButton isLight={isLight} />
+            <SoundButton />
         </S.HeaderContainer>
     );
 }
