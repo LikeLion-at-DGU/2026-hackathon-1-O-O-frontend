@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Bear from "./icons/Bear";
 import PlusButton from "./icons/PlusButton";
 
@@ -12,10 +12,14 @@ export default function FloorPlan1({
     onZoneClick,
     isGuideOpen = false,
 }) {
+    const [hoverZone, setHoverZone] = useState(null);
+
     const getZoneStyle = (id) => ({
         fill:
             activeZone === id
                 ? COLORS.zoneActive
+                : hoverZone === id
+                ? " var(--Neutral-N30, #A8A29D)" 
                 : COLORS.zoneDefault,
 
         transition: "fill 0.2s ease",
@@ -24,6 +28,17 @@ export default function FloorPlan1({
     const getCursor = () => {
         return isGuideOpen ? "default" : "pointer";
     };
+
+    const getHoverHandlers = (id) => ({
+        onMouseEnter: () => {
+            if (!isGuideOpen) {
+                setHoverZone(id);
+            }
+        },
+        onMouseLeave: () => {
+            setHoverZone(null);
+        },
+    });
 
     return (
         <svg
@@ -47,6 +62,7 @@ export default function FloorPlan1({
             {/* 1번 구역 */}
             <g
                 onClick={() => onZoneClick(1)}
+                {...getHoverHandlers(1)}
                 style={{
                     cursor: getCursor(),
                 }}
@@ -72,6 +88,7 @@ export default function FloorPlan1({
             {/* 2번 구역 */}
             <g
                 onClick={() => onZoneClick(2)}
+                {...getHoverHandlers(2)}
                 style={{
                     cursor: getCursor(),
                 }}
@@ -97,6 +114,7 @@ export default function FloorPlan1({
             {/* 5번 구역 */}
             <g
                 onClick={() => onZoneClick(5)}
+                {...getHoverHandlers(5)}
                 style={{
                     cursor: getCursor(),
                 }}
@@ -122,6 +140,7 @@ export default function FloorPlan1({
             {/* 6번 구역 */}
             <g
                 onClick={() => onZoneClick(6)}
+                {...getHoverHandlers(6)}
                 style={{
                     cursor: getCursor(),
                 }}
@@ -147,6 +166,7 @@ export default function FloorPlan1({
             {/* 3번 구역 */}
             <g
                 onClick={() => onZoneClick(3)}
+                {...getHoverHandlers(3)}
                 style={{
                     cursor: getCursor(),
                 }}
@@ -172,6 +192,7 @@ export default function FloorPlan1({
             {/* 4번 구역 */}
             <g
                 onClick={() => onZoneClick(4)}
+                {...getHoverHandlers(4)}
                 style={{
                     cursor: getCursor(),
                 }}
@@ -197,10 +218,18 @@ export default function FloorPlan1({
             {/* 7번 구역 */}
             <g
                 onClick={() => onZoneClick(7)}
+                {...getHoverHandlers(7)}
                 style={{
                     cursor: getCursor(),
                 }}
-            >
+            >   
+                  <rect
+                    x="145"
+                    y="225"
+                    width="75"
+                    height="50"
+                    fill="transparent"
+                    />
                 <circle
                     cx="182"
                     cy="240"
