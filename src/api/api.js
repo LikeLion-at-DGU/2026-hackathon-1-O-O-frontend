@@ -8,3 +8,9 @@ export const api = axios.create({
         "Content-Type": "application/json",
     },
 });
+
+api.interceptors.request.use((config) => {
+    const visitToken = localStorage.getItem("visitToken") ?? sessionStorage.getItem("visit_token");
+    if (visitToken) config.headers["X-Visit-Token"] = visitToken;
+    return config;
+});

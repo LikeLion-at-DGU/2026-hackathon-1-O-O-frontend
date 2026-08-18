@@ -19,11 +19,14 @@ function ProductPage() {
 
     const imageId = productId?.replace("p-", "");
 
-    const productImage =
-        `/images/${imageId}-Photoroom.png`;
-
     const { product, loading } =
         useProduct(productId);
+
+    const productImage =
+        product?.thumbnail ??
+        product?.images?.thumbnail ??
+        product?.images?.main ??
+        `/images/${imageId}-Photoroom.png`;
 
     const { sendQuestionClick } =
         useProductEvent(productId);
@@ -42,9 +45,9 @@ function ProductPage() {
         );
 
     const productName =
-        localProduct?.name ??
-        selectedProduct?.name ??
         product?.name ??
+        selectedProduct?.name ??
+        localProduct?.name ??
         `상품 ${imageId}`;
 
     const handleQuestionClick = async (question) => {
