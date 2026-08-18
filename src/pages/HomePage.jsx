@@ -27,9 +27,7 @@ function HomePage() {
           gender: "M",
         });
 
-        const visitId = response.data.visit_id;
-
-        sessionStorage.setItem("visit_id", visitId);
+        const visitId = response.visit_id;
 
         console.log("방문 시작:", response.data);
         console.log("visit_id 저장:", visitId);

@@ -14,34 +14,55 @@ export const enterStore = async (ageBand, gender) => {
       headers['X-Anonymous-UUID'] = existingUuid;
     }
 
-    // 3. API Request Body 설정
-    const payload = {};
-    if (ageBand) payload.age_band = ageBand;
-    if (gender) payload.gender = gender;
+   // 3. 요청 데이터 설정
+    // enterStore("20s", "F")
+    // enterStore({ age_band: "20s", gender: "F" })
+    // 두 방식 모두 지원
+    const payload =
+      typeof ageBand === "object" && ageBand !== null
+        ? ageBand
+        : {
+            ...(ageBand && { age_band: ageBand }),
+            ...(gender && { gender }),
+          };
 
-    // 🚀 4. axios 대신 api 인스턴스 사용 (baseURL 자동 적용)
-    const response = await api.post('/enter', payload, { headers });
+    // 4. 입장 API 요청
+    const response = await api.post("/enter", payload, { headers });
     const data = response.data;
 
-    // 5. 응답 처리 및 스토리지 저장
+    // 5. UUID 저장
     if (data.anonymous_uuid) {
-      localStorage.setItem('anonymous_uuid', data.anonymous_uuid);
+      localStorage.setItem("anonymous_uuid", data.anonymous_uuid);
+      localStorage.setItem("anonymousUuid", data.anonymous_uuid);
     }
-    if (data.visit_token) {
-      sessionStorage.setItem('visit_token', data.visit_token);
-    }
-    if (data.visit_id) {
-      sessionStorage.setItem('visit_id', data.visit_id);
-    } // 👈 닫는 중괄호 추가됨
 
-    // 🚀 성공 콘솔 출력
+    // 6. 방문 토큰 저장
+    if (data.visit_token) {
+      sessionStorage.setItem("visit_token", data.visit_token);
+      localStorage.setItem("visitToken", data.visit_token);
+    }
+
+    // 7. 방문 ID 저장
+    if (data.visit_id) {
+      sessionStorage.setItem("visit_id", String(data.visit_id));
+      localStorage.setItem("visitId", String(data.visit_id));
+    }
+
+    // 8. 장면 데이터 저장
+    sessionStorage.setItem(
+      "scenes",
+      JSON.stringify(data.scenes ?? [])
+    );
+
     console.log("🎉 매장 입장 성공! 응답 데이터:", data);
 
-    // 6. 컴포넌트에서 사용할 데이터 반환
     return data;
-
   } catch (error) {
-    console.error("🚨 매장 입장 중 오류 발생:", error.response?.data || error);
+    console.error(
+      "🚨 매장 입장 중 오류 발생:",
+      error.response?.data || error
+    );
+
     throw error;
   }
 };

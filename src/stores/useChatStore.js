@@ -5,6 +5,14 @@ import styled from "styled-components";
 let lastShelfLogAt = 0;
 let lastShelfLogZone = null;
 
+const normalizeServerMessage = (message) => ({
+    id: message.message_id,
+    type: message.role === "assistant" ? "assistant" : "user",
+    role: message.role,
+    text: message.content,
+    createdAt: message.created_at,
+});
+
 export const MessageText = styled.p`
     white-space: pre-line;
     color: var(--neutral, #E5E3E0);
@@ -65,19 +73,7 @@ const INITIAL_MESSAGES = [
 
 
         // 2. 상품 클릭 시
-        selectProduct: (product) =>
-            set((state) => {
-                const productName = product?.name?.split(" - ")[1] ?? product?.name ?? product;
-                const text = `${productName} 클릭`;
-                const lastMsg = state.messages[state.messages.length - 1];
-
-                if (lastMsg?.text === text) return { selectedProduct: product };
-
-                return {
-                selectedProduct: product,
-                messages: [...state.messages, { id: Date.now(), type: "user", text }],
-                };
-            }),
+        selectProduct: (product) => set({ selectedProduct: product }),
 
         // 3. 질문 버튼 클릭 시 (유저 질문 + 봇 답변을 동시에 누적)
         selectQuestion: (question, answer) =>
@@ -101,6 +97,54 @@ const INITIAL_MESSAGES = [
             set((state) => ({
             messages: [...state.messages, { id: Date.now(), type, text }],
             })),
+
+        setMessages: (messages) => set({ messages }),
+
+        // 서버 타임라인 전체로 현재 대화를 동기화
+        setServerMessages: (serverMessages = []) =>
+            set({
+                messages: serverMessages.length
+                    ? serverMessages.map(normalizeServerMessage)
+                    : INITIAL_MESSAGES,
+            }),
+
+        // 클릭 API 응답으로 받은 메시지만 기존 대화에 중복 없이 추가
+        addServerMessages: (serverMessages = []) =>
+            set((state) => {
+                const existingIds = new Set(state.messages.map((message) => message.id));
+                const newMessages = serverMessages
+                    .map(normalizeServerMessage)
+                    .filter((message) => !existingIds.has(message.id));
+
+                return newMessages.length
+                    ? { messages: [...state.messages, ...newMessages] }
+                    : {};
+            }),
+
+        startAssistantMessage: () =>
+            set((state) => ({
+                messages: [
+                    ...state.messages,
+                    {
+                        id: `stream-${Date.now()}`,
+                        type: "assistant",
+                        role: "assistant",
+                        text: "",
+                    },
+                ],
+            })),
+
+        appendAssistantDelta: (delta) =>
+            set((state) => {
+                const lastIndex = state.messages.length - 1;
+                const lastMessage = state.messages[lastIndex];
+                if (lastMessage?.type !== "assistant") return {};
+                return {
+                    messages: state.messages.map((message, index) =>
+                        index === lastIndex ? { ...message, text: `${message.text}${delta}` } : message
+                    ),
+                };
+            }),
 
         // 5. 대화 내역 완전 초기화 (초기 안내 메시지로 복구)
         resetChat: () =>

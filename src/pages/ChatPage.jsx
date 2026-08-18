@@ -7,12 +7,20 @@ import ChatMessage from "../components/ChatMessage/ChatMessage";
 import bearImage from "../assets/bear.png";
 import Header from "../components/Header/Header";
 import useChatStore from "../stores/useChatStore";
+import { getChatMessages, streamChat } from "../api/chat";
 
 function ChatPage() {
   const navigate = useNavigate();
-  const { messages, addCustomMessage } = useChatStore();
+  const {
+    messages,
+    addCustomMessage,
+    setServerMessages,
+    startAssistantMessage,
+    appendAssistantDelta,
+  } = useChatStore();
 
   const [inputValue, setInputValue] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   // 새 메시지가 생기면 맨 아래로 이동하기 위한 ref
   const messagesEndRef = useRef(null);
@@ -24,17 +32,56 @@ function ChatPage() {
     });
   }, [messages]);
 
-  const handleSubmit = (event) => {
+  useEffect(() => {
+    const loadChatMessages = async () => {
+      const visitId =
+        localStorage.getItem("visitId") ??
+        sessionStorage.getItem("visit_id");
+
+      if (!visitId) return;
+
+      try {
+        const response = await getChatMessages();
+        setServerMessages(response.data.messages ?? []);
+      } catch (error) {
+        console.error("채팅 내역 조회 실패:", error);
+      }
+    };
+
+    loadChatMessages();
+  }, [setServerMessages]);
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const trimmedValue = inputValue.trim();
 
     // 공백만 입력한 경우 전송하지 않음
-    if (!trimmedValue) return;
+    if (!trimmedValue || isSending) return;
 
     addCustomMessage("user", trimmedValue);
-
     setInputValue("");
+
+    try {
+      setIsSending(true);
+      startAssistantMessage();
+
+      await streamChat({
+        message: trimmedValue,
+        onDelta: appendAssistantDelta,
+      });
+
+      // 서버에 저장된 message_id와 role까지 다시 맞춘다.
+      const response = await getChatMessages();
+      setServerMessages(response.data.messages ?? []);
+    } catch (error) {
+      console.error("AI 채팅 전송 실패:", error);
+      appendAssistantDelta(
+        "죄송해요. 답변을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -92,7 +139,7 @@ function ChatPage() {
 
             <SendButton
               type="submit"
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isSending}
               aria-label="메시지 전송"
             >
               <svg

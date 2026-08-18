@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
@@ -12,6 +12,7 @@ import DefaultShelf from "./DefaultShelf/DefaultShelf";
 import Shelf04 from "./Shelf04/Shelf04";
 import BackButton from "./icon/BackButton";
 import { sendEvent } from "../../api/events";
+import { createChatMessage } from "../../api/chat";
 import Shelf07 from "./Shelf07/Shelf07";
 import Shelf05 from "./Shelf05/Shelf05";
 
@@ -22,11 +23,21 @@ export default function Shelf() {
   const { zoneId } = useParams();
   const navigate = useNavigate();
   const swiperRef = useRef(null);
+  const [serverScenes, setServerScenes] = useState([]);
 
   const selectShelf = useChatStore((s) => s.selectShelf);
   const selectProduct = useChatStore((s) => s.selectProduct);
+  const addServerMessages = useChatStore((s) => s.addServerMessages);
 
   const urlZone = clamp(zoneId);
+
+  useEffect(() => {
+    try {
+      setServerScenes(JSON.parse(sessionStorage.getItem("scenes") ?? "[]"));
+    } catch {
+      setServerScenes([]);
+    }
+  }, []);
 
   // 이 컴포넌트가 "직접 URL에 써넣은" 구역. 이 값과 URL이 같으면 내가 만든 변경이므로 무시.
   const selfWroteZoneRef = useRef(urlZone);
@@ -45,7 +56,7 @@ export default function Shelf() {
   }, [urlZone]);
 
   // 슬라이드가 "완전히 멈춘" 뒤 1회만
-  const handleSettled = (swiper) => {
+  const handleSettled = async (swiper) => {
     const zone = (swiper.realIndex ?? swiper.activeIndex) + 1;
     if (zone === swiperZoneRef.current) return;
 
@@ -53,26 +64,48 @@ export default function Shelf() {
     selfWroteZoneRef.current = zone;   // ⚠️ navigate보다 먼저 기록해야 effect가 무시함
 
     selectShelf(zone);                 // 스토어 가드가 중복을 최종 차단
+    const scene = serverScenes.find((item) => Number(item.no) === zone);
+    if (scene?.scene_id) {
+      try {
+        const response = await createChatMessage({ type: "scene_click", scene_id: scene.scene_id });
+        addServerMessages(response.data.messages ?? []);
+      } catch (error) {
+        console.error("Scene click recording failed:", error);
+      }
+    }
     navigate(`/shelf/${zone}`, { replace: true });
   };
 
   const handleProductClick = async (product) => {
-  if (!product) return;
+    if (!product) return;
 
-  const visitId = sessionStorage.getItem("visit_id");
+    const visitId = sessionStorage.getItem("visit_id");
 
-  // 상품 클릭 이벤트 저장
-  if (visitId) {
-    await sendEvent({
-      visit_id: visitId,
-      event_type: "PRODUCT_CLICK",
-      product_id: product.id,
-    });
-  }
+    // 상품 클릭 이벤트 저장
+    if (visitId) {
+      await sendEvent({
+        visit_id: visitId,
+        event_type: "hotspot_click",
+        product_id: product.id,
+      });
+    }
 
-  selectProduct(product);
-  navigate(`/product/${product.id}`);
-};
+    if (product.scene_id) {
+      try {
+        const response = await createChatMessage({
+          type: "product_click",
+          scene_id: product.scene_id,
+          product_id: product.id,
+        });
+        addServerMessages(response.data.messages ?? []);
+      } catch (error) {
+        console.error("Product click recording failed:", error);
+      }
+    }
+
+    selectProduct(product);
+    navigate(`/product/${product.id}`);
+  };
 
   return (
     <div
@@ -120,7 +153,16 @@ export default function Shelf() {
         }}
       >
         {ZONES.map((zone) => {
-          const products = shelfData[zone] || [];
+          const scene = serverScenes.find((item) => Number(item.no) === zone);
+          const products = scene
+            ? (scene.products ?? []).map((product) => ({
+              id: product.product_id,
+              name: product.name,
+              price: product.price,
+              imageUrl: product.thumbnail,
+              scene_id: scene.scene_id,
+            }))
+            : shelfData[zone] || [];
           return (
             <SwiperSlide key={zone}>
               <div
@@ -134,27 +176,27 @@ export default function Shelf() {
               >
                 <div style={{ width: "363px", height: "300px", position: "relative" }}>
                   {zone === 4 ? (
-                  <Shelf04
-                  products={products}
-                  onProductClick={handleProductClick}
-                  />
+                    <Shelf04
+                      products={products}
+                      onProductClick={handleProductClick}
+                    />
                   ) : zone === 5 || zone === 6 ? (
-                  <Shelf05
-                  products={products}
-                  onProductClick={handleProductClick}
-                  />
+                    <Shelf05
+                      products={products}
+                      onProductClick={handleProductClick}
+                    />
                   )
-                   : zone === 7 ? (
-                  <Shelf07
-                  products={products}
-                  onProductClick={handleProductClick}
-                  />
-                  ) : (
-                  <DefaultShelf
-                  products={products}
-                  onProductClick={handleProductClick}
-                  />
-                  )}
+                    : zone === 7 ? (
+                      <Shelf07
+                        products={products}
+                        onProductClick={handleProductClick}
+                      />
+                    ) : (
+                      <DefaultShelf
+                        products={products}
+                        onProductClick={handleProductClick}
+                      />
+                    )}
                 </div>
               </div>
             </SwiperSlide>
