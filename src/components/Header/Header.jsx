@@ -1,29 +1,37 @@
 import React from "react";
-import styled from "styled-components";
 import * as S from "./Header.styled";
 import SoundButton from "../SoundButton";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-function Header() {
+function Header({ showActions = true }) {
+    const navigate = useNavigate();
+
+    const handleFinish = () => {
+        navigate("/analytics");
+    };
 
     return (
         <S.HeaderContainer>
-            <Link to="/home" style={{ textDecoration: "none", color: "inherit" }}>
+            <Link
+                to="/home"
+                style={{ textDecoration: "none", color: "inherit" }}
+            >
                 <S.Logo>
                     <S.LogoText>O</S.LogoText>
                     <S.Ampersand>&</S.Ampersand>
                     <S.LogoText>O</S.LogoText>
                 </S.Logo>
             </Link>
-            
-            <S.ButtonWrapper>
-            <S.Finish>
-                관람 마치기
-            </S.Finish>
-            <SoundButton />
-            </S.ButtonWrapper>
-        
+
+            {showActions && (
+                <S.ButtonWrapper>
+                    <S.Finish onClick={handleFinish}>
+                        관람 마치기
+                    </S.Finish>
+
+                    <SoundButton />
+                </S.ButtonWrapper>
+            )}
         </S.HeaderContainer>
     );
 }
