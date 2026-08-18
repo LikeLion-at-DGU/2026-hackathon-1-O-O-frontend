@@ -7,7 +7,6 @@ import "swiper/css/pagination";
 import PlusButton from "./icons/PlusButton";
 import styled from "styled-components";
 import FloorPlan1 from "./FloorPlan1";
-import FloorPlan2 from "./FloorPlan2";
 
 const GUIDE_ITEMS = [
     { id: 1, text: "토트백" },
@@ -17,9 +16,6 @@ const GUIDE_ITEMS = [
     { id: 5, text: "여성 의류" },
     { id: 6, text: "남성 의류" },
     { id: 7, text: "F/W 신상" },
-    { id: 8, text: "트래블 백" },
-    { id: 9, text: "파우치" },
-    { id: 10, text: "지갑" },
 ];
 
 export default function FloorMap({ showGuideMessage = false }) {
@@ -84,32 +80,7 @@ export default function FloorMap({ showGuideMessage = false }) {
                     }
                 `}
             </style>
-            {/* 🚀 스와이프 영역 */}
-            <Swiper
-                modules={[Pagination]}
-                spaceBetween={20}
-                slidesPerView={1}
-                pagination={{ clickable: true }}
-                initialSlide={1}
-                style={{ width: "100%", height: "100%",
-                    "--swiper-pagination-color": "#222", /* 활성화된 점 색상 */
-                    "--swiper-pagination-bullet-inactive-color": "#D1CCC7", /* 비활성 점 색상 */
-                    "--swiper-pagination-bullet-inactive-opacity": "1", /*점 불투명도*/
-                    "--swiper-pagination-bullet-size": "5px", /* 점 크기 */
-                    "--swiper-pagination-bottom": "8px", /* 하단 여백 */
-                    "--swiper-pagination-bullet-horizontal-gap": "2.5px", /*점과 점 사이 간격*/
-                    }}
-            >
-                
-
-                {/* 2페이지 */}
-                <SwiperSlide>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
-                        <div style={{ width: "363px", height: "300px", position: "relative" }}>
-                            <FloorPlan2 activeZone={activeZone} onZoneClick={handleZoneClick} isGuideOpen={isGuideOpen} />
-                        </div>
-                    </div>
-                </SwiperSlide>
+            
                 {/* 1페이지 */}
                 <SwiperSlide>
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
@@ -118,7 +89,6 @@ export default function FloorMap({ showGuideMessage = false }) {
                         </div>
                     </div>
                 </SwiperSlide>
-            </Swiper>
             
             
             {/* 1. 지도를 눌러 보세요! 안내 */}
