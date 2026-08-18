@@ -1,14 +1,25 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import styled from "styled-components";
 
 let lastShelfLogAt = 0;
 let lastShelfLogZone = null;
+
+export const MessageText = styled.p`
+    white-space: pre-line;
+    color: var(--neutral, #E5E3E0);
+    font-family: Pretendard;
+    font-size: var(--Font-size-SM, 14px);
+    font-style: normal;
+    font-weight: 300;
+    line-height: 140%; /* 19.6px */
+`;
 
 const INITIAL_MESSAGES = [
     {
         id: "init",
         type: "assistant",
-        text: "저와 함께 MCM을 경험해 보아요!\n각 상품을 눌러 궁금한 점을 알아보세요.",
+        text: "뮤즈님, 안녕하세요! 저는 패디에요.\n저와 함께 MCM을 경험해 보아요.\n각 진열대를 눌러 상품에 대해 알아보세요.",
     },
     ];
 
@@ -45,12 +56,10 @@ const INITIAL_MESSAGES = [
             lastShelfLogAt = now;
             lastShelfLogZone = zone;
 
+            console.log(`[Shelf Selected] ${zone}번 진열대 클릭 (timestamp: ${now})`);
+
             return {
             selectedZoneId: zone,
-            messages: [
-                ...state.messages,
-                { id: now, type: "user", text: `${zone}번 진열대 클릭` },
-            ],
             };
         }),
 

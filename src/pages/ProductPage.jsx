@@ -70,44 +70,6 @@ function ProductPage() {
                 imageId={imageId}
                 loading={loading}
             />
-
-            {chatSlot &&
-                createPortal(
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "8px",
-                            justifyContent: "flex-end",
-                            marginTop: "8px",
-                        }}
-                    >
-                        {[
-                            "가격",
-                            "재질",
-                            "디자인 의도",
-                        ].map((question) => (
-                            <MessageBubble
-                                key={question}
-                                as="button"
-                                $type="user"
-                                onClick={() =>
-                                    handleQuestionClick(
-                                        question
-                                    )
-                                }
-                                style={{
-                                    cursor: "pointer",
-                                    border: "none",
-                                    outline: "none",
-                                    borderRadius: "16px",
-                                }}
-                            >
-                                {question}
-                            </MessageBubble>
-                        ))}
-                    </div>,
-                    chatSlot
-                )}
         </S.PageContainer>
     );
 }
