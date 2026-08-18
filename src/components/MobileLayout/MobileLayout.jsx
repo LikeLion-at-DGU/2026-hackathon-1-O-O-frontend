@@ -10,7 +10,6 @@ function MobileLayout({
     <S.PageBackground>
       <S.MobileContainer>
         {showHeader && header}
-
         <S.MainContent $showHeader={showHeader}>
           {children}
         </S.MainContent>

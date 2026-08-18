@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/pagination";
+
 import PlusButton from "./icons/PlusButton";
 import styled from "styled-components";
 import FloorPlan1 from "./FloorPlan1";
@@ -82,13 +79,13 @@ export default function FloorMap({ showGuideMessage = false }) {
             </style>
             
                 {/* 1페이지 */}
-                <SwiperSlide>
+
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
                         <div style={{ width: "363px", height: "300px", position: "relative" }}>
                             <FloorPlan1 activeZone={activeZone} onZoneClick={handleZoneClick} isGuideOpen={isGuideOpen} />
                         </div>
                     </div>
-                </SwiperSlide>
+
             
             
             {/* 1. 지도를 눌러 보세요! 안내 */}
