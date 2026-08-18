@@ -1,51 +1,102 @@
-import { getVisitEvents } from "./events";
+import { api } from "./api";
 
-export const analyzeInterest = async (visitId) => {
-  const response = await getVisitEvents(visitId);
-  const events = response.data;
+/**
+ * 1. 관람 리포트 및 화보 후보 상품 6개 목록 조회
+ * GET /api/v1/reports/{slug}/lookbook/candidates
+ */
+export const getAnalytics = async (visitId) => {
+  try {
+    const targetVisitId = visitId || sessionStorage.getItem("visit_id");
+    const visitToken = sessionStorage.getItem("visit_token");
 
-  console.log("📦 분석할 이벤트:", events);
-
-  const interest = {};
-
-  events.forEach((event) => {
-    if (!event.product_id) return;
-
-    if (!interest[event.product_id]) {
-      interest[event.product_id] = {
-        product_id: event.product_id,
-        score: 0,
-        views: 0,
-        clicks: 0,
-        questions: [],
-      };
+    if (!targetVisitId) {
+      throw new Error("visit_id가 없습니다. 매장에 먼저 입장해 주세요.");
     }
 
-    const product = interest[event.product_id];
-
-    if (event.event_type === "PRODUCT_VIEW") {
-      product.views += 1;
-      product.score += 1;
+    const headers = {};
+    if (visitToken) {
+      headers["X-Visit-Token"] = visitToken;
     }
 
-    if (event.event_type === "PRODUCT_CLICK") {
-      product.clicks += 1;
-      product.score += 2;
+    const response = await api.get(`/reports/${targetVisitId}/lookbook/candidates`, {
+      headers,
+    });
+
+    console.log("📊 [Analytics] 리포트/후보 상품 응답:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("🚨 [Analytics] 리포트 조회 실패:", error.response?.data || error);
+    throw error;
+  }
+};
+
+/**
+ * 2. 선택한 아이템으로 화보 생성 요청 (비동기 작업 시작)
+ * POST /api/v1/reports/{slug}/lookbook
+ * @param {string} visitId - 방문 ID (slug)
+ * @param {object} payload - { selected_products: ["p_101"], ... } 등 서버 요청 바디
+ */
+export const createLookbook = async (visitId, payload = {}) => {
+  try {
+    const targetVisitId = visitId || sessionStorage.getItem("visit_id");
+    const visitToken = sessionStorage.getItem("visit_token");
+
+    if (!targetVisitId) {
+      throw new Error("visit_id가 없습니다.");
     }
 
-    if (event.event_type === "QUESTION_CLICK") {
-      product.questions.push(event.question);
-      product.score += 1;
+    const headers = {};
+    if (visitToken) {
+      headers["X-Visit-Token"] = visitToken;
     }
-  });
 
-  const result = Object.values(interest).sort(
-    (a, b) => b.score - a.score
-  );
+    const response = await api.post(`/reports/${targetVisitId}/lookbook`, payload, {
+      headers,
+    });
 
-  console.log("📊 관심도 분석 결과:", result);
+    console.log("🎨 [Lookbook] 생성 요청 접수 (202):", response.data);
+    return response.data; // { job_id, share_slug, poll_after_ms, ... }
+  } catch (error) {
+    console.error("🚨 [Lookbook] 생성 요청 실패:", error.response?.data || error);
+    throw error;
+  }
+};
 
-  return {
-    data: result,
-  };
+/**
+ * 3. 화보 생성 비동기 작업(Job) 상태 폴링 조회
+ * GET /api/v1/lookbooks/jobs/{job_id}
+ * @param {string} jobId - 작업 ID
+ */
+export const checkJobStatus = async (jobId) => {
+  try {
+    const visitToken = sessionStorage.getItem("visit_token");
+    const headers = {};
+    if (visitToken) {
+      headers["X-Visit-Token"] = visitToken;
+    }
+
+    const response = await api.get(`/lookbooks/jobs/${jobId}`, {
+      headers,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("🚨 [Job Status] 상태 확인 실패:", error.response?.data || error);
+    throw error;
+  }
+};
+
+/**
+ * 4. 최종 완성된 화보 상세 조회
+ * GET /api/v1/lookbooks/{share_slug}
+ * @param {string} shareSlug - 공유 슬러그
+ */
+export const getLookbookDetail = async (shareSlug) => {
+  try {
+    const response = await api.get(`/lookbooks/${shareSlug}`);
+    return response.data;
+  } catch (error) {
+    console.error("🚨 [Lookbook Detail] 화보 조회 실패:", error.response?.data || error);
+    throw error;
+  }
 };

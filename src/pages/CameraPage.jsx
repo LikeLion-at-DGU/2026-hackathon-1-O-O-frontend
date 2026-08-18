@@ -3,6 +3,20 @@ import { useNavigate } from "react-router-dom";
 import * as S from "./CameraPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import Header from "../components/Header/Header";
+import { uploadPhotoAndMask } from "../api/photoUpload";
+import { createLookbook } from "../api/analytics";
+
+function dataURLtoBlob(dataurl) {
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+}
 
 function CameraPage() {
     const videoRef = useRef(null);
@@ -12,6 +26,7 @@ function CameraPage() {
 
     const [photo, setPhoto] = useState(null);
     const [cameraError, setCameraError] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         let stream;
@@ -90,34 +105,62 @@ function CameraPage() {
         };
     }, []);
 
-    const takePhoto = () => {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
+const takePhoto = () => {
+    console.group("📸 [촬영 디버깅]");
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
 
-        if (!video || !canvas) return;
+    console.log("1. Video DOM 요소:", video);
+    console.log("2. Canvas DOM 요소:", canvas);
 
-        if (!video.videoWidth || !video.videoHeight) return;
+    if (!video || !canvas) {
+        console.error("❌ 비디오 또는 캔버스 요소를 찾을 수 없습니다.");
+        console.groupEnd();
+        return;
+    }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+    console.log("3. 비디오 해상도:", {
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight,
+        clientWidth: video.clientWidth,
+        clientHeight: video.clientHeight,
+    });
 
-        const context = canvas.getContext("2d");
+    const width = video.videoWidth || video.clientWidth || 640;
+    const height = video.videoHeight || video.clientHeight || 480;
 
-        context.drawImage(
-            video,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
+    canvas.width = width;
+    canvas.height = height;
 
-        const image = canvas.toDataURL(
-            "image/jpeg",
-            0.95
-        );
+    const context = canvas.getContext("2d");
+    context.drawImage(video, 0, 0, width, height);
 
-        setPhoto(image);
-    };
+    // 이미지 추출
+    const image = canvas.toDataURL("image/jpeg", 0.9);
+    console.log("4. 추출된 이미지 문자열 길이:", image.length);
+    console.log("5. 이미지 데이터 앞부분:", image.substring(0, 50));
+
+    // 길이가 너무 짧으면 (예: 100글자 미만) 빈 이미지임
+    if (image.length < 500) {
+        console.warn("⚠️ 이미지가 비어있거나 정상 캡처되지 않았습니다.");
+    }
+
+    // 세션 백업 저장
+    try {
+        sessionStorage.setItem("temp_captured_photo", image);
+        console.log("6. 세션 스토리지 백업 저장 완료");
+    } catch (e) {
+        console.error("세션 스토리지 용량 초과 등 오류:", e);
+    }
+
+    console.log("7. /camera/confirm 페이지로 이동 시도");
+    console.groupEnd();
+
+    // 확인 페이지로 이동
+    navigate("/camera/confirm", {
+        state: { photo: image },
+    });
+};
 
     const handleRetake = () => {
         setPhoto(null);

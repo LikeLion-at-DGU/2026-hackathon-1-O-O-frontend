@@ -21,8 +21,16 @@ function Header({ showActions = true }) {
     };
 
     const handlePhotoShoot = () => {
+        const savedProducts = sessionStorage.getItem("selected_products");
+        
+        if (!savedProducts || JSON.parse(savedProducts).length === 0) {
+            // 상품이 선택되지 않았을 때의 예외 처리
+            console.warn("선택된 상품이 없습니다. 기본 첫 번째 상품으로 진행하거나 선택을 유도합니다.");
+        }
         navigate("/camera");
     };
+
+    
 
     return (
         <S.HeaderContainer>
