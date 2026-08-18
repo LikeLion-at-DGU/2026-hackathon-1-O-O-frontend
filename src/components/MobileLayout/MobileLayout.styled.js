@@ -5,8 +5,6 @@ export const PageBackground = styled.div`
   justify-content: center;
 
   width: 100%;
-  min-height: 100dvh;
-
   background-color: #eeeeee;
 `;
 
@@ -15,7 +13,6 @@ export const MobileContainer = styled.div`
 
   width: 100%;
   max-width: 402px;
-  min-height: 100dvh;
 
   background-color: #ffffff;
 `;
