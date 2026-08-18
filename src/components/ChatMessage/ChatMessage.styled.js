@@ -6,8 +6,8 @@ export const MessageRow = styled.div`
     $isAssistant ? "flex-start" : "flex-end"};
   align-items: flex-start;
   gap: 10px;
-
   width: 100%;
+
 `;
 
 export const ProfileImage = styled.img`

@@ -61,3 +61,33 @@ export const SoundButton = styled.button`
   border: none;
   cursor: pointer;
 `;
+
+export const Finish = styled.button`
+  display: flex;
+padding: 8px 12px;
+justify-content: center;
+align-items: center;
+border-radius: 10px;
+background: var(--Heritage-Cognac, #8C6239);
+  border: none;
+
+color: var(--neutral, #E5E3E0);
+font-family: Pretendard;
+font-size: var(--Font-size-SM, 14px);
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 19.6px */
+
+  &:hover {
+    background: var(--Neutral-N40, #746F6A);
+    color: #B9B6B1;
+  }
+
+`;  
+
+export const ButtonWrapper= styled.div`
+display: flex;
+align-items: center;
+gap: 12px;
+
+`;

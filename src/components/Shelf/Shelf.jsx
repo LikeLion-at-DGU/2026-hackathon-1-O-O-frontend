@@ -13,6 +13,7 @@ import Shelf04 from "./Shelf04/Shelf04";
 import BackButton from "./icon/BackButton";
 import { sendEvent } from "../../api/events";
 import Shelf07 from "./Shelf07/Shelf07";
+import Shelf05 from "./Shelf05/Shelf05";
 
 const ZONES = [1, 2, 3, 4, 5, 6, 7];
 const clamp = (v) => Math.max(1, Math.min(7, Number(v) || 1));
@@ -133,11 +134,26 @@ export default function Shelf() {
               >
                 <div style={{ width: "363px", height: "300px", position: "relative" }}>
                   {zone === 4 ? (
-                    <Shelf04 products={products} onProductClick={handleProductClick} />
-                  ) : zone === 7 ? (
-                    <Shelf07 products={products} onProductClick={handleProductClick} />
+                  <Shelf04
+                  products={products}
+                  onProductClick={handleProductClick}
+                  />
+                  ) : zone === 5 || zone === 6 ? (
+                  <Shelf05
+                  products={products}
+                  onProductClick={handleProductClick}
+                  />
+                  )
+                   : zone === 7 ? (
+                  <Shelf07
+                  products={products}
+                  onProductClick={handleProductClick}
+                  />
                   ) : (
-                    <DefaultShelf products={products} onProductClick={handleProductClick} />
+                  <DefaultShelf
+                  products={products}
+                  onProductClick={handleProductClick}
+                  />
                   )}
                 </div>
               </div>
