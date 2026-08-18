@@ -12,6 +12,7 @@ import AnalyticsPage from "../pages/AnalyticsPage";
 import CameraPage from "../pages/CameraPage";
 import LookbookLoadingPage from "../pages/LookbookLoadingPage";
 import LookbookPage from "../pages/LookbookPage";
+import PhotoConfirmPage from "../pages/PhotoConfirmPage";
 
 function Router() {
   return (
@@ -31,6 +32,9 @@ function Router() {
       {/* 카메라 페이지 */}
       <Route path="/camera" element={<CameraPage />} />
 
+      {/* 2. 사진 확인 & 결정 페이지 추가 */}
+      <Route path="/camera/confirm" element={<PhotoConfirmPage />} />
+      
       {/* 화보 로딩 중 페이지 */}
       <Route path="/lookbookloading" element={<LookbookLoadingPage />} />
 
