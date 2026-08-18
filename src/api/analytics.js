@@ -1,28 +1,21 @@
 import { api } from "./api";
 
-/**
- * 1. 관람 리포트 및 화보 후보 상품 6개 목록 조회
- * GET /api/v1/reports/{slug}/lookbook/candidates
- */
-export const getAnalytics = async (visitId) => {
+// 리포트 조회 API (GET /api/v1/reports/{slug})
+export const getAnalytics = async (identifier) => {
   try {
-    const targetVisitId = visitId || sessionStorage.getItem("visit_id");
-    const visitToken = sessionStorage.getItem("visit_token");
+    const targetSlug =
+      identifier ||
+      sessionStorage.getItem("report_slug") ||
+      sessionStorage.getItem("visit_id");
 
-    if (!targetVisitId) {
-      throw new Error("visit_id가 없습니다. 매장에 먼저 입장해 주세요.");
+    if (!targetSlug) {
+      throw new Error("리포트 식별자(slug)가 없습니다.");
     }
 
-    const headers = {};
-    if (visitToken) {
-      headers["X-Visit-Token"] = visitToken;
-    }
+    // baseURL에 /api/v1이 있으므로 /reports/... 로만 요청
+    const response = await api.get(`/reports/${targetSlug}`);
 
-    const response = await api.get(`/reports/${targetVisitId}/lookbook/candidates`, {
-      headers,
-    });
-
-    console.log("📊 [Analytics] 리포트/후보 상품 응답:", response.data);
+    console.log("📊 [Analytics] 리포트 데이터 응답:", response.data);
     return response.data;
   } catch (error) {
     console.error("🚨 [Analytics] 리포트 조회 실패:", error.response?.data || error);
@@ -30,32 +23,32 @@ export const getAnalytics = async (visitId) => {
   }
 };
 
-/**
- * 2. 선택한 아이템으로 화보 생성 요청 (비동기 작업 시작)
- * POST /api/v1/reports/{slug}/lookbook
- * @param {string} visitId - 방문 ID (slug)
- * @param {object} payload - { selected_products: ["p_101"], ... } 등 서버 요청 바디
- */
-export const createLookbook = async (visitId, payload = {}) => {
+
+ // 2. 선택한 아이템으로 화보 생성 요청 (비동기 작업 시작)
+
+// src/api/analytics.js
+
+export const createLookbook = async (payload) => {
   try {
-    const targetVisitId = visitId || sessionStorage.getItem("visit_id");
+    // 1. 세션스토리지에서 필요한 값 추출
+    const reportSlug = sessionStorage.getItem("report_slug");
     const visitToken = sessionStorage.getItem("visit_token");
 
-    if (!targetVisitId) {
-      throw new Error("visit_id가 없습니다.");
+    if (!reportSlug) {
+      throw new Error("리포트 정보(report_slug)가 없습니다. 관람 종료 후 다시 시도해주세요.");
     }
 
-    const headers = {};
-    if (visitToken) {
-      headers["X-Visit-Token"] = visitToken;
-    }
+    console.log(`🚀 [Lookbook] 화보 생성 API 호출: POST /reports/${reportSlug}/lookbook`);
 
-    const response = await api.post(`/reports/${targetVisitId}/lookbook`, payload, {
-      headers,
+    // 2. 백엔드 P03 규격 요청 (POST /api/v1/reports/{slug}/lookbook)
+    const response = await api.post(`/reports/${reportSlug}/lookbook`, payload, {
+      headers: {
+        "X-Visit-Token": visitToken || "",
+      },
     });
 
-    console.log("🎨 [Lookbook] 생성 요청 접수 (202):", response.data);
-    return response.data; // { job_id, share_slug, poll_after_ms, ... }
+    console.log("🎨 [Lookbook] 생성 큐 등록 성공 (202 Accepted):", response.data);
+    return response.data; // { job_id, share_slug, attempt, remaining_regenerations, poll_after_ms }
   } catch (error) {
     console.error("🚨 [Lookbook] 생성 요청 실패:", error.response?.data || error);
     throw error;

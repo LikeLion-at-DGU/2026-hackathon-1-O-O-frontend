@@ -28,6 +28,8 @@ function Router() {
 
       {/* 리포트 페이지 */}
       <Route path="/analytics" element={<AnalyticsPage />} />
+      <Route path="/analytics/:slug" element={<AnalyticsPage />} />
+
 
       {/* 카메라 페이지 */}
       <Route path="/camera" element={<CameraPage />} />

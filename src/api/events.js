@@ -24,43 +24,67 @@ const saveQueue = (events) => {
 
 const normalizeEventType = (eventType) => String(eventType).toLowerCase();
 
+// ⭐️ 관람 종료 여부 확인 헬퍼
+const isVisitFinished = () => Boolean(sessionStorage.getItem("report_slug"));
+
 export const flushEvents = async ({ keepalive = false } = {}) => {
-  if (isFlushing) return;
+  // 이미 요청 중이거나 관람이 종료된 경우 전송 중단
+  if (isFlushing || isVisitFinished()) {
+    saveQueue([]); // 종료된 세션의 잔여 큐 제거
+    return;
+  }
 
   const events = getQueue();
-  const anonymousUuid = localStorage.getItem("anonymousUuid") ?? localStorage.getItem("anonymous_uuid");
-  const visitId = localStorage.getItem("visitId") ?? sessionStorage.getItem("visit_id");
+  const anonymousUuid =
+    localStorage.getItem("anonymousUuid") ??
+    localStorage.getItem("anonymous_uuid") ??
+    sessionStorage.getItem("anonymous_uuid");
+  const visitId =
+    localStorage.getItem("visitId") ?? sessionStorage.getItem("visit_id");
+  const visitToken =
+    localStorage.getItem("visitToken") ??
+    sessionStorage.getItem("visit_token") ??
+    "";
 
   if (!events.length || !anonymousUuid || !visitId) return;
 
   isFlushing = true;
-  // Remove first: events recorded during this request stay in the queue.
-  saveQueue([]);
+  saveQueue([]); // 큐를 먼저 비움
 
   try {
+    const headers = {
+      "X-Anonymous-UUID": anonymousUuid,
+      "X-Visit-Token": visitToken,
+    };
+
     if (keepalive) {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/events`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Anonymous-UUID": anonymousUuid,
-          "X-Visit-Token": localStorage.getItem("visitToken") ?? sessionStorage.getItem("visit_token") ?? "",
-        },
-        body: JSON.stringify({ visit_id: visitId, events }),
-        keepalive: true,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || "/api/v1"}/events`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...headers,
+          },
+          body: JSON.stringify({ visit_id: visitId, events }),
+          keepalive: true,
+        }
+      );
       if (!response.ok) throw new Error(`이벤트 전송 실패: ${response.status}`);
     } else {
+      // ⭐️ X-Visit-Token과 X-Anonymous-UUID 헤더 모두 전달
       await api.post(
         "/events",
         { visit_id: visitId, events },
-        { headers: { "X-Anonymous-UUID": anonymousUuid } }
+        { headers }
       );
     }
   } catch (error) {
-    // Keep failed events for the next interval/page lifecycle flush.
-    saveQueue([...events, ...getQueue()]);
-    throw error;
+    // 이미 관람이 종료된 상태(401/400)라면 큐를 복구하지 않고 버림
+    if (!isVisitFinished() && error.response?.status !== 401) {
+      saveQueue([...events, ...getQueue()]);
+    }
+    console.warn("⚠️ [Events] 이벤트 전송 스킵/실패:", error.message);
   } finally {
     isFlushing = false;
   }
@@ -73,34 +97,49 @@ export const sendEvent = async ({
   metadata,
   question,
 }) => {
+  // 관람 종료 후에는 이벤트 수집 중단
+  if (isVisitFinished()) return { data: null };
+
+  const eventMetadata = {
+    ...(metadata ?? {}),
+    ...(question != null ? { question } : {}),
+  };
+
   const event = {
     event_id: createEventId(),
     event_type: normalizeEventType(event_type),
     client_timestamp: new Date().toISOString(),
     ...(scene_id != null && { scene_id: String(scene_id) }),
     ...(product_id != null && { product_id: String(product_id) }),
-    ...(metadata != null && { metadata }),
-    ...(question != null && { metadata: { ...(metadata ?? {}), question } }),
+    ...(Object.keys(eventMetadata).length > 0 && { metadata: eventMetadata }),
   };
 
   saveQueue([...getQueue(), event]);
   clearTimeout(flushTimer);
   flushTimer = setTimeout(() => {
-    flushEvents().catch((error) => console.error("이벤트 전송 실패:", error));
+    flushEvents().catch(() => {});
   }, FLUSH_INTERVAL);
 
   return { data: event };
 };
 
-// Analytics currently reads client-side events. The backend event endpoint is
-// append-only, so a server-side analytics/report endpoint is needed for
-// historical events that were already flushed.
 export const getVisitEvents = async (visitId) => ({
   data:
-    String(visitId) === String(localStorage.getItem("visitId") ?? sessionStorage.getItem("visit_id"))
+    String(visitId) ===
+    String(
+      localStorage.getItem("visitId") ?? sessionStorage.getItem("visit_id")
+    )
       ? getQueue()
       : [],
 });
+
+// 관람 종료 시 Header 등에서 버퍼를 한 번에 비워 동봉할 때 사용하는 함수
+export const drainEventBuffer = () => {
+  const events = getQueue();
+  saveQueue([]);
+  clearTimeout(flushTimer);
+  return events;
+};
 
 if (typeof window !== "undefined") {
   window.addEventListener("pagehide", () => {

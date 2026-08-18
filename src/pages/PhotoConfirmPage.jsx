@@ -4,6 +4,7 @@ import { uploadPhotoAndMask } from "../api/photoUpload";
 import { createLookbook } from "../api/analytics";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import styled from "styled-components";
+import { processPhotoWithMediaPipe } from "../utils/mediaPipeHelper";
 
 // base64 DataURL을 스토리지 업로드용 Blob으로 변환하는 함수
 function dataURLtoBlob(dataurl) {
@@ -37,78 +38,58 @@ function dataURLtoBlob(dataurl) {
     };
 
     // 3. ⭐️ 이 사진으로 화보 만들기 (스토리지 업로드 + 백엔드 생성 요청)
-    const handleConfirmAndUpload = async () => {
-        if (!photo || isSubmitting) return;
+// PhotoConfirmPage.jsx 내부
 
-        try {
-        setIsSubmitting(true);
-        console.group("🚀 [화보 생성 프로세스 시작]");
+const handleConfirmAndUpload = async () => {
+  if (!photo || isSubmitting) return;
 
-        // (1) Base64 이미지를 Blob 파일로 변환
-        const photoBlob = dataURLtoBlob(photo);
-        console.log("1. 사진 Blob 변환 완료:", {
-            size: `${(photoBlob.size / 1024).toFixed(2)} KB`,
-            type: photoBlob.type,
-        });
+  try {
+    setIsSubmitting(true);
+    console.group("🚀 [MediaPipe 마스크/얼굴 검출 및 업로드]");
 
-        // (2) Presigned URL 발급 및 스토리지(S3) 직접 업로드 (PUT)
-        console.log("2. Presigned URL 발급 및 스토리지 업로드 진행 중...");
-        const { photo_key, mask_key } = await uploadPhotoAndMask(
-            photoBlob,
-            maskBlob
-        );
-        console.log("👉 스토리지 업로드 성공 키:", { photo_key, mask_key });
+    // (1) MediaPipe 실행 -> 체형 마스크 Blob 및 photo_meta 자동 계산
+    console.log("1. MediaPipe 인물/얼굴 분리 중...");
+    const { maskBlob, photoMeta } = await processPhotoWithMediaPipe(photo);
+    console.log("👉 검출 완료 photo_meta:", photoMeta);
 
-        // (3) 이전에 선택한 상품 ID 및 visit_id 가져오기
-        const savedProducts = sessionStorage.getItem("selected_products");
-        const selectedProductIds = savedProducts ? JSON.parse(savedProducts) : [];
-        const visitId = sessionStorage.getItem("visit_id");
+    // (2) 원본 사진 Blob 변환
+    const photoBlob = dataURLtoBlob(photo);
 
-        console.log("3. 요청 파라미터 확인:", {
-            visitId,
-            selectedProductIds,
-        });
+    // (3) S3/R2에 원본 사진과 마스크 PNG 동시 업로드
+    console.log("2. S3/R2 Presigned 업로드 진행 중...");
+    const { photo_key, mask_key } = await uploadPhotoAndMask(photoBlob, maskBlob);
+    console.log("👉 업로드된 키:", { photo_key, mask_key });
 
-        // (4) 백엔드에 화보 생성 큐 등록 요청 (POST /reports/{slug}/lookbook)
-        console.log("4. 백엔드로 화보 생성 요청 전송 중...");
-        const result = await createLookbook(visitId, {
-            product_ids: selectedProductIds,
-            photo_key: photo_key,
-            mask_key: mask_key,
-            photo_meta: photoMeta,
-        });
+    // (4) 선택된 상품 ID 가져오기
+    const saved = sessionStorage.getItem("selected_products");
+    const productIds = saved ? JSON.parse(saved) : ["p_101"];
 
-        console.log("✅ 5. 화보 생성 작업 등록 완료 (백엔드 응답):", result);
-        console.groupEnd();
-
-        // (5) 작업 식별 키 저장
-        if (result?.job_id) {
-            sessionStorage.setItem("current_job_id", result.job_id);
-        }
-        if (result?.share_slug) {
-            sessionStorage.setItem("share_slug", result.share_slug);
-        }
-
-        // (6) 로딩/생성 대기 화면으로 이동
-        navigate("/lookbookloading", {
-            state: {
-            job_id: result?.job_id,
-            share_slug: result?.share_slug,
-            },
-        });
-        } catch (error) {
-        console.groupEnd();
-        console.error("🚨 화보 생성 요청 실패:", error);
-        alert(
-            error.response?.data?.error?.message ||
-            error.message ||
-            "화보 생성 요청 중 오류가 발생했습니다."
-        );
-        } finally {
-        setIsSubmitting(false);
-        }
+    // (5) P03 명세에 완벽히 맞춘 Payload 전송
+    const payload = {
+      product_ids: productIds,
+      photo_key: photo_key,
+      mask_key: mask_key, // ⭐️ 생성된 마스크 키 전달
+      consent: true,
+      photo_meta: photoMeta, // ⭐️ MediaPipe로 계산된 얼굴 메타데이터 전달
     };
 
+    const result = await createLookbook(payload);
+
+
+    // (6) URL 치환 및 로딩 이동
+    if (result?.share_slug) {
+      window.history.replaceState(null, "", `/l/${result.share_slug}`);
+      sessionStorage.setItem("share_slug", result.share_slug);
+    }
+    navigate("/lookbookloading", { state: { job_id: result.job_id } });
+
+  } catch (error) {
+    console.groupEnd();
+    console.error("🚨 처리 실패:", error);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
     // 사진이 없을 때의 Fallback
     if (!photo) {
         return (

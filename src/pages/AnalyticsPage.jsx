@@ -1,110 +1,140 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { getAnalytics, createLookbook } from "../api/analytics";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { getAnalytics } from "../api/analytics";
 import * as S from "./AnalyticsPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
-import defaultBagImg from "../../public/images/1-Photoroom.png";
-
-// 서버 데이터 로드 전/실패 시 보여줄 안전 Mock Data
-const DEFAULT_PRODUCTS = [
-  { product_id: "p_101", name: "New Liz 비세토스 쇼퍼", thumbnail: defaultBagImg },
-  { product_id: "p_102", name: "New Liz 비세토스 쇼퍼", thumbnail: defaultBagImg },
-  { product_id: "p_103", name: "New Liz 비세토스 쇼퍼", thumbnail: defaultBagImg },
-  { product_id: "p_104", name: "New Liz 비세토스 쇼퍼", thumbnail: defaultBagImg },
-  { product_id: "p_105", name: "New Liz 비세토스 쇼퍼", thumbnail: defaultBagImg },
-  { product_id: "p_106", name: "New Liz 비세토스 쇼퍼", thumbnail: defaultBagImg },
-];
+import Header from "../components/Header/Header";
 
 export default function AnalyticsPage() {
   const navigate = useNavigate();
+  const { slug } = useParams();
+
+  // 1. 식별자 확인 (URL params -> sessionStorage)
+  const reportSlug =
+    slug ||
+    sessionStorage.getItem("report_slug") ||
+    sessionStorage.getItem("visit_id");
+
   const [report, setReport] = useState(null);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, setIsPending] = useState(true);
+  const pollTimerRef = useRef(null);
 
-  // 1. 백엔드 데이터 불러오기 (GET)
+  // 2. 백엔드 리포트 데이터 조회 및 Pending 폴링
   useEffect(() => {
+    if (!reportSlug) {
+      alert("리포트 식별자가 없습니다.");
+      setIsPending(false);
+      return;
+    }
+
+    let isMounted = true;
+
     const loadReport = async () => {
-      const visitId = sessionStorage.getItem("visit_id");
-
-      if (!visitId) {
-        console.warn("⚠️ visit_id 없음 - 기본 UI 유지");
-        return;
-      }
-
       try {
-        const data = await getAnalytics(visitId);
-        console.log("📊 [AnalyticsPage] 수신 성공:", data);
-        setReport(data);
+        const data = await getAnalytics(reportSlug);
+        if (!isMounted) return;
 
-        // 백엔드에서 지정해 준 1등 관심 상품 자동 선택
-        if (data?.preselected && Array.isArray(data.preselected) && data.preselected.length > 0) {
-          setSelectedProductIds(data.preselected);
+        console.log("📊 [AnalyticsPage] 수신 데이터:", data);
+
+        // (1) 백엔드 분석 진행 중 (pending) -> 2초 주기 폴링
+        if (data?.status === "pending") {
+          setIsPending(true);
+          pollTimerRef.current = setTimeout(loadReport, 2000);
+          return;
+        }
+
+        // (2) 분석 완료 (ready)
+        if (data?.status === "ready") {
+          setReport(data);
+          setIsPending(false);
+
+          // Hero 상품 또는 preselected 상품 기본 선택
+          const initialSelected = data.hero?.product_id
+            ? [data.hero.product_id]
+            : data.preselected || [];
+
+          setSelectedProductIds(initialSelected);
+          if (initialSelected.length > 0) {
+            sessionStorage.setItem(
+              "selected_products",
+              JSON.stringify(initialSelected)
+            );
+          }
         }
       } catch (err) {
-        console.warn("⚠️ 리포트 조회 실패/생성 전 (기본값 유지):", err.message);
+        console.error("🚨 리포트 조회 실패:", err);
+        if (isMounted) setIsPending(false);
       }
     };
 
     loadReport();
-  }, []);
 
-  // 2. 체류 시간 집계 계산 로직 (서버 데이터가 없을 때 안전하게 Fallback)
+    return () => {
+      isMounted = false;
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
+  }, [reportSlug]);
+
+  // 3. 서버 체류 이벤트 기반 집계 계산
   const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
-    let totalMin = 60;
-    if (report?.visit_start && report?.visit_end) {
+    if (!report) {
+      return {
+        topZoneName: "",
+        totalMinutes: 0,
+        top1: { zone_name: "-", duration_min: 0 },
+        top2: { zone_name: "-", duration_min: 0 },
+        etcMinutes: 0,
+      };
+    }
+
+    // 총 체류 시간 (visit_start ~ visit_end 또는 summary 필드)
+    let totalMin = 0;
+    if (report.visit_start && report.visit_end) {
       const start = new Date(report.visit_start).getTime();
       const end = new Date(report.visit_end).getTime();
-      const diffMs = Math.max(0, end - start);
-      totalMin = Math.max(1, Math.round(diffMs / 60000));
+      totalMin = Math.max(1, Math.round(Math.max(0, end - start) / 60000));
+    } else if (report.summary?.total_stay_duration_sec) {
+      totalMin = Math.max(1, Math.round(report.summary.total_stay_duration_sec / 60));
     }
-    console.log("👉 총 관람시간:", `${totalMin}분`);
 
-    const dwellEvents = report?.events?.filter((e) => e.event_type === "scene_dwell") || [];
-    console.log("👉 수신된 체류 이벤트 목록:", dwellEvents);
-    
+    // 체류 이벤트 추출 및 구역별 집계
+    const dwellEvents =
+      report.events?.filter((e) => e.event_type === "scene_dwell") || [];
+
     const zoneMap = {};
-
     dwellEvents.forEach((event) => {
-      const zoneId = event.payload?.zone_id ?? event.zone_id ?? "기타";
-      const dwellMs = Number(event.payload?.dwell_time_ms ?? event.dwell_time_ms ?? 0);
+      const zoneId =
+        event.payload?.zone_id ??
+        event.zone_id ??
+        event.scene_id ??
+        "기타";
+      const dwellMs = Number(
+        event.payload?.dwell_time_ms ??
+          event.metadata?.dwell_ms ??
+          event.dwell_time_ms ??
+          0
+      );
       zoneMap[zoneId] = (zoneMap[zoneId] || 0) + dwellMs;
     });
-    console.log("👉 진열대별 합산 체류시간(ms):", zoneMap);
 
-    let stats = Object.entries(zoneMap).map(([zoneId, totalMs]) => {
+    const stats = Object.entries(zoneMap).map(([zoneId, totalMs]) => {
       const min = Math.round(totalMs / 60000);
       return {
         zone_id: zoneId,
         zone_name: isNaN(zoneId) ? zoneId : `${zoneId}번 진열대`,
-        duration_min: min > 0 ? min : 1,
+        duration_min: min,
         raw_ms: totalMs,
       };
     });
 
-    // 기본 디자인 가이드용 Mock 데이터
-    if (stats.length === 0) {
-      console.log("⚠️ 서버 이벤트 데이터 없음: 기본 목업 데이터(1번: 30분, 2번: 20분)를 사용합니다.");
-      stats = [
-        { zone_name: "1번 진열대", duration_min: 30, raw_ms: 1800000 },
-        { zone_name: "2번 진열대", duration_min: 20, raw_ms: 1200000 },
-      ];
-    }
-
     stats.sort((a, b) => b.raw_ms - a.raw_ms);
 
-    const top1Zone = stats[0] || { zone_name: "1번 진열대", duration_min: 30 };
-    const top2Zone = stats[1] || { zone_name: "2번 진열대", duration_min: 20 };
+    const top1Zone = stats[0] || { zone_name: "미확인 구역", duration_min: 0 };
+    const top2Zone = stats[1] || { zone_name: "미확인 구역", duration_min: 0 };
 
     const top2SumMin = top1Zone.duration_min + top2Zone.duration_min;
-    const calculatedEtc =
-      totalMin > top2SumMin
-        ? totalMin - top2SumMin
-        : Math.max(1, totalMin - top1Zone.duration_min);
-
-    console.log("🏆 최다 체류 구역(TOP 1):", `${top1Zone.zone_name} (${top1Zone.duration_min}분)`);
-  console.log("🥈 차순위 구역(TOP 2):", `${top2Zone.zone_name} (${top2Zone.duration_min}분)`);
-  console.log("📦 기타 체류 시간:", `${calculatedEtc}분`);
-  console.groupEnd();
+    const calculatedEtc = Math.max(0, totalMin - top2SumMin);
 
     return {
       topZoneName: top1Zone.zone_name,
@@ -115,66 +145,97 @@ export default function AnalyticsPage() {
     };
   }, [report]);
 
-  // 3. 상품 카드 클릭 시 선택 토글 핸들러
+
+  useEffect(() => {
+    if (report?.hero?.product_id) {
+      const defaultSelected = [report.hero.product_id];
+      setSelectedProductIds(defaultSelected);
+      sessionStorage.setItem("selected_products", JSON.stringify(defaultSelected));
+    }
+  }, [report]);
+  
+  // 4. 상품 선택 토글 핸들러
   const handleToggleSelect = (productId) => {
     const maxSelect = report?.max_select || 1;
 
-    const newSelected = [productId];
-    setSelectedProductIds(newSelected);
-    sessionStorage.setItem("selected_products", JSON.stringify(newSelected));
-
+    let updated;
     if (maxSelect === 1) {
-      setSelectedProductIds([productId]);
+      // 1개만 고르는 경우: 클릭한 상품으로 바로 교체
+      updated = [productId];
     } else {
-      setSelectedProductIds((prev) =>
-        prev.includes(productId)
-          ? prev.filter((id) => id !== productId)
-          : prev.length < maxSelect
-          ? [...prev, productId]
-          : prev
-      );
+      // 다중 선택 가능한 경우: 토글 처리 (단, 최소 1개는 유지)
+      if (selectedProductIds.includes(productId)) {
+        // 선택 해제 시도 시, 마지막 남은 1개라면 해제 방지
+        updated = selectedProductIds.length > 1
+          ? selectedProductIds.filter((id) => id !== productId)
+          : selectedProductIds;
+      } else if (selectedProductIds.length < maxSelect) {
+        updated = [...selectedProductIds, productId];
+      } else {
+        updated = selectedProductIds;
+      }
     }
+
+    setSelectedProductIds(updated);
+    sessionStorage.setItem("selected_products", JSON.stringify(updated));
   };
 
-  // 4. 상단 '화보 찍기' 버튼 클릭 시 (POST 요청 ➔ 다음 페이지 이동)
-  const handleCreateLookbook = async () => {
-    const visitId = sessionStorage.getItem("visit_id");
-    if (!visitId) {
-      alert("입장 정보가 없습니다.");
+  // 5. 화보 촬영 페이지로 이동
+  const handleGoToCamera = () => {
+    if (selectedProductIds.length === 0) {
+      alert("화보에 담을 아이템을 1개 이상 선택해 주세요.");
       return;
     }
-
-    try {
-      setIsLoading(true);
-      // 서버로 선택한 상품 정보 전송
-      const res = await createLookbook(visitId, {
-        selected_product_ids: selectedProductIds,
-      });
-
-      console.log("🚀 화보 생성 작업 시작됨:", res);
-      
-      // 작업 정보를 세션이나 state로 넘기며 로딩/결과 페이지로 이동
-      if (res?.job_id) {
-        sessionStorage.setItem("current_job_id", res.job_id);
-      }
-      if (res?.share_slug) {
-        sessionStorage.setItem("share_slug", res.share_slug);
-      }
-
-      // 다음 경로로 이동 (프로젝트 라우트에 맞게 수정)
-      // navigate("/lookbook/loading");
-    } catch (err) {
-      console.error("화보 생성 요청 실패:", err);
-      alert("화보 생성 요청 중 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
+    sessionStorage.setItem("selected_products", JSON.stringify(selectedProductIds));
+    navigate("/camera");
   };
 
-  // 실제 렌더링할 상품 6개 리스트
-  const displayProducts = report?.items && report.items.length > 0 ? report.items : DEFAULT_PRODUCTS;
+  // 6. 서버 응답 상품 목록 구성 (hero + recommendations + interested)
+  const displayProducts = useMemo(() => {
+    if (!report) return [];
 
-  
+    const list = [];
+    if (report.hero) list.push(report.hero);
+    if (Array.isArray(report.recommendations)) list.push(...report.recommendations);
+    if (Array.isArray(report.items)) list.push(...report.items);
+
+    // product_id 기준 중복 제거
+    const unique = [];
+    const seen = new Set();
+    list.forEach((item) => {
+      const id = item.product_id || item.id;
+      if (id && !seen.has(id)) {
+        seen.add(id);
+        unique.push(item);
+      }
+    });
+
+    return unique.slice(0,6);
+  }, [report]);
+
+  // 로딩 화면
+  if (isPending) {
+    return (
+      <MobileLayout>
+        <S.Container style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
+          <S.MainTitle style={{ textAlign: "center", marginBottom: 8 }}>관람 기록을 분석하고 있어요</S.MainTitle>
+          <S.SubTitle style={{ textAlign: "center" }}>취향 분석 리포트를 준비 중입니다...</S.SubTitle>
+        </S.Container>
+      </MobileLayout>
+    );
+  }
+
+  // 데이터 수신 실패 시
+  if (!report) {
+    return (
+      <MobileLayout>
+        <S.Container style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
+          <S.MainTitle>리포트를 불러올 수 없습니다.</S.MainTitle>
+        </S.Container>
+      </MobileLayout>
+    );
+  }
+
   return (
     <MobileLayout>
       <S.Container>

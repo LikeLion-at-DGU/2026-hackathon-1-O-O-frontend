@@ -1,6 +1,5 @@
-    import { api } from "./api";
     import axios from "axios";
-
+    import { api } from "./api";
     /**
      * 1. 사진/마스크 동시 업로드용 Presigned URL 발급 요청
      * POST /api/v1/uploads/presign
@@ -42,12 +41,27 @@
      * 2. 스토리지(S3/GCS)로 파일 직업로드 (PUT)
      * ⚠️ 순수 axios를 사용하여 Authorization/인증 인터셉터가 들어가지 않도록 합니다.
      */
-    export const uploadFileToStorage = async (uploadUrl, fileBlob, contentType) => {
-    await axios.put(uploadUrl, fileBlob, {
-        headers: {
-        "Content-Type": contentType,
-        },
-    });
+// src/api/photoUpload.js
+
+    export const uploadFileToStorage = async (uploadUrl, fileBlob) => {
+        try {
+            // ⭐️ 더미 URL(uploads.invalid 또는 dev-unsigned)인 경우 실제 PUT 요청을 건너뜁니다.
+            if (uploadUrl.includes("uploads.invalid") || uploadUrl.includes("dev-unsigned")) {
+            console.warn("⚠️ [Dev Mode] 더미 S3 URL이 감지되어 실제 업로드를 건너뛰고 가상 성공 처리합니다:", uploadUrl);
+            return { status: 200, statusText: "OK (Mocked)" };
+            }
+
+            // 실제 프로덕션 S3/R2 URL인 경우에만 PUT 요청
+            const response = await axios.put(uploadUrl, fileBlob, {
+            headers: {
+                "Content-Type": fileBlob.type || "image/jpeg",
+            },
+            });
+            return response;
+        } catch (error) {
+            console.error("🚨 S3 업로드 실패:", error);
+            throw error;
+        }
     };
 
     /**
