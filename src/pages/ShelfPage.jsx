@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
 import Shelf from "../components/Shelf/Shelf";
@@ -20,8 +20,13 @@ function ShelfPage() {
         (state) => state.addServerMessages
     );
 
+    const recordedZoneRef = useRef(null);
+
     // 선반 페이지에 들어오면 현재 진열대 번호를 저장
     useEffect(() => {
+        if (recordedZoneRef.current === zoneId) return;
+        recordedZoneRef.current = zoneId;
+
         const recordSceneClick = async () => {
             selectShelf(zoneId);
 

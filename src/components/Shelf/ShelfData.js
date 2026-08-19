@@ -96,3 +96,11 @@
 
 
     };
+
+// 로컬 상품 이미지를 선반별 상품 번호(p_101, p_201...)에 맞춰 연결합니다.
+Object.entries(shelfData).forEach(([shelfNo, products]) => {
+    products.forEach((product, index) => {
+        const productNo = `${shelfNo}${String(index + 1).padStart(2, "0")}`;
+        product.imageUrl = `/images/p_${productNo}-Photoroom.png`;
+    });
+});

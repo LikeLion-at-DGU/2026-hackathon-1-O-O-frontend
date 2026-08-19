@@ -1,20 +1,25 @@
 import styled from "styled-components";
 
 export const Content = styled.div`
-  height: 300px;
+  /* 컴퓨터에서는 기존 크기 유지 */
   width: 363px;
-  flex-shrink: 0;
+  height: 300px;
 
+  flex-shrink: 0;
   border-radius: 20px;
   background: #e5e3e0;
-
   margin: 24px auto;
 
-  /* 휴대폰에서만 화면 비율에 맞춰 축소 */
+  /* 휴대폰에서만 반응형 적용 */
   @media (max-width: 600px) {
     width: calc(100% - 32px);
     height: auto;
+
+    /* 기존 363:300 비율 유지 */
     aspect-ratio: 363 / 300;
+
+    margin: 16px auto;
+    border-radius: 16px;
   }
 `;
 
@@ -44,6 +49,7 @@ export const Containerbottom = styled.div`
 export const Chat = styled.div`
   display: flex;
 
+  /* 컴퓨터에서는 기존 크기 유지 */
   width: 364px;
   height: 366px;
 
@@ -52,18 +58,25 @@ export const Chat = styled.div`
   gap: 10px;
 
   margin: 0 auto 16px;
-
   overflow-y: auto;
   overflow-x: hidden;
 
   padding: 24px 6px 24px 0;
   box-sizing: border-box;
 
+  /* 휴대폰에서만 반응형 적용 */
   @media (max-width: 600px) {
     width: calc(100% - 32px);
-    height: 42dvh;
-    min-height: 240px;
-    max-height: 366px;
+
+    /*
+      화면 높이의 42%를 기준으로 변경.
+      너무 작거나 커지지 않도록 최소/최대값 지정.
+    */
+    height: clamp(240px, 42dvh, 366px);
+
+    margin: 0 auto 12px;
+    padding: 16px 4px 16px 0;
+    gap: 8px;
   }
 
   &::-webkit-scrollbar {
@@ -85,6 +98,17 @@ export const Chat = styled.div`
   }
 `;
 
+export const Line = styled.svg`
+  position: absolute;
+  right: 14px;
+  top: 500px;
+
+  @media (max-width: 600px) {
+    right: 12px;
+    top: 58dvh;
+  }
+`;
+
 export const GoChat = styled.div`
   color: #71717a;
   text-align: center;
@@ -102,6 +126,7 @@ export const GoChat = styled.div`
 
   margin-right: 20px;
   margin-bottom: 24px;
+
   gap: 8px;
 
   cursor: pointer;
@@ -113,16 +138,5 @@ export const GoChat = styled.div`
 
   &:hover {
     color: #222;
-  }
-`;
-
-export const Line = styled.svg`
-  position: absolute;
-  right: 14px;
-  top: 500px;
-
-  @media (max-width: 600px) {
-    right: 12px;
-    top: 58dvh;
   }
 `;
