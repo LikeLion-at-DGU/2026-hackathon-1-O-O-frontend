@@ -33,41 +33,15 @@ export default function Shelf() {
 
   const urlZone = clamp(zoneId);
 
- useEffect(() => {
-    try {
-      const parsedScenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
-      setServerScenes(parsedScenes);
-
-      // ⭐️ 60개 상품 전수 검사 콘솔 표 출력
-      let globalIndex = 0;
-      const allProductList = [];
-
-      parsedScenes.forEach((sceneItem) => {
-        const shelfNo = sceneItem.no ?? sceneItem.scene_no ?? "미정";
-        const productList = sceneItem.products ?? sceneItem.items ?? [];
-
-        productList.forEach((prod, pIdx) => {
-          globalIndex += 1;
-          allProductList.push({
-            "전체 순번": globalIndex,
-            "선반": `${shelfNo}번 선반`,
-            "선반 내 순서": `${pIdx + 1}번째`,
-            "product_id": prod.product_id ?? prod.id,
-            "상품명": prod.name,
-            "가격": prod.price,
-            "매핑될 이미지": `${globalIndex}-Photoroom.png`,
-          });
-        });
-      });
-
-      console.group("📦 [전체 상품 60개 product_id 전수 검사 표]");
-      console.table(allProductList);
-      console.log("총 상품 개수:", allProductList.length, "개");
-      console.groupEnd();
-    } catch {
-      setServerScenes([]);
-    }
-  }, []);
+useEffect(() => {
+  try {
+    const parsedScenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
+    setServerScenes(parsedScenes);
+  } catch (error) {
+    console.error("선반 데이터 파싱 실패:", error);
+    setServerScenes([]);
+  }
+}, []);
 
   // 이 컴포넌트가 "직접 URL에 써넣은" 구역. 이 값과 URL이 같으면 내가 만든 변경이므로 무시.
   const selfWroteZoneRef = useRef(urlZone);

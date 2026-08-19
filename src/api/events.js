@@ -1,3 +1,4 @@
+// src/api/events.js
 import { api } from "./api";
 
 const QUEUE_KEY = "pending_events";
@@ -6,10 +7,22 @@ const FLUSH_INTERVAL = 5_000;
 let flushTimer;
 let isFlushing = false;
 
-// 고유 Event ID 생성
-const createEventId = () =>
-  globalThis.crypto?.randomUUID?.() ??
-  `e_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+// 표준 UUID v4 생성
+const createUUID = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+const isValidUUID = (str) => {
+  if (typeof str !== "string") return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+};
 
 const getQueue = () => {
   try {
@@ -23,38 +36,75 @@ const saveQueue = (events) => {
   sessionStorage.setItem(QUEUE_KEY, JSON.stringify(events));
 };
 
-const normalizeEventType = (eventType) => String(eventType).toLowerCase();
-
-// 관람 종료 여부 확인
 const isVisitFinished = () => Boolean(sessionStorage.getItem("report_slug"));
 
-/**
- * 큐에 쌓인 이벤트를 서버로 일괄 전송 (Flush)
- */
-export const flushEvents = async ({ keepalive = false } = {}) => {
-  if (isFlushing || isVisitFinished()) {
-    return;
+// src/api/events.js 내부의 sanitizeEvent 교체
+
+const sanitizeEvent = (ev) => {
+  const dwellMs =
+    ev.dwell_ms ??
+    ev.metadata?.dwell_ms ??
+    ev.metadata?.dwell_time_ms ??
+    (ev.dwell_sec ? ev.dwell_sec * 1000 : undefined);
+
+  const finalEventId = isValidUUID(ev.event_id) ? ev.event_id : createUUID();
+  const eventType = String(ev.event_type || "scene_dwell").toLowerCase().trim();
+
+  const currentVisitId =
+    ev.visit_id ||
+    sessionStorage.getItem("visit_id") ||
+    localStorage.getItem("visitId") ||
+    "";
+
+  let sceneId = ev.scene_id || ev.metadata?.scene_id || null;
+  if (!sceneId && (eventType.startsWith("scene_") || eventType === "hotspot_click")) {
+    try {
+      const scenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
+      sceneId = scenes[0]?.scene_id || "sc_01";
+    } catch {
+      sceneId = "sc_01";
+    }
   }
 
-  const events = getQueue();
-  const visitToken =
-    sessionStorage.getItem("visit_token") ||
-    localStorage.getItem("visitToken") ||
-    "";
-  const anonymousUuid =
-    sessionStorage.getItem("anonymous_uuid") ||
-    localStorage.getItem("anonymousUuid") ||
-    "";
+  const cleanMetadata = {};
+  if (dwellMs !== undefined && !isNaN(dwellMs)) {
+    const intDwell = Math.round(Number(dwellMs));
+    cleanMetadata.dwell_ms = intDwell;
+    cleanMetadata.dwell_time_ms = intDwell; // 백엔드 호환성 추가
+  }
 
-  if (!events.length) return;
+  return {
+    event_id: finalEventId,
+    event_type: eventType,
+    client_timestamp: ev.client_timestamp || new Date().toISOString(),
+    ...(currentVisitId ? { visit_id: String(currentVisitId) } : {}),
+    ...(sceneId ? { scene_id: String(sceneId) } : {}),
+    ...(ev.product_id ? { product_id: String(ev.product_id) } : {}),
+    metadata: cleanMetadata,
+  };
+};
+
+export const flushEvents = async ({ keepalive = false } = {}) => {
+  if (isFlushing || isVisitFinished()) return;
+
+  const rawEvents = getQueue();
+  const visitToken = sessionStorage.getItem("visit_token") || "";
+  const anonymousUuid = sessionStorage.getItem("anonymous_uuid") || "";
+  const visitId = sessionStorage.getItem("visit_id") || "";
+
+  // visitId나 토큰이 없으면 전송 거부 방어
+  if (!rawEvents.length || !visitToken || !visitId) return;
 
   isFlushing = true;
-  saveQueue([]); // 큐를 먼저 비움
+  saveQueue([]);
+
+  const events = rawEvents.map(sanitizeEvent);
 
   try {
     const headers = {
+      "Content-Type": "application/json",
+      "X-Visit-Token": visitToken,
       ...(anonymousUuid && { "X-Anonymous-UUID": anonymousUuid }),
-      ...(visitToken && { "X-Visit-Token": visitToken }),
     };
 
     const payload = { events };
@@ -64,10 +114,7 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
         `${import.meta.env.VITE_API_BASE_URL || "/api/v1"}/events`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...headers,
-          },
+          headers,
           body: JSON.stringify(payload),
           keepalive: true,
         }
@@ -77,87 +124,35 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
       await api.post("/events", payload, { headers });
     }
   } catch (error) {
-    // 401(토큰 만료)이나 이미 종료된 세션이 아니면 큐 복구
-    if (!isVisitFinished() && error.response?.status !== 401) {
-      saveQueue([...events, ...getQueue()]);
+    const status = error.response?.status;
+    if (!isVisitFinished() && status !== 400 && status !== 401) {
+      saveQueue([...rawEvents, ...getQueue()]);
     }
-    console.warn("⚠️ [Events] 전송 스킵 또는 실패:", error.response?.data || error.message);
+    console.warn("⚠️ [Events] 전송 실패:", error.response?.data || error.message);
   } finally {
     isFlushing = false;
   }
 };
 
-/**
- * 이벤트 즉시 전송 (배치)
- */
-export const sendEvents = async (events = []) => {
-  if (!events || events.length === 0) return;
-
-  const visitToken = sessionStorage.getItem("visit_token");
-
-  const formattedEvents = events.map((ev) => ({
-    event_id: ev.event_id || createEventId(),
-    event_type: normalizeEventType(ev.event_type),
-    ...(ev.product_id && { product_id: String(ev.product_id) }),
-    ...(ev.scene_id && { scene_id: String(ev.scene_id) }),
-    client_timestamp: ev.client_timestamp || new Date().toISOString(),
-    metadata: ev.metadata || (ev.dwell_ms ? { dwell_ms: Number(ev.dwell_ms) } : {}),
-  }));
-
-  const payload = { events: formattedEvents };
-
-  return await api.post("/events", payload, {
-    headers: {
-      "X-Visit-Token": visitToken || "",
-    },
-  });
-};
-
-/**
- * 단일 이벤트 전송 및 큐잉 (Shelf, useProductEvent에서 호출)
- */
 export const sendEvent = async (eventData) => {
   if (!eventData || !eventData.event_type) return;
 
-  const event = {
-    event_id: eventData.event_id || createEventId(),
-    event_type: normalizeEventType(eventData.event_type),
-    client_timestamp: eventData.client_timestamp || new Date().toISOString(),
-    ...(eventData.scene_id != null && { scene_id: String(eventData.scene_id) }),
-    ...(eventData.product_id != null && { product_id: String(eventData.product_id) }),
-    metadata: eventData.metadata || {},
-  };
+  const cleanedEvent = sanitizeEvent(eventData);
+  saveQueue([...getQueue(), cleanedEvent]);
 
-  // 1. 큐에 추가
-  saveQueue([...getQueue(), event]);
-
-  // 2. 타이머 리셋 후 5초 뒤 자동 flush
   clearTimeout(flushTimer);
   flushTimer = setTimeout(() => {
     flushEvents().catch(() => {});
   }, FLUSH_INTERVAL);
 
-  return { data: event };
+  return { data: cleanedEvent };
 };
 
-export const getVisitEvents = async (visitId) => ({
-  data:
-    String(visitId) ===
-    String(
-      localStorage.getItem("visitId") ?? sessionStorage.getItem("visit_id")
-    )
-      ? getQueue()
-      : [],
-});
-
-/**
- * 관람 종료 시 남은 버퍼를 추출하고 비움 (Header의 finishVisit에 동봉용)
- */
 export const drainEventBuffer = () => {
-  const events = getQueue();
+  const rawEvents = getQueue();
   saveQueue([]);
   clearTimeout(flushTimer);
-  return events;
+  return rawEvents.map(sanitizeEvent);
 };
 
 if (typeof window !== "undefined") {

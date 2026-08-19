@@ -3,12 +3,11 @@ import styled from "styled-components";
 export const Container = styled.div`
   width: 100%;
   background-color: #f6f5f2;
-  padding: 24px 20px 48px;
+  padding: 60px 20px 60px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 60px;
 `;
 
 export const SectionHeader = styled.div`
@@ -19,12 +18,13 @@ export const SectionHeader = styled.div`
 `;
 
 export const MainTitle = styled.h1`
-  font-size: 20px;
-  font-weight: 700;
-  color: #111111;
-  margin: 0 0 8px;
-  letter-spacing: -0.5px;
-  margin-bottom: 16px;
+  color: var(--Deep-Slate, #222);
+  text-align: center;
+  font-family: Pretendard;
+  font-size: var(--Font-size-XL, 20px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%; /* 28px */
 `;
 
 export const SubTitle = styled.p`
@@ -40,10 +40,11 @@ export const SubTitle = styled.p`
 
 export const SummaryCard = styled.div`
   width: 100%;
-  max-width: 360px;
+  max-width: 363px;
+  /* height: 149px; */
   background-color: #ffffff;
-  border-radius: 24px;
-  padding: 24px 20px;
+  border-radius: 20px;
+  padding: 15px 20px;
   box-sizing: border-box;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   display: flex;
@@ -61,15 +62,19 @@ export const SummaryLabel = styled.span`
 
 export const TotalTimePill = styled.div`
   width: 100%;
-  height: 36px;
+  height: 22px;
   background-color: #9d9995;
   border-radius: 18px;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--Pure-Surface, #FFF);
+  text-align: center;
+  font-family: Pretendard;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: var(--Font-weight-Light, 300);
+  line-height: 140%; /* 14px */
   margin-bottom: 8px;
 `;
 
@@ -82,27 +87,28 @@ display: flex;
   align-items: flex-start;
   width: 100%;
   gap: 0.5px;
-  min-height: 120px;
 `;
 
 export const BreakdownItem = styled.div`
 display: flex;
   flex-direction: column;
   align-items: center;
-  flex: ${(props) => Math.max(1, props.$flex || 1)};
-  min-width: 65px;
+  flex: ${(props) => props.$flex || 1} 1 0px;
+  min-width: 50px;
   
   /* ⭐️ 1번째 아이템 (1층: 오렌지 1위) */
   &:nth-child(1) {
     margin-top: 0px;
+
     & > span {
       margin-top: 4px;
+      
     }
   }
 
   /* ⭐️ 2번째 아이템 (2층: 1위 아래로 내려앉음) */
   &:nth-child(2) {
-    margin-top: 20px;
+    margin-top: 7px;
     & > span {
       margin-bottom: 4px;
     }
@@ -110,7 +116,7 @@ display: flex;
 
   /* ⭐️ 3번째 아이템 (3층: 2위 아래로 더 내려앉음) */
   &:nth-child(3) {
-    margin-top: 40px;
+    margin-top: 30px;
     & > span {
       margin-bottom: 4px;
     }
@@ -186,18 +192,15 @@ export const ImageContainer = styled.div`
   box-sizing: border-box;
 `;
 
-export const CheckBadge = styled.div`
+export const CheckIconImage = styled.img`
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #d86e48; /* 테라코타 / 브릭 오렌지 포인트 색상 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(216, 110, 72, 0.4);
+  top: 7px;
+  right: 7px;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  z-index: 2;
+  pointer-events: none;
 `;
 
 export const ItemImage = styled.img`
@@ -224,4 +227,6 @@ export const ItemName = styled.p`
     font-style: normal;
     font-weight: var(--Font-weight-Light, 300);
     line-height: 140%; /* 16.8px */
+    position: relative;
+    top: -8px;
 `;

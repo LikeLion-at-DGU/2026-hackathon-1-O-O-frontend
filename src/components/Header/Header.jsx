@@ -1,119 +1,105 @@
-import React from "react";
-import * as S from "./Header.styled";
+    // src/components/Header/Header.jsx
+    import React from "react";
+    import * as S from "./Header.styled";
+    import SoundButton from "../SoundButton";
+    import { api } from "../../api/api";
+    import { drainEventBuffer } from "../../api/events";
+    import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import SoundButton from "../SoundButton";
-import { api } from "../../api/api";
-import { drainEventBuffer } from "../../api/events";
-
-import {
-    Link,
-    useLocation,
-    useNavigate,
-} from "react-router-dom";
-
-function Header({ showActions = true }) {
+    function Header({ hideShoot = false, showActions = true }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isAnalyticsPage = location.pathname.startsWith("/analytics");
+    const isLoadingPage =
+        location.pathname.includes("loading") ||
+        location.pathname.startsWith("/analytics-loading");
+
+    const isAnalyticsPage =
+        location.pathname.startsWith("/analytics") && !isLoadingPage;
 
     const handleFinish = async () => {
         const visitId = sessionStorage.getItem("visit_id");
         const visitToken = sessionStorage.getItem("visit_token");
 
-        if (!visitId) {
-            alert("방문 정보가 없습니다.");
-            return;
+        if (!visitId || !visitToken) {
+        alert("방문 정보가 없습니다.");
+        return;
         }
 
         try {
-            // 1. 백엔드에 관람 종료 및 리포트 생성 요청 (POST /visits/{visitId}/finish)
-            sessionStorage.setItem("is_visit_finished", "true");
+        // ⭐️ [핵심] 현재 머물고 있는 컴포넌트의 타이머를 즉시 종료시키기 위해 커스텀 이벤트 발송
+        window.dispatchEvent(new Event("force_flush_dwell_timer"));
 
-            const remainingEvents = drainEventBuffer ? drainEventBuffer() : [];
-            console.log("📦 [관람 종료] 함께 동봉할 잔여 이벤트들:", remainingEvents);
+        // 타이머가 큐에 담길 시간을 0.1초 대기
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-            const response = await api.post(
+        // ⭐️ 마지막 머문 시간까지 포함된 잔여 이벤트 전량 회수
+        const remainingEvents = drainEventBuffer ? drainEventBuffer() : [];
+        console.log("📦 [관람 종료] 최종 동봉 이벤트 (현재 보고있던 시간 포함):", remainingEvents);
+
+        const response = await api.post(
             `/visits/${visitId}/finish`,
+            { events: remainingEvents },
             {
-                events: [], // 아직 안 보낸 버퍼 이벤트가 있다면 여기에 배열로 전달
+            headers: {
+                "X-Visit-Token": visitToken,
             },
-            {
-                headers: {
-                "X-Visit-Token": visitToken || "",
-                },
             }
-            );
+        );
 
-            console.log("🏁 [관람 종료 성공] 응답 데이터:", response.data);
+        console.log("🏁 [관람 종료 성공]:", response.data);
 
-            // 2. 백엔드가 발급해 준 리포트용 slug 추출 (예: "r_7Ka9xQ")
-            const { slug } = response.data;
-
-            if (slug) {
-            // 3. 발급받은 slug를 세션에 저장
+        const slug = response.data?.slug;
+        if (slug) {
             sessionStorage.setItem("report_slug", slug);
-            
-            // 4. slug를 들고 리포트 페이지로 이동!
-            navigate(`/analytics/${slug}`); // 또는 navigate("/analytics")
-            } else {
-            navigate("/analytics");
-            }
-        } catch (error) {
-            console.error("🚨 관람 종료 요청 실패:", error.response?.data || error);
-            alert("관람 기록을 정리하는 중 오류가 발생했습니다.");
+            navigate(`/analytics-loading?slug=${slug}`);
+        } else {
+            navigate("/analytics-loading");
         }
-};
+        } catch (error) {
+        console.error("🚨 관람 종료 요청 실패:", error.response?.data || error);
+        alert(`관람 종료 실패: ${error.response?.data?.message || "서버 응답 오류"}`);
+        }
+    };
 
     const handlePhotoShoot = () => {
         const saved = sessionStorage.getItem("selected_products");
         const selectedProducts = saved ? JSON.parse(saved) : [];
 
         if (selectedProducts.length === 0) {
-            alert("화보에 담을 아이템을 먼저 선택해 주세요.");
-            return;
+        alert("화보에 담을 아이템을 먼저 선택해 주세요.");
+        return;
         }
 
-        // 안전하게 저장되어 있으므로 바로 카메라로 이동
         navigate("/camera");
     };
 
     return (
         <S.HeaderContainer>
-            <Link
-                to="/home"
-                style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                }}
-            >
-                <S.Logo>
-                    <S.LogoText>O</S.LogoText>
-                    <S.Ampersand>&</S.Ampersand>
-                    <S.LogoText>O</S.LogoText>
-                </S.Logo>
-            </Link>
+        <Link to="/home" style={{ textDecoration: "none", color: "inherit" }}>
+            <S.Logo>
+            <S.LogoText>O</S.LogoText>
+            <S.Ampersand>&</S.Ampersand>
+            <S.LogoText>O</S.LogoText>
+            </S.Logo>
+        </Link>
 
-            {showActions && (
-                <S.ButtonWrapper>
-                    <S.Finish
-                        type="button"
-                        onClick={
-                            isAnalyticsPage
-                                ? handlePhotoShoot
-                                : handleFinish
-                        }
-                    >
-                        {isAnalyticsPage
-                            ? "화보 찍기"
-                            : "관람 마치기"}
-                    </S.Finish>
-
-                    <SoundButton />
-                </S.ButtonWrapper>
+        {showActions && (
+            <S.ButtonWrapper>
+            {!hideShoot && !isLoadingPage && (
+                <S.Finish
+                type="button"
+                onClick={isAnalyticsPage ? handlePhotoShoot : handleFinish}
+                >
+                {isAnalyticsPage ? "화보 찍기" : "관람 마치기"}
+                </S.Finish>
             )}
+
+            <SoundButton />
+            </S.ButtonWrapper>
+        )}
         </S.HeaderContainer>
     );
-}
+    }
 
-export default Header;
+    export default Header;
