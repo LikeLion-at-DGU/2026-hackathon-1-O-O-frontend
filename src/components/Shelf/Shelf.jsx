@@ -19,6 +19,8 @@ import Shelf05 from "./Shelf05/Shelf05";
 const ZONES = [1, 2, 3, 4, 5, 6, 7];
 const clamp = (v) => Math.max(1, Math.min(7, Number(v) || 1));
 
+const SHELF_COUNTS = [9, 9, 9, 18, 6, 6, 3];
+
 export default function Shelf() {
   const { zoneId } = useParams();
   const navigate = useNavigate();
@@ -31,9 +33,37 @@ export default function Shelf() {
 
   const urlZone = clamp(zoneId);
 
-  useEffect(() => {
+ useEffect(() => {
     try {
-      setServerScenes(JSON.parse(sessionStorage.getItem("scenes") ?? "[]"));
+      const parsedScenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
+      setServerScenes(parsedScenes);
+
+      // ⭐️ 60개 상품 전수 검사 콘솔 표 출력
+      let globalIndex = 0;
+      const allProductList = [];
+
+      parsedScenes.forEach((sceneItem) => {
+        const shelfNo = sceneItem.no ?? sceneItem.scene_no ?? "미정";
+        const productList = sceneItem.products ?? sceneItem.items ?? [];
+
+        productList.forEach((prod, pIdx) => {
+          globalIndex += 1;
+          allProductList.push({
+            "전체 순번": globalIndex,
+            "선반": `${shelfNo}번 선반`,
+            "선반 내 순서": `${pIdx + 1}번째`,
+            "product_id": prod.product_id ?? prod.id,
+            "상품명": prod.name,
+            "가격": prod.price,
+            "매핑될 이미지": `${globalIndex}-Photoroom.png`,
+          });
+        });
+      });
+
+      console.group("📦 [전체 상품 60개 product_id 전수 검사 표]");
+      console.table(allProductList);
+      console.log("총 상품 개수:", allProductList.length, "개");
+      console.groupEnd();
     } catch {
       setServerScenes([]);
     }
@@ -153,16 +183,42 @@ export default function Shelf() {
         }}
       >
         {ZONES.map((zone) => {
-          const scene = serverScenes.find((item) => Number(item.no) === zone);
-          const products = scene
-            ? (scene.products ?? []).map((product) => ({
-              id: product.product_id,
-              name: product.name,
-              price: product.price,
-              imageUrl: product.thumbnail,
-              scene_id: scene.scene_id,
-            }))
-            : shelfData[zone] || [];
+  const scene = serverScenes.find((item) => Number(item.no) === zone);
+
+  // 1. 전체 상품 목록 추출
+  const rawAllProducts = serverScenes.flatMap((s) => s.products ?? []);
+
+  // 2. 58, 59, 60번째 상품(인덱스 57, 58, 59)을 제외한 '정제된 60개 목록' 생성
+  // (61, 62, 63번 상품들이 자연스럽게 58, 59, 60번째 순서로 당겨짐)
+  const clean60Products = rawAllProducts.filter((_, idx) => idx < 57 || idx > 59);
+
+  const products = scene
+    ? (scene.products ?? [])
+        // 6번 선반에서 제외 대상인 상품(p_607 ~ p_609) 렌더링 필터링
+        .filter((prod) => {
+          const prodId = prod.product_id ?? prod.id;
+          return !["p_607", "p_608", "p_609"].includes(prodId);
+        })
+        .map((product) => {
+          // 정제된 60개 목록에서 현재 상품의 인덱스(0~59) 찾기
+          const targetIndex = clean60Products.findIndex(
+            (p) => (p.product_id ?? p.id) === (product.product_id ?? product.id)
+          );
+
+          // 1부터 60까지 순서대로 파일 번호 부여
+          const photoNo = targetIndex !== -1 ? targetIndex + 1 : 1;
+
+          return {
+            id: product.product_id,
+            name: product.name,
+            price: product.price,
+            // ⚠️ 파일 위치에 맞게 경로 지정 (/products/ 또는 /)
+            imageUrl: `/images/${photoNo}-Photoroom.png`,
+            scene_id: scene.scene_id,
+          };
+        })
+    : shelfData[zone] || [];
+
           return (
             <SwiperSlide key={zone}>
               <div
@@ -185,18 +241,17 @@ export default function Shelf() {
                       products={products}
                       onProductClick={handleProductClick}
                     />
-                  )
-                    : zone === 7 ? (
-                      <Shelf07
-                        products={products}
-                        onProductClick={handleProductClick}
-                      />
-                    ) : (
-                      <DefaultShelf
-                        products={products}
-                        onProductClick={handleProductClick}
-                      />
-                    )}
+                  ) : zone === 7 ? (
+                    <Shelf07
+                      products={products}
+                      onProductClick={handleProductClick}
+                    />
+                  ) : (
+                    <DefaultShelf
+                      products={products}
+                      onProductClick={handleProductClick}
+                    />
+                  )}
                 </div>
               </div>
             </SwiperSlide>
