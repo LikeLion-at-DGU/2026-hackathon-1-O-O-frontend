@@ -31,10 +31,24 @@ function ShelfPage() {
             } catch {
                 scenes = [];
             }
+        console.group(`🏬 [전체 선반별 상품 현황]`);
+            scenes.forEach((sceneItem) => {
+                const shelfNo = sceneItem.no ?? sceneItem.scene_no ?? "알 수 없음";
+                const productList = sceneItem.products ?? sceneItem.items ?? [];
+                console.log(`📌 [${shelfNo}번 진열대] 상품 배열 (${productList.length}개):`, productList);
+            });
+            console.groupEnd();
 
             const scene = scenes.find(
                 (item) => Number(item.no) === Number(zoneId)
             );
+
+            const currentProducts = scene?.products ?? scene?.items ?? [];
+            console.group(`🎯 [현재 진열대: ${zoneId}번] 상품 배열`);
+            console.log("선반 정보 (Scene):", scene);
+            console.log("포함된 상품 목록 (Array):", currentProducts);
+            console.table(currentProducts); // 테이블 뷰로 깔끔하게 출력
+            console.groupEnd();
 
             if (!scene?.scene_id) return;
 

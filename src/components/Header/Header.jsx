@@ -3,6 +3,7 @@ import * as S from "./Header.styled";
 
 import SoundButton from "../SoundButton";
 import { api } from "../../api/api";
+import { drainEventBuffer } from "../../api/events";
 
 import {
     Link,
@@ -27,6 +28,11 @@ function Header({ showActions = true }) {
 
         try {
             // 1. 백엔드에 관람 종료 및 리포트 생성 요청 (POST /visits/{visitId}/finish)
+            sessionStorage.setItem("is_visit_finished", "true");
+
+            const remainingEvents = drainEventBuffer ? drainEventBuffer() : [];
+            console.log("📦 [관람 종료] 함께 동봉할 잔여 이벤트들:", remainingEvents);
+
             const response = await api.post(
             `/visits/${visitId}/finish`,
             {

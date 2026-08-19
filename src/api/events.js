@@ -6,9 +6,10 @@ const FLUSH_INTERVAL = 5_000;
 let flushTimer;
 let isFlushing = false;
 
+// 고유 Event ID 생성
 const createEventId = () =>
   globalThis.crypto?.randomUUID?.() ??
-  `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  `e_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
 const getQueue = () => {
   try {
@@ -24,38 +25,39 @@ const saveQueue = (events) => {
 
 const normalizeEventType = (eventType) => String(eventType).toLowerCase();
 
-// ⭐️ 관람 종료 여부 확인 헬퍼
+// 관람 종료 여부 확인
 const isVisitFinished = () => Boolean(sessionStorage.getItem("report_slug"));
 
+/**
+ * 큐에 쌓인 이벤트를 서버로 일괄 전송 (Flush)
+ */
 export const flushEvents = async ({ keepalive = false } = {}) => {
-  // 이미 요청 중이거나 관람이 종료된 경우 전송 중단
   if (isFlushing || isVisitFinished()) {
-    saveQueue([]); // 종료된 세션의 잔여 큐 제거
     return;
   }
 
   const events = getQueue();
-  const anonymousUuid =
-    localStorage.getItem("anonymousUuid") ??
-    localStorage.getItem("anonymous_uuid") ??
-    sessionStorage.getItem("anonymous_uuid");
-  const visitId =
-    localStorage.getItem("visitId") ?? sessionStorage.getItem("visit_id");
   const visitToken =
-    localStorage.getItem("visitToken") ??
-    sessionStorage.getItem("visit_token") ??
+    sessionStorage.getItem("visit_token") ||
+    localStorage.getItem("visitToken") ||
+    "";
+  const anonymousUuid =
+    sessionStorage.getItem("anonymous_uuid") ||
+    localStorage.getItem("anonymousUuid") ||
     "";
 
-  if (!events.length || !anonymousUuid || !visitId) return;
+  if (!events.length) return;
 
   isFlushing = true;
   saveQueue([]); // 큐를 먼저 비움
 
   try {
     const headers = {
-      "X-Anonymous-UUID": anonymousUuid,
-      "X-Visit-Token": visitToken,
+      ...(anonymousUuid && { "X-Anonymous-UUID": anonymousUuid }),
+      ...(visitToken && { "X-Visit-Token": visitToken }),
     };
+
+    const payload = { events };
 
     if (keepalive) {
       const response = await fetch(
@@ -66,55 +68,70 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
             "Content-Type": "application/json",
             ...headers,
           },
-          body: JSON.stringify({ visit_id: visitId, events }),
+          body: JSON.stringify(payload),
           keepalive: true,
         }
       );
       if (!response.ok) throw new Error(`이벤트 전송 실패: ${response.status}`);
     } else {
-      // ⭐️ X-Visit-Token과 X-Anonymous-UUID 헤더 모두 전달
-      await api.post(
-        "/events",
-        { visit_id: visitId, events },
-        { headers }
-      );
+      await api.post("/events", payload, { headers });
     }
   } catch (error) {
-    // 이미 관람이 종료된 상태(401/400)라면 큐를 복구하지 않고 버림
+    // 401(토큰 만료)이나 이미 종료된 세션이 아니면 큐 복구
     if (!isVisitFinished() && error.response?.status !== 401) {
       saveQueue([...events, ...getQueue()]);
     }
-    console.warn("⚠️ [Events] 이벤트 전송 스킵/실패:", error.message);
+    console.warn("⚠️ [Events] 전송 스킵 또는 실패:", error.response?.data || error.message);
   } finally {
     isFlushing = false;
   }
 };
 
-export const sendEvent = async ({
-  event_type,
-  product_id,
-  scene_id,
-  metadata,
-  question,
-}) => {
-  // 관람 종료 후에는 이벤트 수집 중단
-  if (isVisitFinished()) return { data: null };
+/**
+ * 이벤트 즉시 전송 (배치)
+ */
+export const sendEvents = async (events = []) => {
+  if (!events || events.length === 0) return;
 
-  const eventMetadata = {
-    ...(metadata ?? {}),
-    ...(question != null ? { question } : {}),
-  };
+  const visitToken = sessionStorage.getItem("visit_token");
+
+  const formattedEvents = events.map((ev) => ({
+    event_id: ev.event_id || createEventId(),
+    event_type: normalizeEventType(ev.event_type),
+    ...(ev.product_id && { product_id: String(ev.product_id) }),
+    ...(ev.scene_id && { scene_id: String(ev.scene_id) }),
+    client_timestamp: ev.client_timestamp || new Date().toISOString(),
+    metadata: ev.metadata || (ev.dwell_ms ? { dwell_ms: Number(ev.dwell_ms) } : {}),
+  }));
+
+  const payload = { events: formattedEvents };
+
+  return await api.post("/events", payload, {
+    headers: {
+      "X-Visit-Token": visitToken || "",
+    },
+  });
+};
+
+/**
+ * 단일 이벤트 전송 및 큐잉 (Shelf, useProductEvent에서 호출)
+ */
+export const sendEvent = async (eventData) => {
+  if (!eventData || !eventData.event_type) return;
 
   const event = {
-    event_id: createEventId(),
-    event_type: normalizeEventType(event_type),
-    client_timestamp: new Date().toISOString(),
-    ...(scene_id != null && { scene_id: String(scene_id) }),
-    ...(product_id != null && { product_id: String(product_id) }),
-    ...(Object.keys(eventMetadata).length > 0 && { metadata: eventMetadata }),
+    event_id: eventData.event_id || createEventId(),
+    event_type: normalizeEventType(eventData.event_type),
+    client_timestamp: eventData.client_timestamp || new Date().toISOString(),
+    ...(eventData.scene_id != null && { scene_id: String(eventData.scene_id) }),
+    ...(eventData.product_id != null && { product_id: String(eventData.product_id) }),
+    metadata: eventData.metadata || {},
   };
 
+  // 1. 큐에 추가
   saveQueue([...getQueue(), event]);
+
+  // 2. 타이머 리셋 후 5초 뒤 자동 flush
   clearTimeout(flushTimer);
   flushTimer = setTimeout(() => {
     flushEvents().catch(() => {});
@@ -133,7 +150,9 @@ export const getVisitEvents = async (visitId) => ({
       : [],
 });
 
-// 관람 종료 시 Header 등에서 버퍼를 한 번에 비워 동봉할 때 사용하는 함수
+/**
+ * 관람 종료 시 남은 버퍼를 추출하고 비움 (Header의 finishVisit에 동봉용)
+ */
 export const drainEventBuffer = () => {
   const events = getQueue();
   saveQueue([]);
