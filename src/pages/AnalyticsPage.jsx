@@ -5,11 +5,13 @@ import * as S from "./AnalyticsPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import Header from "../components/Header/Header";
 
+const defaultBagImg =
+  "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23eee%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20alignment-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23aaa%22%20font-size%3D%2214%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E";
+
 export default function AnalyticsPage() {
   const navigate = useNavigate();
   const { slug } = useParams();
 
-  // 1. 식별자 확인 (URL params -> sessionStorage)
   const reportSlug =
     slug ||
     sessionStorage.getItem("report_slug") ||
@@ -20,10 +22,9 @@ export default function AnalyticsPage() {
   const [isPending, setIsPending] = useState(true);
   const pollTimerRef = useRef(null);
 
-  // 2. 백엔드 리포트 데이터 조회 및 Pending 폴링
   useEffect(() => {
     if (!reportSlug) {
-      alert("리포트 식별자가 없습니다.");
+      console.warn("⚠️ [AnalyticsPage] reportSlug 없음");
       setIsPending(false);
       return;
     }
@@ -35,30 +36,28 @@ export default function AnalyticsPage() {
         const data = await getAnalytics(reportSlug);
         if (!isMounted) return;
 
-        console.log("📊 [AnalyticsPage] 수신 데이터:", data);
+        console.log("📊 [AnalyticsPage] 서버 응답:", data);
 
-        // (1) 백엔드 분석 진행 중 (pending) -> 2초 주기 폴링
         if (data?.status === "pending") {
           setIsPending(true);
           pollTimerRef.current = setTimeout(loadReport, 2000);
           return;
         }
 
-        // (2) 분석 완료 (ready)
         if (data?.status === "ready") {
           setReport(data);
           setIsPending(false);
 
-          // Hero 상품 또는 preselected 상품 기본 선택
-          const initialSelected = data.hero?.product_id
-            ? [data.hero.product_id]
-            : data.preselected || [];
+          const defaultSelectedId =
+            data.hero?.product_id ||
+            (data.recommendations && data.recommendations[0]?.product_id) ||
+            null;
 
-          setSelectedProductIds(initialSelected);
-          if (initialSelected.length > 0) {
+          if (defaultSelectedId) {
+            setSelectedProductIds([defaultSelectedId]);
             sessionStorage.setItem(
               "selected_products",
-              JSON.stringify(initialSelected)
+              JSON.stringify([defaultSelectedId])
             );
           }
         }
@@ -75,122 +74,140 @@ export default function AnalyticsPage() {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
     };
   }, [reportSlug]);
-
-  // 3. 서버 체류 이벤트 기반 집계 계산
+//-------------------------
+// 3. 1~7번 진열대 체류 시간 초 단위 정밀 계산 및 콘솔 출력
   const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
+    // ⭐️ 1. 리포트 데이터 도착 여부 콘솔
     if (!report) {
+      console.log("⏳ [AnalyticsPage] 리포트 데이터 수신 대기 중...");
       return {
-        topZoneName: "",
+        topZoneName: "1번 진열대",
         totalMinutes: 0,
-        top1: { zone_name: "-", duration_min: 0 },
-        top2: { zone_name: "-", duration_min: 0 },
+        top1: { zone_name: "1번 진열대", duration_min: 0 },
+        top2: { zone_name: "2번 진열대", duration_min: 0 },
         etcMinutes: 0,
       };
     }
 
-    // 총 체류 시간 (visit_start ~ visit_end 또는 summary 필드)
-    let totalMin = 0;
-    if (report.visit_start && report.visit_end) {
-      const start = new Date(report.visit_start).getTime();
-      const end = new Date(report.visit_end).getTime();
-      totalMin = Math.max(1, Math.round(Math.max(0, end - start) / 60000));
-    } else if (report.summary?.total_stay_duration_sec) {
-      totalMin = Math.max(1, Math.round(report.summary.total_stay_duration_sec / 60));
+    console.group("⏱️ [체류시간 초(Seconds) 정밀 분석 콘솔]");
+    console.log("1. 서버 report.interested 원본:", report.interested);
+    console.log("2. 서버 report.visit_summary 원본:", report.visit_summary);
+    console.log("3. 서버 report.events 원본:", report.events);
+
+    const zoneSecMap = {};
+    let totalSec = 0;
+
+    // (A) report.interested 파싱
+    if (Array.isArray(report.interested) && report.interested.length > 0) {
+      report.interested.forEach((item, idx) => {
+        let sec = 0;
+
+        // 초/ms/숫자 필드 확인
+        if (typeof item.dwell_sec === "number") {
+          sec = item.dwell_sec;
+        } else if (typeof item.dwell_ms === "number") {
+          sec = Math.round(item.dwell_ms / 1000);
+        } else if (typeof item.reason === "string") {
+          // '체류 30초', '30초', '30s', '체류 30' 매칭
+          const match =
+            item.reason.match(/체류\s*(\d+)\s*(?:초|s|sec)?/i) ||
+            item.reason.match(/(\d+)\s*(?:초|s|sec)/i);
+          if (match) {
+            sec = parseInt(match[1], 10);
+          } else if (item.reason.includes("대화") || item.reason.includes("챗봇")) {
+            const countMatch = item.reason.match(/(\d+)\s*회/);
+            const count = countMatch ? parseInt(countMatch[1], 10) : 1;
+            sec = count * 15; // 챗봇 1회당 15초 환산
+          }
+        }
+
+        // 진열대 번호 판별 (scene_no 또는 product_id)
+        let shelfNo = item.scene_no;
+        if (!shelfNo && item.product_id) {
+          const pMatch = String(item.product_id).match(/p_(\d)/);
+          if (pMatch) shelfNo = parseInt(pMatch[1], 10);
+        }
+
+        const zoneKey = shelfNo ? `${shelfNo}번 진열대` : `${idx + 1}번 진열대`;
+        zoneSecMap[zoneKey] = (zoneSecMap[zoneKey] || 0) + sec;
+        totalSec += sec;
+
+        console.log(`- [항목 ${idx + 1}] 진열대: ${zoneKey} | 이유: "${item.reason}" ➔ 계산된 체류: ${sec}초`);
+      });
     }
 
-    // 체류 이벤트 추출 및 구역별 집계
-    const dwellEvents =
-      report.events?.filter((e) => e.event_type === "scene_dwell") || [];
+    // (B) report.events 배열 파싱 (동봉된 경우)
+    if (Array.isArray(report.events) && report.events.length > 0) {
+      report.events.forEach((ev, idx) => {
+        const ms = Number(
+          ev.payload?.dwell_time_ms ??
+            ev.metadata?.dwell_ms ??
+            ev.dwell_time_ms ??
+            0
+        );
+        const sec = Math.round(ms / 1000);
+        const rawZone = String(
+          ev.payload?.zone_id ?? ev.zone_id ?? ev.scene_id ?? ""
+        );
+        const numMatch = rawZone.match(/\d+/);
+        const zoneKey = numMatch ? `${numMatch[0]}번 진열대` : "기타 진열대";
 
-    const zoneMap = {};
-    dwellEvents.forEach((event) => {
-      const zoneId =
-        event.payload?.zone_id ??
-        event.zone_id ??
-        event.scene_id ??
-        "기타";
-      const dwellMs = Number(
-        event.payload?.dwell_time_ms ??
-          event.metadata?.dwell_ms ??
-          event.dwell_time_ms ??
-          0
-      );
-      zoneMap[zoneId] = (zoneMap[zoneId] || 0) + dwellMs;
-    });
+        zoneSecMap[zoneKey] = (zoneSecMap[zoneKey] || 0) + sec;
+        totalSec += sec;
 
-    const stats = Object.entries(zoneMap).map(([zoneId, totalMs]) => {
-      const min = Math.round(totalMs / 60000);
-      return {
-        zone_id: zoneId,
-        zone_name: isNaN(zoneId) ? zoneId : `${zoneId}번 진열대`,
-        duration_min: min,
-        raw_ms: totalMs,
-      };
-    });
+        console.log(`- [이벤트 ${idx + 1}] 타입: ${ev.event_type} | 구역: ${zoneKey} ➔ 체류: ${sec}초 (${ms}ms)`);
+      });
+    }
 
-    stats.sort((a, b) => b.raw_ms - a.raw_ms);
+    // (C) 체류시간 내림차순 정렬
+    const sortedZones = Object.entries(zoneSecMap)
+      .map(([zone_name, sec]) => ({
+        zone_name,
+        duration_min: sec, // 화면에 초 단위 수치 전달
+        raw_sec: sec,
+      }))
+      .sort((a, b) => b.raw_sec - a.raw_sec);
 
-    const top1Zone = stats[0] || { zone_name: "미확인 구역", duration_min: 0 };
-    const top2Zone = stats[1] || { zone_name: "미확인 구역", duration_min: 0 };
+    const top1Zone = sortedZones[0] || { zone_name: "1번 진열대", duration_min: 0, raw_sec: 0 };
+    const top2Zone = sortedZones[1] || { zone_name: "2번 진열대", duration_min: 0, raw_sec: 0 };
+    const top2Sum = top1Zone.raw_sec + top2Zone.raw_sec;
+    const calculatedEtc = Math.max(0, totalSec - top2Sum);
 
-    const top2SumMin = top1Zone.duration_min + top2Zone.duration_min;
-    const calculatedEtc = Math.max(0, totalMin - top2SumMin);
-
-    return {
+    const result = {
       topZoneName: top1Zone.zone_name,
-      totalMinutes: totalMin,
+      totalMinutes: totalSec,
       top1: top1Zone,
       top2: top2Zone,
       etcMinutes: calculatedEtc,
     };
-  }, [report]);
 
+    console.log("📊 진열대별 최종 초 단위 집계표:", zoneSecMap);
+    console.log(`🥇 1위 진열대: ${top1Zone.zone_name} (${top1Zone.raw_sec}초)`);
+    console.log(`🥈 2위 진열대: ${top2Zone.zone_name} (${top2Zone.raw_sec}초)`);
+    console.log(`📦 기타 진열대: ${calculatedEtc}초`);
+    console.log(`⏱️ 전체 총 관람시간: ${totalSec}초`);
+    console.groupEnd();
 
-  useEffect(() => {
-    if (report?.hero?.product_id) {
-      const defaultSelected = [report.hero.product_id];
-      setSelectedProductIds(defaultSelected);
-      sessionStorage.setItem("selected_products", JSON.stringify(defaultSelected));
-    }
+    return result;
   }, [report]);
-  
-  // 4. 상품 선택 토글 핸들러
+  //-------------------------------------
   const handleToggleSelect = (productId) => {
-    const maxSelect = report?.max_select || 1;
-
-    let updated;
-    if (maxSelect === 1) {
-      // 1개만 고르는 경우: 클릭한 상품으로 바로 교체
-      updated = [productId];
-    } else {
-      // 다중 선택 가능한 경우: 토글 처리 (단, 최소 1개는 유지)
-      if (selectedProductIds.includes(productId)) {
-        // 선택 해제 시도 시, 마지막 남은 1개라면 해제 방지
-        updated = selectedProductIds.length > 1
-          ? selectedProductIds.filter((id) => id !== productId)
-          : selectedProductIds;
-      } else if (selectedProductIds.length < maxSelect) {
-        updated = [...selectedProductIds, productId];
-      } else {
-        updated = selectedProductIds;
-      }
-    }
-
-    setSelectedProductIds(updated);
-    sessionStorage.setItem("selected_products", JSON.stringify(updated));
+    setSelectedProductIds([productId]);
+    sessionStorage.setItem("selected_products", JSON.stringify([productId]));
   };
 
-  // 5. 화보 촬영 페이지로 이동
   const handleGoToCamera = () => {
     if (selectedProductIds.length === 0) {
       alert("화보에 담을 아이템을 1개 이상 선택해 주세요.");
       return;
     }
-    sessionStorage.setItem("selected_products", JSON.stringify(selectedProductIds));
+    sessionStorage.setItem(
+      "selected_products",
+      JSON.stringify(selectedProductIds)
+    );
     navigate("/camera");
   };
 
-  // 6. 서버 응답 상품 목록 구성 (hero + recommendations + interested)
   const displayProducts = useMemo(() => {
     if (!report) return [];
 
@@ -198,8 +215,8 @@ export default function AnalyticsPage() {
     if (report.hero) list.push(report.hero);
     if (Array.isArray(report.recommendations)) list.push(...report.recommendations);
     if (Array.isArray(report.items)) list.push(...report.items);
+    if (Array.isArray(report.interested)) list.push(...report.interested);
 
-    // product_id 기준 중복 제거
     const unique = [];
     const seen = new Set();
     list.forEach((item) => {
@@ -210,9 +227,8 @@ export default function AnalyticsPage() {
       }
     });
 
-    return unique.slice(0,6);
+    return unique.slice(0, 6);
   }, [report]);
-
   // 로딩 화면
   if (isPending) {
     return (
@@ -251,17 +267,17 @@ export default function AnalyticsPage() {
 
           <S.TimeBreakdownContainer>
             <S.BreakdownRow>
-              <S.BreakdownItem $flex={top1.duration_min || 30}>
+              <S.BreakdownItem $flex={top1.duration_min}>
                 <S.BreakdownPill $isHighlight>{top1.duration_min}분</S.BreakdownPill>
                 <S.BreakdownLabel>{top1.zone_name}</S.BreakdownLabel>
               </S.BreakdownItem>
 
-              <S.BreakdownItem $flex={top2.duration_min || 20}>
+              <S.BreakdownItem $flex={top2.duration_min}>
                 <S.BreakdownLabel>{top2.zone_name}</S.BreakdownLabel>
                 <S.BreakdownPill>{top2.duration_min}분</S.BreakdownPill>
               </S.BreakdownItem>
 
-              <S.BreakdownItem $flex={etcMinutes || 10}>
+              <S.BreakdownItem $flex={etcMinutes}>
                 <S.BreakdownLabel>기타</S.BreakdownLabel>
                 <S.BreakdownPill>{etcMinutes}분</S.BreakdownPill>
               </S.BreakdownItem>
