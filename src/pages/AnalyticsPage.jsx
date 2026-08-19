@@ -75,24 +75,17 @@ export default function AnalyticsPage() {
     };
   }, [reportSlug]);
 //-------------------------
-// 3. 1~7번 진열대 체류 시간 초 단위 정밀 계산 및 콘솔 출력
+// 3. 1~7번 진열대 체류 시간 계산 (콘솔: 초 단위 상세 출력 / 화면: 분 단위 바인딩)
   const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
-    // ⭐️ 1. 리포트 데이터 도착 여부 콘솔
     if (!report) {
-      console.log("⏳ [AnalyticsPage] 리포트 데이터 수신 대기 중...");
       return {
-        topZoneName: "1번 진열대",
+        topZoneName: "진열대",
         totalMinutes: 0,
-        top1: { zone_name: "1번 진열대", duration_min: 0 },
-        top2: { zone_name: "2번 진열대", duration_min: 0 },
+        top1: { zone_name: "-", duration_min: 0 },
+        top2: { zone_name: "-", duration_min: 0 },
         etcMinutes: 0,
       };
     }
-
-    console.group("⏱️ [체류시간 초(Seconds) 정밀 분석 콘솔]");
-    console.log("1. 서버 report.interested 원본:", report.interested);
-    console.log("2. 서버 report.visit_summary 원본:", report.visit_summary);
-    console.log("3. 서버 report.events 원본:", report.events);
 
     const zoneSecMap = {};
     let totalSec = 0;
@@ -102,13 +95,11 @@ export default function AnalyticsPage() {
       report.interested.forEach((item, idx) => {
         let sec = 0;
 
-        // 초/ms/숫자 필드 확인
         if (typeof item.dwell_sec === "number") {
           sec = item.dwell_sec;
         } else if (typeof item.dwell_ms === "number") {
           sec = Math.round(item.dwell_ms / 1000);
         } else if (typeof item.reason === "string") {
-          // '체류 30초', '30초', '30s', '체류 30' 매칭
           const match =
             item.reason.match(/체류\s*(\d+)\s*(?:초|s|sec)?/i) ||
             item.reason.match(/(\d+)\s*(?:초|s|sec)/i);
@@ -121,7 +112,6 @@ export default function AnalyticsPage() {
           }
         }
 
-        // 진열대 번호 판별 (scene_no 또는 product_id)
         let shelfNo = item.scene_no;
         if (!shelfNo && item.product_id) {
           const pMatch = String(item.product_id).match(/p_(\d)/);
@@ -131,14 +121,12 @@ export default function AnalyticsPage() {
         const zoneKey = shelfNo ? `${shelfNo}번 진열대` : `${idx + 1}번 진열대`;
         zoneSecMap[zoneKey] = (zoneSecMap[zoneKey] || 0) + sec;
         totalSec += sec;
-
-        console.log(`- [항목 ${idx + 1}] 진열대: ${zoneKey} | 이유: "${item.reason}" ➔ 계산된 체류: ${sec}초`);
       });
     }
 
     // (B) report.events 배열 파싱 (동봉된 경우)
     if (Array.isArray(report.events) && report.events.length > 0) {
-      report.events.forEach((ev, idx) => {
+      report.events.forEach((ev) => {
         const ms = Number(
           ev.payload?.dwell_time_ms ??
             ev.metadata?.dwell_ms ??
@@ -154,41 +142,45 @@ export default function AnalyticsPage() {
 
         zoneSecMap[zoneKey] = (zoneSecMap[zoneKey] || 0) + sec;
         totalSec += sec;
-
-        console.log(`- [이벤트 ${idx + 1}] 타입: ${ev.event_type} | 구역: ${zoneKey} ➔ 체류: ${sec}초 (${ms}ms)`);
       });
     }
 
-    // (C) 체류시간 내림차순 정렬
+    // (C) 체류시간 내림차순 정렬 (초 기준)
     const sortedZones = Object.entries(zoneSecMap)
       .map(([zone_name, sec]) => ({
         zone_name,
-        duration_min: sec, // 화면에 초 단위 수치 전달
         raw_sec: sec,
+        // 초 -> 분 환산 (0초 초과 시 최소 1분 표기되도록 올림 처리)
+        duration_min: sec > 0 ? Math.ceil(sec / 60) : 0,
       }))
       .sort((a, b) => b.raw_sec - a.raw_sec);
 
+    // 1위, 2위 진열대 추출
     const top1Zone = sortedZones[0] || { zone_name: "1번 진열대", duration_min: 0, raw_sec: 0 };
     const top2Zone = sortedZones[1] || { zone_name: "2번 진열대", duration_min: 0, raw_sec: 0 };
-    const top2Sum = top1Zone.raw_sec + top2Zone.raw_sec;
-    const calculatedEtc = Math.max(0, totalSec - top2Sum);
 
-    const result = {
-      topZoneName: top1Zone.zone_name,
-      totalMinutes: totalSec,
-      top1: top1Zone,
-      top2: top2Zone,
-      etcMinutes: calculatedEtc,
-    };
+    // 전체 총 체류 분 환산
+    const calcTotalMin = totalSec > 0 ? Math.ceil(totalSec / 60) : 0;
+    const top2SumMin = top1Zone.duration_min + top2Zone.duration_min;
+    const calcEtcMin = Math.max(0, calcTotalMin - top2SumMin);
 
-    console.log("📊 진열대별 최종 초 단위 집계표:", zoneSecMap);
-    console.log(`🥇 1위 진열대: ${top1Zone.zone_name} (${top1Zone.raw_sec}초)`);
-    console.log(`🥈 2위 진열대: ${top2Zone.zone_name} (${top2Zone.raw_sec}초)`);
-    console.log(`📦 기타 진열대: ${calculatedEtc}초`);
-    console.log(`⏱️ 전체 총 관람시간: ${totalSec}초`);
+    // ⭐️ 콘솔에는 '초(Seconds)' 단위로 상세 출력
+    console.group("⏱️ [체류시간 실시간 정밀 분석 (초 단위)]");
+    console.log("• 진열대별 초 집계표:", zoneSecMap);
+    console.log(`• 🥇 1위 진열대: ${top1Zone.zone_name} ➔ ${top1Zone.raw_sec}초 (${top1Zone.duration_min}분)`);
+    console.log(`• 🥈 2위 진열대: ${top2Zone.zone_name} ➔ ${top2Zone.raw_sec}초 (${top2Zone.duration_min}분)`);
+    console.log(`• 📦 기타 체류: ${Math.max(0, totalSec - (top1Zone.raw_sec + top2Zone.raw_sec))}초 (${calcEtcMin}분)`);
+    console.log(`• 🕒 총 관람시간: ${totalSec}초 (${calcTotalMin}분)`);
     console.groupEnd();
 
-    return result;
+    // ⭐️ 화면에는 '분(Minutes)' 단위 데이터 반환
+    return {
+      topZoneName: top1Zone.zone_name,
+      totalMinutes: calcTotalMin,
+      top1: top1Zone,
+      top2: top2Zone,
+      etcMinutes: calcEtcMin,
+    };
   }, [report]);
   //-------------------------------------
   const handleToggleSelect = (productId) => {

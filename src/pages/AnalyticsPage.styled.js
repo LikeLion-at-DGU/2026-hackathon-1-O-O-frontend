@@ -70,7 +70,7 @@ export const TotalTimePill = styled.div`
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 `;
 
 export const TimeBreakdownContainer = styled.div`
@@ -78,38 +78,74 @@ export const TimeBreakdownContainer = styled.div`
 `;
 
 export const BreakdownRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 8px;
+display: flex;
+  align-items: flex-start;
+  width: 100%;
+  gap: 0.5px;
+  min-height: 120px;
 `;
 
 export const BreakdownItem = styled.div`
-  display: flex;
+display: flex;
   flex-direction: column;
   align-items: center;
-  flex: ${(props) => (props.$isHighlight ? 1.3 : 1)};
+  flex: ${(props) => Math.max(1, props.$flex || 1)};
+  min-width: 65px;
+  
+  /* ⭐️ 1번째 아이템 (1층: 오렌지 1위) */
+  &:nth-child(1) {
+    margin-top: 0px;
+    & > span {
+      margin-top: 4px;
+    }
+  }
+
+  /* ⭐️ 2번째 아이템 (2층: 1위 아래로 내려앉음) */
+  &:nth-child(2) {
+    margin-top: 20px;
+    & > span {
+      margin-bottom: 4px;
+    }
+  }
+
+  /* ⭐️ 3번째 아이템 (3층: 2위 아래로 더 내려앉음) */
+  &:nth-child(3) {
+    margin-top: 40px;
+    & > span {
+      margin-bottom: 4px;
+    }
+  }
 `;
 
 export const BreakdownPill = styled.div`
-  width: 100%;
-  height: 32px;
-  border-radius: 16px;
-  background-color: ${(props) => (props.$isHighlight ? "#d97457" : "#dfdedb")};
-  color: ${(props) => (props.$isHighlight ? "#ffffff" : "#444444")};
-  font-size: 12px;
-  font-weight: 600;
+width: 100%;
+  height: 22px;
+  border-radius: 19px;
+  background-color: ${(props) => (props.$isHighlight ? "#D97251" : "#DFE0E4")};
+  color: ${(props) => (props.$isHighlight ? "#FFFFFF" : "#111111")};
+
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: ${(props) => (props.$isHighlight ? "6px" : "0")};
+  color: var(--Deep-Slate, #222);
+text-align: center;
+font-family: Pretendard;
+font-size: 10px;
+font-style: normal;
+font-weight: var(--Font-weight-Light, 300);
+line-height: 140%; /* 14px */
 `;
 
 export const BreakdownLabel = styled.span`
-  font-size: 11px;
-  color: #777777;
-  margin-bottom: 6px;
+color: var(--Neutral-N40, #746F6A);
+text-align: center;
+font-family: Pretendard;
+font-size: 10px;
+font-style: normal;
+font-weight: var(--Font-weight-Light, 300);
+line-height: 140%; /* 14px */
 `;
+
 
 export const ItemGrid = styled.div`
   display: grid;
