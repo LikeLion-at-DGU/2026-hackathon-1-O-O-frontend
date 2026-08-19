@@ -156,8 +156,9 @@ export default function LandingPage() {
                 envelopeRef.current.style.opacity = `${1 - clamp((p - 0.67) / 0.09)}`;
             }
 
-            if (flapRef.current) flapRef.current.style.transform = `rotateX(${180 * open}deg)`;
-            if (sealRef.current) sealRef.current.style.opacity = `${1 - open}`;
+            if (flapRef.current) {
+                flapRef.current.style.transform = `rotateX(${180 * open}deg)`;
+            }
 
             if (paperRef.current) {
                 const y = lerp(-5, -50, present);
@@ -479,6 +480,8 @@ export default function LandingPage() {
         <S.MobileContainer>
             <S.Noise />
             <S.Progress $progress={pageProgress} />
+
+            {/* 오른쪽 챕터  */}
             <S.Index>{sceneLabel}</S.Index>
 
             <S.HeroChapter ref={heroRef}>
@@ -519,13 +522,39 @@ export default function LandingPage() {
 
                     <S.EnvelopeFlight ref={envelopeRef}>
                         <S.Envelope>
-                            <S.Flap ref={flapRef} />
-                            <S.Seal ref={sealRef}>MCM<br />50</S.Seal>
+                            <S.Flap ref={flapRef}>
+                                <svg
+                                    viewBox="0 0 850 300"
+                                    preserveAspectRatio="none"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="
+                                            M 12 2
+                                            H 838
+                                            Q 850 2 842 14
+                                            L 450 278
+                                            Q 425 300 400 278
+                                            L 8 14
+                                            Q 0 2 12 2
+                                            Z
+                                        "
+                                    />
+                                </svg>
+                            </S.Flap>
+                            <S.Seal ref={sealRef}>
+                                MCM
+                            </S.Seal>
                         </S.Envelope>
                     </S.EnvelopeFlight>
 
                     <S.PaperWhiteout ref={whiteoutRef} />
-                    <S.SkyCue>SCROLL TO RECEIVE THE INVITATION ↓</S.SkyCue>
+
+                    <S.ScrollArrow aria-hidden="true">
+                        <span />
+                        <i>↓</i>
+                    </S.ScrollArrow>
+
                 </S.StickyNight>
             </S.HeroChapter>
 
