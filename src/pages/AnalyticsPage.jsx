@@ -8,6 +8,23 @@ import Header from "../components/Header/Header";
 const defaultBagImg =
   "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23eee%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20alignment-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23aaa%22%20font-size%3D%2214%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E";
 
+// ⭐️ 상품 ID에 맞춰 public/images 경로 생성하는 공통 함수
+// ⭐️ 로컬 파일(/images/p_101-Photoroom.png)을 최우선으로 지정
+export const getProductImage = (product) => {
+  const prodId = product?.product_id ?? product?.id;
+  
+  if (prodId) {
+    return `/images/${prodId}-Photoroom.png`; // 1순위: 내 로컬 파일
+  }
+  
+  return (
+    product?.thumbnail ??
+    product?.images?.thumbnail ??
+    product?.images?.main ??
+    defaultBagImg
+  );
+};
+
 export default function AnalyticsPage() {
   const navigate = useNavigate();
   const { slug } = useParams();
@@ -74,8 +91,8 @@ export default function AnalyticsPage() {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
     };
   }, [reportSlug]);
-//-------------------------
-// 3. 1~7번 진열대 체류 시간 계산 (콘솔: 초 단위 상세 출력 / 화면: 분 단위 바인딩)
+
+  // 1~7번 진열대 체류 시간 계산
   const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
     if (!report) {
       return {
@@ -108,7 +125,7 @@ export default function AnalyticsPage() {
           } else if (item.reason.includes("대화") || item.reason.includes("챗봇")) {
             const countMatch = item.reason.match(/(\d+)\s*회/);
             const count = countMatch ? parseInt(countMatch[1], 10) : 1;
-            sec = count * 15; // 챗봇 1회당 15초 환산
+            sec = count * 15;
           }
         }
 
@@ -124,7 +141,7 @@ export default function AnalyticsPage() {
       });
     }
 
-    // (B) report.events 배열 파싱 (동봉된 경우)
+    // (B) report.events 배열 파싱
     if (Array.isArray(report.events) && report.events.length > 0) {
       report.events.forEach((ev) => {
         const ms = Number(
@@ -145,35 +162,22 @@ export default function AnalyticsPage() {
       });
     }
 
-    // (C) 체류시간 내림차순 정렬 (초 기준)
+    // (C) 체류시간 내림차순 정렬
     const sortedZones = Object.entries(zoneSecMap)
       .map(([zone_name, sec]) => ({
         zone_name,
         raw_sec: sec,
-        // 초 -> 분 환산 (0초 초과 시 최소 1분 표기되도록 올림 처리)
         duration_min: sec > 0 ? Math.ceil(sec / 60) : 0,
       }))
       .sort((a, b) => b.raw_sec - a.raw_sec);
 
-    // 1위, 2위 진열대 추출
     const top1Zone = sortedZones[0] || { zone_name: "1번 진열대", duration_min: 0, raw_sec: 0 };
     const top2Zone = sortedZones[1] || { zone_name: "2번 진열대", duration_min: 0, raw_sec: 0 };
 
-    // 전체 총 체류 분 환산
     const calcTotalMin = totalSec > 0 ? Math.ceil(totalSec / 60) : 0;
     const top2SumMin = top1Zone.duration_min + top2Zone.duration_min;
     const calcEtcMin = Math.max(0, calcTotalMin - top2SumMin);
 
-    // ⭐️ 콘솔에는 '초(Seconds)' 단위로 상세 출력
-    console.group("⏱️ [체류시간 실시간 정밀 분석 (초 단위)]");
-    console.log("• 진열대별 초 집계표:", zoneSecMap);
-    console.log(`• 🥇 1위 진열대: ${top1Zone.zone_name} ➔ ${top1Zone.raw_sec}초 (${top1Zone.duration_min}분)`);
-    console.log(`• 🥈 2위 진열대: ${top2Zone.zone_name} ➔ ${top2Zone.raw_sec}초 (${top2Zone.duration_min}분)`);
-    console.log(`• 📦 기타 체류: ${Math.max(0, totalSec - (top1Zone.raw_sec + top2Zone.raw_sec))}초 (${calcEtcMin}분)`);
-    console.log(`• 🕒 총 관람시간: ${totalSec}초 (${calcTotalMin}분)`);
-    console.groupEnd();
-
-    // ⭐️ 화면에는 '분(Minutes)' 단위 데이터 반환
     return {
       topZoneName: top1Zone.zone_name,
       totalMinutes: calcTotalMin,
@@ -182,7 +186,7 @@ export default function AnalyticsPage() {
       etcMinutes: calcEtcMin,
     };
   }, [report]);
-  //-------------------------------------
+
   const handleToggleSelect = (productId) => {
     setSelectedProductIds([productId]);
     sessionStorage.setItem("selected_products", JSON.stringify([productId]));
@@ -222,7 +226,7 @@ export default function AnalyticsPage() {
     return unique.slice(0, 6);
   }, [report]);
   // 로딩 화면
-  if (isPending) {
+if (isPending) {
     return (
       <MobileLayout>
         <S.Container style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
@@ -287,10 +291,10 @@ export default function AnalyticsPage() {
 
         <S.ItemGrid>
           {displayProducts.map((item, index) => {
-            const productId = item.product_id || `temp_${index}`;
+            const productId = item.product_id || item.id || `temp_${index}`;
             const isSelected = selectedProductIds.includes(productId);
-            // thumbnail 우선, 없으면 cutout_url, 없으면 기본 이미지
-            const imgSrc = item.thumbnail || item.cutout_url || defaultBagImg;
+            // ⭐️ 상단 getProductImage 함수를 통해 public/images 누끼 사진 우선 적용
+            const imgSrc = getProductImage(item);
 
             return (
               <S.ItemCard
@@ -321,6 +325,9 @@ export default function AnalyticsPage() {
                   <S.ItemImage
                     src={imgSrc}
                     alt={item.name || "상품 이미지"}
+                    onError={(e) => {
+                      e.currentTarget.src = defaultBagImg;
+                    }}
                   />
                 </S.ImageContainer>
 
