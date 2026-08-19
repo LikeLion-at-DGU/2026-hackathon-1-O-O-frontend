@@ -173,42 +173,30 @@ export default function Shelf() {
           "--swiper-pagination-bullet-horizontal-gap": "2.5px",
         }}
       >
-        {ZONES.map((zone) => {
-  const scene = serverScenes.find((item) => Number(item.no) === zone);
+    {ZONES.map((zone) => {
+      const scene = serverScenes.find((item) => Number(item.no) === zone);
 
-  // 1. 전체 상품 목록 추출
-  const rawAllProducts = serverScenes.flatMap((s) => s.products ?? []);
+      const products = scene
+        ? (scene.products ?? [])
+            // 불필요한 상품(p_607 ~ p_609) 제외
+            .filter((product) => {
+              const prodId = product.product_id ?? product.id;
+              return !["p_607", "p_608", "p_609"].includes(prodId);
+            })
+            .map((product) => {
+              const prodId = product.product_id ?? product.id;
 
-  // 2. 58, 59, 60번째 상품(인덱스 57, 58, 59)을 제외한 '정제된 60개 목록' 생성
-  // (61, 62, 63번 상품들이 자연스럽게 58, 59, 60번째 순서로 당겨짐)
-  const clean60Products = rawAllProducts.filter((_, idx) => idx < 57 || idx > 59);
-
-  const products = scene
-    ? (scene.products ?? [])
-        // 6번 선반에서 제외 대상인 상품(p_607 ~ p_609) 렌더링 필터링
-        .filter((prod) => {
-          const prodId = prod.product_id ?? prod.id;
-          return !["p_607", "p_608", "p_609"].includes(prodId);
-        })
-        .map((product) => {
-          // 정제된 60개 목록에서 현재 상품의 인덱스(0~59) 찾기
-          const targetIndex = clean60Products.findIndex(
-            (p) => (p.product_id ?? p.id) === (product.product_id ?? product.id)
-          );
-
-          // 1부터 60까지 순서대로 파일 번호 부여
-          const photoNo = targetIndex !== -1 ? targetIndex + 1 : 1;
-
-          return {
-            id: product.product_id,
-            name: product.name,
-            price: product.price,
-            // ⚠️ 파일 위치에 맞게 경로 지정 (/products/ 또는 /)
-            imageUrl: `/images/${photoNo}-Photoroom.png`,
-            scene_id: scene.scene_id,
-          };
-        })
-    : shelfData[zone] || [];
+              return {
+                id: prodId,
+                name: product.name,
+                price: product.price,
+                // ⭐️ product_id를 파일명에 직접 1:1 매칭
+                // (public 바로 아래면 `/${prodId}-Photoroom.png`, products 폴더 안이면 `/products/${prodId}-Photoroom.png`)
+                imageUrl: `/images/${prodId}-Photoroom.png`,
+                scene_id: scene.scene_id,
+              };
+            })
+        : shelfData[zone] || [];
 
           return (
             <SwiperSlide key={zone}>
