@@ -63,6 +63,7 @@ export default function LandingPage() {
     const speechHintRef = useRef(null);
     const slotNumberRef = useRef(null);
     const slotStateRef = useRef(null);
+    const slotRef = useRef(null);
 
     const [pageProgress, setPageProgress] = useState(0);
     const [sceneLabel, setSceneLabel] = useState("01 / INVITATION");
@@ -284,12 +285,12 @@ export default function LandingPage() {
                 yearRef.current.textContent = year;
 
                 if (p < 0.5) {
-                    yearRef.current.style.fontFamily = 'Pretendard, "Pretendard", Pretendard';
-                    yearRef.current.style.fontWeight = "500";
+                    yearRef.current.style.fontFamily = 'Times New Roman', "Times New Roman", "Times New Roman";
                     yearRef.current.style.letterSpacing = "-0.065em";
+                    yearRef.current.style.fontWeight = "600";
                 } else {
-                    yearRef.current.style.fontFamily = 'Arial, "Pretendard", sans-serif';
-                    yearRef.current.style.fontWeight = "800";
+                    yearRef.current.style.fontFamily = 'Times New Roman', "Times New Roman", 'Times New Roman';
+                    yearRef.current.style.fontWeight = "600";
                     yearRef.current.style.letterSpacing = "-0.085em";
                 }
 
@@ -339,6 +340,24 @@ export default function LandingPage() {
 
         const updateRegister = () => {
             const p = sectionProgress(registerRef);
+            if (slotRef.current) {
+                const lineColor =
+                    p < 0.5
+                        ? mixColor(
+                            "#8B8279",
+                            "#6A625B",
+                            p / 0.5
+                        )
+                        : mixColor(
+                            "#6A625B",
+                            "#F1E9DF",
+                            (p - 0.5) / 0.5
+                        );
+
+                slotRef.current.style.borderTopColor = lineColor;
+                slotRef.current.style.borderBottomColor = lineColor;
+            }
+
             const done = p >= 0.44;
             setRegisterDone(done);
 
@@ -412,7 +431,7 @@ export default function LandingPage() {
             <br />
             MCM을 둘러보는 동안 <b>계속 함께할게요.</b>
         </>,
-        
+
         <>
             먼저, 당신의 <b>뮤즈 번호를 등록해볼게요.</b>
         </>,
@@ -590,7 +609,7 @@ export default function LandingPage() {
                         <p>오늘의 MCM 여정을 함께 기록할 고유 번호예요.</p>
                     </S.RegisterHead>
 
-                    <S.Slot>
+                    <S.Slot ref={slotRef}>
                         <span>MCM 50TH ANNIVERSARY / MUSE CANDIDATE</span>
                         <strong ref={slotNumberRef}>N.---</strong>
                         <b ref={slotStateRef}>REGISTERING...</b>

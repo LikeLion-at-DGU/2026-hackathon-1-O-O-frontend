@@ -5,6 +5,9 @@ import styled, { css } from "styled-components";
 ========================================================= */
 
 export const MobileContainer = styled.div`
+
+  --font-pretendard: "Pretendard", sans-serif;
+--font-logo: Georgia, "Times New Roman", serif;
 // 색상 팔레트
   --night: #06070b;
   --paper: #f6f0e7;
@@ -20,6 +23,8 @@ export const MobileContainer = styled.div`
   min-height: 100dvh;
 
   margin: 0 auto;
+
+  font-family: var(--font-pretendard);
 
   background-color: #ffffff;
   color: #ffffff;
@@ -114,7 +119,10 @@ export const StickyBase = styled.div`
 export const Eyebrow = styled.div`
   color: #816a57;
 
+  font-family: var(--font-pretendard);
   font-size: 9px;
+  font-weight: 600;
+
   letter-spacing: 0.22em;
 
   text-transform: uppercase;
@@ -405,16 +413,16 @@ export const PaperContent = styled.div`
   text-align: center;
 
   h1 {
-    margin: 14px 0;
+  margin: 14px 0;
 
-    font:
-      500 clamp(28px, 8vw, 34px) /
-      1.18 Pretendard,
-      "Times New Roman",
-      serif;
+  font-family: var(--font-pretendard);
 
-    letter-spacing: -0.035em;
-  }
+  font-size: clamp(28px, 8vw, 34px);
+  font-weight: 900;
+  line-height: 1.2;
+
+  letter-spacing: -0.04em;
+}
 
   p {
     margin: 0;
@@ -437,11 +445,11 @@ export const PaperRule = styled.div`
 
 export const PaperStamp = styled.div`
   margin-top: 19px;
+  margin-bottom: 23px;
 
   padding: 7px 9px;
 
-  border:
-    1px solid #bca58e;
+  border:1px solid #bca58e;
 
   color: #8d745f;
 
@@ -607,15 +615,15 @@ export const EraYear = styled.div`
 
   z-index: 8;
 
-  color: #3b2a1e;
+  color: var(--deep-slate);
 
+  font-family: var(--font-logo);
   font-size: clamp(118px, 38vw, 153px);
 
+  font-weight: 400;
+
   line-height: 0.8;
-
-  letter-spacing: -0.08em;
-
-  font-weight: 800;
+  letter-spacing: -0.06em;
 `;
 
 export const EraIntro = styled.div`
@@ -628,15 +636,13 @@ export const EraIntro = styled.div`
 
   z-index: 9;
 
-  max-width: 520px;
-
   h2 {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
 
-    font:
-      500 31px/1.18 Pretendard,
-      "Times New Roman",
-      serif;
+    font-family: var(--font-logo);
+    font-size: 31px;
+    font-weight: 400;
+    line-height: 1.2;
   }
 
   p {
@@ -644,7 +650,9 @@ export const EraIntro = styled.div`
 
     color: #715e50;
 
+    font-family: var(--font-pretendard);
     font-size: 14px;
+    font-weight: 300;
     line-height: 1.7;
   }
 `;
@@ -752,7 +760,6 @@ export const FinalMoment = styled.div`
   pointer-events: none;
 
   display: grid;
-
   place-items: center;
 
   padding: 24px;
@@ -762,38 +769,40 @@ export const FinalMoment = styled.div`
   strong {
     display: block;
 
-    color: #bdc5d0;
+    color: #4e3503;
 
+    font-family: "Times New Roman", sans-serif;
     font-size: clamp(135px, 44vw, 177px);
-
-    font-weight: 800;
+    font-weight: 600;
 
     line-height: 0.78;
-
-    letter-spacing: -0.095em;
+    letter-spacing: -0.08em;
   }
 
   span {
     display: block;
 
-    margin-top: 15px;
+    margin-top: 18px;
 
-    font:
-      500 38px/1.1 Pretendard,
-      "Times New Roman",
-      serif;
+    font-family: "Pretendard", sans-serif;
+    font-size: 34px;
+    font-weight: 600;
+
+    line-height: 1.1;
+    letter-spacing: -0.04em;
   }
 
   b {
     display: block;
 
-    margin-top: 8px;
+    margin-top: 10px;
 
-    font:
-      500 clamp(34px, 9vw, 42px) /
-      1.13 Pretendard,
-      "Times New Roman",
-      serif;
+    font-family: "Pretendard", sans-serif;
+    font-size: clamp(30px, 8vw, 38px);
+    font-weight: 300;
+
+    line-height: 1.25;
+    letter-spacing: -0.04em;
   }
 `;
 
@@ -844,13 +853,14 @@ export const SpeechHint = styled.div`
 
   opacity: 0;
 
-  color: #3a2b20;
+color: #292B2F;
 
-  font:
-    500 clamp(36px, 11vw, 44px) /
-    1.05 Pretendard,
-    "Times New Roman",
-    serif;
+  font-family: "Pretendard", sans-serif;
+  font-size: clamp(34px, 10vw, 42px);
+  font-weight: 600;
+
+  line-height: 1.15;
+  letter-spacing: -0.045em;
 `;
 
 export const PaddySmall = styled.img`
@@ -987,10 +997,12 @@ export const RegisterHead = styled.div`
   h2 {
     margin: 12px 0 8px;
 
-    font:
-      500 34px/1.18 Pretendard,
-      "Times New Roman",
-      serif;
+    font-family: "Pretendard", sans-serif;
+    font-size: 34px;
+    font-weight: 600;
+
+    line-height: 1.2;
+    letter-spacing: -0.045em;
   }
 
   p {
@@ -998,7 +1010,10 @@ export const RegisterHead = styled.div`
 
     color: #725e50;
 
+    font-family: "Pretendard", sans-serif;
     font-size: 13px;
+    font-weight: 300;
+
     line-height: 1.7;
   }
 `;
@@ -1015,7 +1030,7 @@ export const Slot = styled.div`
 
   top: 33vh;
 
-  z-index: 6;
+  z-index: 5;
 
   padding: 24px 0 26px;
 
@@ -1037,17 +1052,17 @@ export const Slot = styled.div`
   }
 
   strong {
-    display: block;
+  display: block;
 
-    margin: 12px 0 6px;
+  margin: 12px 0 6px;
 
-    font:
-      500 clamp(64px, 21vw, 84px) /
-      0.9 Pretendard,
-      "Times New Roman",
-      serif;
-  }
+  font-family: var(--font-pretendard);
+  font-size: clamp(64px, 21vw, 84px);
+  font-weight: 600;
 
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
   b {
     color: #826957;
 
@@ -1065,7 +1080,7 @@ export const RegisterPaddy = styled.img`
   right: -3%;
   bottom: 15vh;
 
-  z-index: 5;
+  z-index: 6;
 
   width: 37%;
   max-width: 150px;

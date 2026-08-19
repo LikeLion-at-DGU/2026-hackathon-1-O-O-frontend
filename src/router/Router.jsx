@@ -1,4 +1,9 @@
-import { Route, Routes } from "react-router-dom";
+import {
+  Route,
+  Routes,
+} from "react-router-dom";
+
+import Layout from "../components/Layout/Layout";
 
 import LandingPage from "../pages/LandingPage";
 import HomePage from "../pages/HomePage";
@@ -6,66 +11,100 @@ import MapPage from "../pages/MapPage";
 import ShelfPage from "../pages/ShelfPage";
 import ProductPage from "../pages/ProductPage";
 import GuidePage from "../pages/GuidePage";
-import Layout from "../components/Layout/Layout";
 import ChatPage from "../pages/ChatPage";
 import AnalyticsPage from "../pages/AnalyticsPage";
 import CameraPage from "../pages/CameraPage";
-import LookbookLoadingPage from "../pages/LookbookLoadingPage";
-import LookbookPage from "../pages/LookbookPage";
 import PhotoConfirmPage from "../pages/PhotoConfirmPage";
+import LookbookPage from "../pages/LookbookPage";
 
 function Router() {
   return (
     <Routes>
       {/* 랜딩 페이지 */}
-      <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/"
+        element={<LandingPage />}
+      />
 
       {/* 홈 페이지 */}
-      <Route path="/home" element={<HomePage />} />
+      <Route
+        path="/home"
+        element={<HomePage />}
+      />
 
       {/* 채팅 페이지 */}
-      <Route path="/chat" element={<ChatPage />} />
+      <Route
+        path="/chat"
+        element={<ChatPage />}
+      />
 
       {/* 리포트 페이지 */}
-      <Route path="/analytics" element={<AnalyticsPage />} />
-      <Route path="/analytics/:slug" element={<AnalyticsPage />} />
+      <Route
+        path="/analytics"
+        element={<AnalyticsPage />}
+      />
 
+      <Route
+        path="/analytics/:slug"
+        element={<AnalyticsPage />}
+      />
 
-      {/* 카메라 페이지 */}
-      <Route path="/camera" element={<CameraPage />} />
+      {/* 촬영 페이지 */}
+      <Route
+        path="/camera"
+        element={<CameraPage />}
+      />
 
-      {/* 2. 사진 확인 & 결정 페이지 추가 */}
-      <Route path="/camera/confirm" element={<PhotoConfirmPage />} />
-      
-      {/* 화보 로딩 중 페이지 */}
-      <Route path="/lookbookloading" element={<LookbookLoadingPage />} />
+      {/* 촬영 사진 확인 */}
+      <Route
+        path="/camera/confirm"
+        element={<PhotoConfirmPage />}
+      />
 
-      {/* 화보 완료 페이지 */}
-      <Route path="/lookbook" element={<LookbookPage />} />
+      {/*
+        화보 공개 주소
 
+        LookbookPage 내부에서 아직 생성 중이면
+        LookbookLoadingPage를 렌더링하고,
+        완료되면 화보 화면을 렌더링합니다.
+      */}
+      <Route
+        path="/l/:shareSlug"
+        element={<LookbookPage />}
+      />
 
+      {/*
+        기존 코드나 저장된 주소 호환용입니다.
+        share_slug가 sessionStorage에 있으면
+        LookbookPage가 해당 값을 사용합니다.
+      */}
+      <Route
+        path="/lookbook"
+        element={<LookbookPage />}
+      />
 
-
-      {/* Layout을 사용하는 페이지 */}
+      {/* Layout을 사용하는 매장 페이지 */}
       <Route element={<Layout />}>
-
-        {/* 매장 평면도 페이지 */}
-        <Route path="/map" element={<MapPage />} />
-
-        {/* 선반 페이지 */}
-        <Route path="/shelf/:zoneId" element={<ShelfPage />} />
-
-        {/* 상품 상세 페이지 */}
         <Route
-          path="/product/:productId" element={<ProductPage />}
+          path="/map"
+          element={<MapPage />}
         />
 
-        {/* 가이드 페이지 */}
-        <Route path="/guide" element={<GuidePage />} />
+        <Route
+          path="/shelf/:zoneId"
+          element={<ShelfPage />}
+        />
+
+        <Route
+          path="/product/:productId"
+          element={<ProductPage />}
+        />
+
+        <Route
+          path="/guide"
+          element={<GuidePage />}
+        />
       </Route>
-
-
-      
     </Routes>
   );
 }
