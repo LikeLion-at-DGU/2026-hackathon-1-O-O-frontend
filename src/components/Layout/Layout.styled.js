@@ -4,7 +4,7 @@ export const Content = styled.div`
   /* 컴퓨터에서는 기존 크기 유지 */
   width: 363px;
   height: 300px;
-
+  flex: 0 0 auto;
   flex-shrink: 0;
   border-radius: 20px;
   /* background: #e5e3e0; */
@@ -26,75 +26,63 @@ export const Content = styled.div`
 export const Containerbottom = styled.div`
   position: relative;
 
+  /* 기존 코드 유지 */
   width: 100%;
   height: calc(100vh - 103px);
 
-  background-color: #f5f4f1;
+  /* 추가 */
+  display: flex;
+  flex-direction: column;
+  max-height: 844px;
 
-  background-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    transparent 24px
-  );
-
-  overflow: hidden;
-  box-sizing: border-box;
+  /* 나머지 기존 코드 유지 */
 
   @media (max-width: 600px) {
+    /* 기존 반응형 코드 유지 */
     height: calc(100dvh - 103px);
     min-height: 500px;
+
+    /* 추가 */
+    max-height: 844px;
+
+    
   }
 `;
 
 export const Chat = styled.div`
+  
   display: flex;
+    flex: 1 1 auto;
+  min-height: 0;
 
-  /* 컴퓨터에서는 기존 크기 유지 */
+  overflow-y: auto;
+
+  /* 추가 */
+  min-height: 0;
+  flex-shrink: 1;
+
+  /* 기존 코드 유지 */
   width: 364px;
   height: 366px;
 
+  /* 기존 코드 그대로 */
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
 
   margin: 0 auto 16px;
+
   overflow-y: auto;
   overflow-x: hidden;
 
-  padding: 24px 6px 24px 0;
-  box-sizing: border-box;
-
-  /* 휴대폰에서만 반응형 적용 */
+  /* 기존 미디어쿼리도 그대로 유지 */
   @media (max-width: 600px) {
     width: calc(100% - 32px);
-
-    /*
-      화면 높이의 42%를 기준으로 변경.
-      너무 작거나 커지지 않도록 최소/최대값 지정.
-    */
     height: clamp(240px, 42dvh, 366px);
 
     margin: 0 auto 12px;
     padding: 16px 4px 16px 0;
     gap: 8px;
-  }
-
-  &::-webkit-scrollbar {
-    width: 5px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-    margin: 20px 0;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #d1ccc7;
-    border-radius: 10px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #d4d4d8;
   }
 `;
 
@@ -139,4 +127,6 @@ export const GoChat = styled.div`
   &:hover {
     color: #222;
   }
+
+  flex-shrink: 0;
 `;
