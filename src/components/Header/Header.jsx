@@ -1,21 +1,15 @@
+    // src/components/Header/Header.jsx
     import React from "react";
     import * as S from "./Header.styled";
-
     import SoundButton from "../SoundButton";
     import { api } from "../../api/api";
     import { drainEventBuffer } from "../../api/events";
-
-    import {
-    Link,
-    useLocation,
-    useNavigate,
-    } from "react-router-dom";
+    import { Link, useLocation, useNavigate } from "react-router-dom";
 
     function Header({ hideShoot = false, showActions = true }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // ⭐️ 1. 로딩 페이지와 실제 분석 결과 페이지 명확히 분리
     const isLoadingPage =
         location.pathname.includes("loading") ||
         location.pathname.startsWith("/analytics-loading");
@@ -27,41 +21,44 @@
         const visitId = sessionStorage.getItem("visit_id");
         const visitToken = sessionStorage.getItem("visit_token");
 
-        if (!visitId) {
+        if (!visitId || !visitToken) {
         alert("방문 정보가 없습니다.");
         return;
         }
 
         try {
-        sessionStorage.setItem("is_visit_finished", "true");
+        // ⭐️ [핵심] 현재 머물고 있는 컴포넌트의 타이머를 즉시 종료시키기 위해 커스텀 이벤트 발송
+        window.dispatchEvent(new Event("force_flush_dwell_timer"));
 
+        // 타이머가 큐에 담길 시간을 0.1초 대기
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // ⭐️ 마지막 머문 시간까지 포함된 잔여 이벤트 전량 회수
         const remainingEvents = drainEventBuffer ? drainEventBuffer() : [];
-        console.log("📦 [관람 종료] 잔여 이벤트 동봉:", remainingEvents);
+        console.log("📦 [관람 종료] 최종 동봉 이벤트 (현재 보고있던 시간 포함):", remainingEvents);
 
         const response = await api.post(
             `/visits/${visitId}/finish`,
-            { events: [] },
+            { events: remainingEvents },
             {
             headers: {
-                "X-Visit-Token": visitToken || "",
+                "X-Visit-Token": visitToken,
             },
             }
         );
 
-        console.log("🏁 [관람 종료 성공] 응답 데이터:", response.data);
+        console.log("🏁 [관람 종료 성공]:", response.data);
 
-        const { slug } = response.data;
-
+        const slug = response.data?.slug;
         if (slug) {
             sessionStorage.setItem("report_slug", slug);
-            // ⭐️ 2. 분석 완료 전 로딩 페이지로 먼저 이동
             navigate(`/analytics-loading?slug=${slug}`);
         } else {
             navigate("/analytics-loading");
         }
         } catch (error) {
         console.error("🚨 관람 종료 요청 실패:", error.response?.data || error);
-        alert("관람 기록을 정리하는 중 오류가 발생했습니다.");
+        alert(`관람 종료 실패: ${error.response?.data?.message || "서버 응답 오류"}`);
         }
     };
 
@@ -79,13 +76,7 @@
 
     return (
         <S.HeaderContainer>
-        <Link
-            to="/home"
-            style={{
-            textDecoration: "none",
-            color: "inherit",
-            }}
-        >
+        <Link to="/home" style={{ textDecoration: "none", color: "inherit" }}>
             <S.Logo>
             <S.LogoText>O</S.LogoText>
             <S.Ampersand>&</S.Ampersand>
@@ -95,7 +86,6 @@
 
         {showActions && (
             <S.ButtonWrapper>
-            {/* ⭐️ 로딩 페이지나 hideShoot이 아닐 때만 버튼 노출 */}
             {!hideShoot && !isLoadingPage && (
                 <S.Finish
                 type="button"
@@ -105,7 +95,6 @@
                 </S.Finish>
             )}
 
-            {/* SoundButton은 항상 유지 */}
             <SoundButton />
             </S.ButtonWrapper>
         )}
