@@ -64,15 +64,6 @@ export default function Shelf() {
     selfWroteZoneRef.current = zone;   // ⚠️ navigate보다 먼저 기록해야 effect가 무시함
 
     selectShelf(zone);                 // 스토어 가드가 중복을 최종 차단
-    const scene = serverScenes.find((item) => Number(item.no) === zone);
-    if (scene?.scene_id) {
-      try {
-        const response = await createChatMessage({ type: "scene_click", scene_id: scene.scene_id });
-        addServerMessages(response.data.messages ?? []);
-      } catch (error) {
-        console.error("Scene click recording failed:", error);
-      }
-    }
     navigate(`/shelf/${zone}`, { replace: true });
   };
 
