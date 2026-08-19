@@ -7,7 +7,7 @@ export const Content = styled.div`
 
   flex-shrink: 0;
   border-radius: 20px;
-  background: #e5e3e0;
+  /* background: #e5e3e0; */
   margin: 24px auto;
 
   /* 휴대폰에서만 반응형 적용 */
