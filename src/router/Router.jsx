@@ -16,6 +16,7 @@ import AnalyticsPage from "../pages/AnalyticsPage";
 import CameraPage from "../pages/CameraPage";
 import PhotoConfirmPage from "../pages/PhotoConfirmPage";
 import LookbookPage from "../pages/LookbookPage";
+import AnalyticsLoadingPage from "../pages/AnalyticsLoadingPage";
 
 function Router() {
   return (
@@ -44,10 +45,16 @@ function Router() {
         element={<AnalyticsPage />}
       />
 
+    <Route 
+    path="/analytics-loading" 
+    element={<AnalyticsLoadingPage />} />
+
       <Route
-        path="/analytics/:slug"
+        path="/analytics/:slug?"
         element={<AnalyticsPage />}
       />
+
+
 
       {/* 촬영 페이지 */}
       <Route

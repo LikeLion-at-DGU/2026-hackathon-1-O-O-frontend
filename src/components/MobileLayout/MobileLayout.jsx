@@ -3,8 +3,9 @@ import * as S from "./MobileLayout.styled";
 
 function MobileLayout({
   children,
+  hideShoot = false,
   showHeader = true,
-  header = <Header />,
+  header = <Header hideShoot={hideShoot} />,
 }) {
   return (
     <S.PageBackground>

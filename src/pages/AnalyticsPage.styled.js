@@ -89,20 +89,22 @@ export const BreakdownItem = styled.div`
 display: flex;
   flex-direction: column;
   align-items: center;
-  flex: ${(props) => Math.max(1, props.$flex || 1)};
-  min-width: 65px;
+  flex: ${(props) => props.$flex || 1} 1 0px;
+  min-width: 50px;
   
   /* ⭐️ 1번째 아이템 (1층: 오렌지 1위) */
   &:nth-child(1) {
     margin-top: 0px;
+
     & > span {
       margin-top: 4px;
+      
     }
   }
 
   /* ⭐️ 2번째 아이템 (2층: 1위 아래로 내려앉음) */
   &:nth-child(2) {
-    margin-top: 20px;
+    margin-top: 7px;
     & > span {
       margin-bottom: 4px;
     }
@@ -110,7 +112,7 @@ display: flex;
 
   /* ⭐️ 3번째 아이템 (3층: 2위 아래로 더 내려앉음) */
   &:nth-child(3) {
-    margin-top: 40px;
+    margin-top: 30px;
     & > span {
       margin-bottom: 4px;
     }
