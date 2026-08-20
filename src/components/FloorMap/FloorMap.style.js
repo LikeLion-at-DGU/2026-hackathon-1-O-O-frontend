@@ -86,8 +86,12 @@ export const ShelfInfoTitle = styled.div`
 
 export const ShelfInfoGrid = styled.div`
   display: grid;
-  grid-templateColumns: 1fr 1fr;
-  width: 210px;
+  /* grid-templateColumns(camelCase)는 CSS로 출력되지 않아 목록이 한 열로
+     흘렀다. 열 우선 채움으로 왼쪽 1~4, 오른쪽 5~7이 세로로 쌓인다. */
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
+  width: min(210px, 70%);
   column-gap: 30px;
   row-gap: 7px;
 `;

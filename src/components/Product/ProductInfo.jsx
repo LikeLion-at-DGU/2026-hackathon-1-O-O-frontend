@@ -11,6 +11,14 @@ const PRESET_BUTTONS = [
 
 const isVisitFinished = () => Boolean(sessionStorage.getItem("report_slug"));
 
+// attributes.color는 문자열이 기본이지만 데이터에 따라 배열일 수 있다.
+// 다른 속성으로 색상을 대체하지 않고, 값이 없을 때만 없음을 표시한다.
+const formatProductColor = (color) => {
+  if (Array.isArray(color)) return color.filter(Boolean).join(", ") || "색상 정보 없음";
+  if (typeof color === "string" && color.trim()) return color.trim();
+  return "색상 정보 없음";
+};
+
 function ProductInfo({
   product,
   productName,
@@ -89,7 +97,7 @@ function ProductInfo({
         <S.TextWrapper>
           <S.ProductTitle>{productName}</S.ProductTitle>
           <S.ProductColor>
-            색상 : {loading ? "확인 중..." : product?.attributes?.color ?? "정보 없음"}
+            색상 : {loading ? "확인 중..." : formatProductColor(product?.attributes?.color)}
           </S.ProductColor>
         </S.TextWrapper>
       </S.ProductWrapper>
