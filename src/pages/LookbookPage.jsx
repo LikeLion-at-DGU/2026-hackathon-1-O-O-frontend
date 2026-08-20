@@ -18,6 +18,7 @@ import {
     getLookbook,
     getLookbookJob,
 } from "../api/lookbooks";
+import { getApiError } from "../api/errors";
 
 const COMPLETE_STATUSES = [
     "ready",
@@ -63,6 +64,9 @@ function LookbookPage() {
     const [isRetrying, setIsRetrying] =
         useState(false);
 
+    const [jobFailure, setJobFailure] =
+        useState(null);
+
     const clearPollTimer = useCallback(() => {
         if (timerRef.current) {
             window.clearTimeout(
@@ -83,6 +87,19 @@ function LookbookPage() {
                     targetShareSlug
                 );
 
+                console.info(
+                    "[Lookbook] 완성 화보 응답",
+                    {
+                        shareSlug:
+                            targetShareSlug,
+                        imageUrl:
+                            data?.image_url,
+                        width: data?.width,
+                        height: data?.height,
+                        attempt: data?.attempt,
+                    }
+                );
+
                 if (!mountedRef.current) {
                     return null;
                 }
@@ -90,6 +107,7 @@ function LookbookPage() {
                 setLookbook(data);
                 setProgress(100);
                 setErrorMessage("");
+                setJobFailure(null);
 
                 sessionStorage.setItem(
                     "share_slug",
@@ -193,6 +211,24 @@ function LookbookPage() {
                     job?.status || ""
                 ).toLowerCase();
 
+                console.info(
+                    "[Lookbook] 생성 작업 상태",
+                    {
+                        jobId,
+                        status,
+                        progress: job?.progress,
+                        stage: job?.stage,
+                        step: job?.step,
+                        shareSlug:
+                            job?.share_slug ||
+                            targetShareSlug,
+                        errorCode:
+                            job?.error_code,
+                        retryable:
+                            job?.retryable,
+                    }
+                );
+
                 const rawProgress =
                     Number(job?.progress) || 0;
 
@@ -223,10 +259,24 @@ function LookbookPage() {
                 ) {
                     clearPollTimer();
 
+                    const errorCode =
+                        job?.error_code || "";
+
+                    const retryable =
+                        Boolean(job?.retryable);
+
+                    setJobFailure({
+                        errorCode,
+                        retryable,
+                    });
+
                     setErrorMessage(
-                        job?.error_code
-                            ? `화보 생성에 실패했습니다. (${job.error_code})`
-                            : "화보 생성에 실패했습니다."
+                        errorCode ===
+                            "GEN_CONTENT_BLOCKED"
+                            ? "사진을 처리할 수 없습니다. 다른 사진으로 다시 촬영해 주세요."
+                            : retryable
+                              ? "화보 생성이 잠시 지연됐습니다. 다시 시도해 주세요."
+                              : "화보 생성에 실패했습니다."
                     );
 
                     return;
@@ -255,10 +305,33 @@ function LookbookPage() {
                     error.response?.data || error
                 );
 
-                /*
-                 * 일시적인 네트워크 오류라면 바로 실패시키지 않고
-                 * 다시 조회합니다.
-                 */
+                if (error.response?.status === 404) {
+                    try {
+                        await loadCompletedLookbook(
+                            targetShareSlug
+                        );
+                    } catch (lookbookError) {
+                        if (!mountedRef.current) return;
+
+                        if (
+                            lookbookError.response?.status ===
+                            409
+                        ) {
+                            pollByShareSlug(
+                                targetShareSlug
+                            );
+                            return;
+                        }
+
+                        setErrorMessage(
+                            "화보 진행 상태를 복구하지 못했습니다."
+                        );
+                    }
+
+                    return;
+                }
+
+                // 일시적인 네트워크 오류는 다시 조회합니다.
                 timerRef.current =
                     window.setTimeout(
                         () =>
@@ -274,6 +347,7 @@ function LookbookPage() {
         [
             clearPollTimer,
             loadCompletedLookbook,
+            pollByShareSlug,
         ]
     );
 
@@ -296,11 +370,47 @@ function LookbookPage() {
 
             clearPollTimer();
             setErrorMessage("");
+            setJobFailure(null);
+
+            const storedShareSlug =
+                sessionStorage.getItem(
+                    "share_slug"
+                );
+
+            const jobId =
+                sessionStorage.getItem(
+                    "lookbook_job_id"
+                );
+
+            const pollAfterMs =
+                Number(
+                    sessionStorage.getItem(
+                        "lookbook_poll_after_ms"
+                    )
+                ) || DEFAULT_POLL_INTERVAL;
 
             sessionStorage.setItem(
                 "share_slug",
                 shareSlug
             );
+
+            /*
+             * 방금 생성 요청으로 이동한 경우에는 완성 화보 API를
+             * 먼저 호출하지 않고 작업 상태부터 확인합니다.
+             * 아직 생성 중인 화보에 대한 불필요한 409 응답을 피합니다.
+             */
+            if (
+                jobId &&
+                storedShareSlug === shareSlug
+            ) {
+                pollJob(
+                    jobId,
+                    shareSlug,
+                    pollAfterMs
+                );
+
+                return;
+            }
 
             try {
                 await loadCompletedLookbook(
@@ -328,19 +438,10 @@ function LookbookPage() {
                     return;
                 }
 
-                const jobId =
-                    sessionStorage.getItem(
-                        "lookbook_job_id"
-                    );
-
-                const pollAfterMs =
-                    Number(
-                        sessionStorage.getItem(
-                            "lookbook_poll_after_ms"
-                        )
-                    ) || DEFAULT_POLL_INTERVAL;
-
-                if (jobId) {
+                if (
+                    jobId &&
+                    storedShareSlug === shareSlug
+                ) {
                     pollJob(
                         jobId,
                         shareSlug,
@@ -522,7 +623,9 @@ function LookbookPage() {
     /*
      * 기존 사진과 상품으로 재생성
      */
-    const handleRetry = async () => {
+    const handleRetry = async ({
+        skipLimitCheck = false,
+    } = {}) => {
         if (isRetrying) return;
 
         const reportSlug =
@@ -552,7 +655,10 @@ function LookbookPage() {
                 )
             );
 
-        if (Number(remaining) <= 0) {
+        if (
+            !skipLimitCheck &&
+            Number(remaining) <= 0
+        ) {
             alert(
                 "화보 재생성 가능 횟수를 모두 사용했습니다."
             );
@@ -562,6 +668,8 @@ function LookbookPage() {
 
         try {
             setIsRetrying(true);
+            setErrorMessage("");
+            setJobFailure(null);
 
             const payload =
                 JSON.parse(savedRequest);
@@ -627,20 +735,22 @@ function LookbookPage() {
                 error.response?.data || error
             );
 
-            if (
-                error.response?.status === 429
-            ) {
+            const { status, message } =
+                getApiError(error);
+
+            if (status === 429) {
                 alert(
                     "화보 재생성 가능 횟수를 모두 사용했습니다."
                 );
             } else if (
-                error.response?.status === 409
+                status === 409
             ) {
                 alert(
                     "이미 화보 생성 요청을 처리하고 있습니다."
                 );
             } else {
                 alert(
+                    message ||
                     "화보를 다시 만들지 못했습니다."
                 );
             }
@@ -657,9 +767,26 @@ function LookbookPage() {
                 step={step}
                 errorMessage={errorMessage}
                 onRetry={
-                    errorMessage
-                        ? startLoading
-                        : undefined
+                    jobFailure?.errorCode ===
+                    "GEN_CONTENT_BLOCKED"
+                        ? () =>
+                              navigate("/camera", {
+                                  replace: true,
+                              })
+                        : jobFailure?.retryable
+                          ? () =>
+                                handleRetry({
+                                    skipLimitCheck: true,
+                                })
+                          : errorMessage
+                            ? startLoading
+                            : undefined
+                }
+                retryLabel={
+                    jobFailure?.errorCode ===
+                    "GEN_CONTENT_BLOCKED"
+                        ? "다시 촬영하기"
+                        : "다시 시도하기"
                 }
             />
         );
@@ -704,14 +831,40 @@ function LookbookPage() {
                     </S.MuseInfo>
                 </S.TopSection>
 
-                <S.ImageSection>
+                <S.ImageSection
+                    $width={Number(
+                        lookbook.width
+                    )}
+                    $height={Number(
+                        lookbook.height
+                    )}
+                >
                     <S.LookbookImage
                         src={lookbook.image_url}
                         alt="AI로 생성된 나의 O&O 화보"
+                        onLoad={() =>
+                            console.info(
+                                "[Lookbook] 이미지 로드 완료",
+                                {
+                                    imageUrl:
+                                        lookbook.image_url,
+                                }
+                            )
+                        }
+                        onError={(event) =>
+                            console.error(
+                                "[Lookbook] 이미지 로드 실패",
+                                {
+                                    imageUrl:
+                                        lookbook.image_url,
+                                    event,
+                                }
+                            )
+                        }
                     />
                 </S.ImageSection>
 
-                {lookbook.mood && (
+                {lookbook.mood?.name && (
                     <S.MoodSection>
                         <S.MoodName>
                             {lookbook.mood.name}
