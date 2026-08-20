@@ -7,14 +7,19 @@ import styled, { css } from "styled-components";
 export const MobileContainer = styled.div`
 
   --font-pretendard: "Pretendard", sans-serif;
---font-logo: Georgia, "Times New Roman", serif;
+--font-logo: "Prentendard";
 // 색상 팔레트
-  --night: #06070b;
-  --paper: #f6f0e7;
-  --ink: #30241b;
-  --muted: #776456;
-  --brown: #302217;
-  --line: #d7c8b7;
+  --night: #222222;
+  --paper: #F4F2EE;
+  --gallery-cream: #F3EEE3;
+  --surface: #FFFFFF;
+  --ink: #222222;
+  --muted: #8C6239;
+  --brown: #8C6239;
+  --neutral: #E5E3E0;
+  --shelve: #D1CCC7;
+  --heart: #E07A5F;
+  --line: #D1CCC7;
 
   position: relative;
 
@@ -29,8 +34,8 @@ export const MobileContainer = styled.div`
 
   font-family: var(--font-pretendard);
 
-  background-color: #ffffff;
-  color: #ffffff;
+  background-color: var(--surface);
+  color: var(--surface);
 
   overflow-x: clip;
     @media (max-width: 600px) {
@@ -69,8 +74,8 @@ export const Progress = styled.div`
 
   background: linear-gradient(
     to right,
-    #ffffff 0%,
-    #ffffff ${({ $progress }) => `${$progress * 100}%`},
+    var(--surface) 0%,
+    var(--surface) ${({ $progress }) => `${$progress * 100}%`},
     transparent ${({ $progress }) => `${$progress * 100}%`},
     transparent 100%
   );
@@ -130,7 +135,7 @@ export const StickyBase = styled.div`
 `;
 
 export const Eyebrow = styled.div`
-  color: #816a57;
+  color: var(--brown);
 
   font-family: var(--font-pretendard);
   font-size: 9px;
@@ -156,19 +161,19 @@ export const HeroChapter = styled.section`
   background:
     radial-gradient(
       circle at 15% 18%,
-      rgba(255, 255, 255, 0.045),
+      rgba(243, 238, 227, 0.06),
       transparent 19%
     ),
     radial-gradient(
       circle at 82% 16%,
-      rgba(78, 99, 164, 0.13),
+      rgba(140, 98, 57, 0.16),
       transparent 25%
     ),
     linear-gradient(
       180deg,
-      #05060a,
-      #090c14 67%,
-      #111119
+      #222222,
+      #292623 67%,
+      #302820
     );
 `;
 
@@ -176,19 +181,19 @@ export const StickyNight = styled(StickyBase)`
   background:
     radial-gradient(
       circle at 15% 18%,
-      rgba(255, 255, 255, 0.045),
+      rgba(243, 238, 227, 0.06),
       transparent 19%
     ),
     radial-gradient(
       circle at 82% 16%,
-      rgba(78, 99, 164, 0.13),
+      rgba(140, 98, 57, 0.16),
       transparent 25%
     ),
     linear-gradient(
       180deg,
-      #05060a,
-      #090c14 67%,
-      #111119
+      #222222,
+      #292623 67%,
+      #302820
     );
 `;
 
@@ -206,9 +211,9 @@ export const Star = styled.span`
 
   border-radius: 50%;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  box-shadow: 0 0 7px rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 7px rgba(243, 238, 227, 0.45);
 `;
 
 /* =========================
@@ -253,7 +258,7 @@ export const Envelope = styled.div`
   border-radius: 20px;
   border: 2px dashed var(--shelve, #d1ccc7);
 
-  background: #f3eee3;
+  background: var(--gallery-cream);
   box-sizing: border-box;
 
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
@@ -320,37 +325,49 @@ export const Envelope = styled.div`
 // 봉투 뚜껑
 export const Flap = styled.div`
   position: absolute;
-  left: 0;
+
+  left: 3%;
   top: 0;
+
   z-index: 7;
 
-  width: 100%;
-  height: 53%;
+  width: 94%;
+  height: 47%;
+
+  border-radius: 0 0 28px 28px;
 
   transform: rotateX(0deg);
   transform-origin: top center;
   transform-style: preserve-3d;
+
   backface-visibility: visible;
 
   will-change: transform;
 
   svg {
     display: block;
+
     width: 100%;
     height: 100%;
+
     overflow: visible;
   }
 
   path {
-    fill: #e5e3e0;
-    stroke: #d1ccc7;
+    fill: var(--neutral);
+    stroke: var(--shelve);
+
     stroke-width: 3;
     stroke-dasharray: 10 10;
-    stroke-linejoin: round;
 
-    filter: drop-shadow(
-      0 2px 2px rgba(80, 70, 60, 0.12)
-    );
+    /* SVG 선이 만나는 부분을 둥글게 */
+    stroke-linejoin: round;
+    stroke-linecap: round;
+
+    filter:
+      drop-shadow(
+        0 5px 5px rgba(140, 98, 57, 0.12)
+      );
   }
 `;
 
@@ -362,6 +379,10 @@ export const Seal = styled.div`
 
   z-index: 10;
 
+  text-shadow:
+  0 1px 0 rgba(255, 255, 255, 0.35),
+  0 2px 4px rgba(34, 34, 34, 0.38);
+  
   display: flex;
   align-items: center;
   justify-content: center;
@@ -373,8 +394,8 @@ export const Seal = styled.div`
 
   border-radius: 50%;
 
-  color: #ffffff;
-  background: #e9785d;
+  color: var(--surface);
+  background: var(--heart);
 
   font-family: var(--font-pretendard);
   font-size: 14px;
@@ -392,6 +413,10 @@ export const Seal = styled.div`
    초대장 종이 (편지지)
 ========================= */
 
+/* =========================
+   초대장 종이
+========================= */
+
 export const InvitationPaper = styled.div`
   position: absolute;
 
@@ -400,13 +425,11 @@ export const InvitationPaper = styled.div`
 
   z-index: 16;
 
-  width: 66%;
-  max-width: 265px;
-
-  height: 345px;
+  width: 74%;
+  max-width: 296px;
+  height: 420px;
 
   opacity: 0;
-
   overflow: hidden;
 
   transform:
@@ -415,21 +438,21 @@ export const InvitationPaper = styled.div`
 
   transform-origin: center;
 
-  border:
-    1px solid #dbcdbd;
+  border: 1px solid var(--shelve);
+  border-radius: 18px;
 
   color: var(--ink);
 
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.5),
+      rgba(255, 255, 255, 0.55),
       transparent 10%
     ),
-    #f8f1e7;
+    var(--gallery-cream);
 
   box-shadow:
-    0 14px 38px rgba(66, 44, 29, 0.12);
+    0 14px 38px rgba(140, 98, 57, 0.12);
 
   will-change: transform, opacity;
 
@@ -437,7 +460,6 @@ export const InvitationPaper = styled.div`
     content: "";
 
     position: absolute;
-
     inset: 0;
 
     pointer-events: none;
@@ -447,7 +469,7 @@ export const InvitationPaper = styled.div`
     background:
       repeating-linear-gradient(
         0deg,
-        rgba(80, 55, 35, 0.035) 0 1px,
+        rgba(140, 98, 57, 0.035) 0 1px,
         transparent 1px 4px
       ),
       repeating-linear-gradient(
@@ -463,61 +485,129 @@ export const PaperContent = styled.div`
 
   z-index: 2;
 
+  width: 100%;
   height: 100%;
 
-  padding: 9% 8%;
+  padding: 58px 24px 44px;
+
+  box-sizing: border-box;
 
   display: flex;
   flex-direction: column;
-
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 
   text-align: center;
 
+  &::before,
+  &::after {
+    content: "";
+
+    position: absolute;
+
+    left: -24px;
+    right: -24px;
+
+    height: 1px;
+
+    background: repeating-linear-gradient(
+      to right,
+      var(--shelve) 0 10px,
+      transparent 10px 18px
+    );
+  }
+
+  &::before {
+    top: 27px;
+  }
+
+  &::after {
+    bottom: 27px;
+  }
+
   h1 {
-  margin: 14px 0;
+    margin: 18px 0 12px;
 
-  font-family: var(--font-pretendard);
+    color: var(--night);
 
-  font-size: clamp(28px, 8vw, 34px);
-  font-weight: 900;
-  line-height: 1.2;
+    font-family: var(--font-pretendard);
+    font-size: 26px;
+    font-weight: 600;
 
-  letter-spacing: -0.04em;
-}
-
-  p {
-    margin: 0;
-
-    color: #705c4d;
-
-    font-size: 12px;
-    line-height: 1.75;
+    line-height: normal;
+    letter-spacing: -0.04em;
   }
 `;
 
-export const PaperRule = styled.div`
-  width: 42px;
-  height: 1px;
+export const InvitationLabel = styled.div`
+  color: var(--brown);
 
-  margin: 15px auto;
-
-  background: #9b8068;
+  font-family: "Unkempt", cursive;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.52px;
+  letter-spacing: 0.02em;
 `;
 
-export const PaperStamp = styled.div`
-  margin-top: 19px;
-  margin-bottom: 23px;
+export const InvitationPaddy = styled.img`
+  width: 52%;
+  max-height: 170px;
 
-  padding: 7px 9px;
+  margin: 6px auto 8px;
 
-  border:1px solid #bca58e;
+  object-fit: contain;
 
-  color: #8d745f;
+  filter: drop-shadow(
+    0 15px 8px rgba(34, 34, 34, 0.25)
+  );
+`;
 
-  font-size: 8px;
-  letter-spacing: 0.17em;
+export const InvitationCopy = styled.p`
+  margin: 0;
+
+  color: var(--night);
+
+  font-size: 12px;
+  line-height: 1.6;
+  font-style: normal;
+  font-weight: 300;
+  line-height: normal;
+  white-space: nowrap;
+`;
+
+export const PaddySignature = styled.div`
+  position: absolute;
+
+  right: 16px;
+  bottom: 35px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 5px;
+
+  color: var(--brown);
+
+  svg {
+    display: block;
+
+    width: 26px;
+    height: 25px;
+
+    overflow: visible;
+  }
+
+  span {
+    color: var(--night);
+
+    font-family: "Unkempt", cursive;
+    font-size: 11px;
+    font-weight: 400;
+
+    line-height: 1;
+    white-space: nowrap;
+  }
 `;
 
 export const PaperWhiteout = styled.div`
@@ -531,7 +621,7 @@ export const PaperWhiteout = styled.div`
 
   pointer-events: none;
 
-  background: #f6f0e7;
+  background: var(--gallery-cream);
 `;
 
 export const ScrollArrow = styled.div`
@@ -547,7 +637,7 @@ export const ScrollArrow = styled.div`
   align-items: center;
   gap: 5px;
 
-  color: #ffffff;
+  color: var(--surface);
 
   transform: translateY(-50%);
   pointer-events: none;
@@ -602,11 +692,11 @@ export const ErasChapter = styled.section`
 
   color: var(--ink);
 
-  background: #f6f0e7;
+  background: var(--gallery-cream);
 `;
 
 export const EraSticky = styled(StickyBase)`
-  background: #f6f0e7;
+  background: var(--gallery-cream);
 `;
 
 export const PaperFiber = styled.div`
@@ -659,8 +749,8 @@ export const CognacWash = styled.div`
   background:
     linear-gradient(
       135deg,
-      rgba(154, 98, 56, 0.34),
-      rgba(111, 63, 38, 0.06)
+      rgba(140, 98, 57, 0.34),
+      rgba(140, 98, 57, 0.06)
     );
 `;
 
@@ -680,7 +770,7 @@ export const SilverSweep = styled.div`
       110deg,
       transparent 20%,
       rgba(255, 255, 255, 0) 34%,
-      rgba(226, 232, 241, 0.6) 48%,
+      rgba(229, 227, 224, 0.62) 48%,
       rgba(255, 255, 255, 0) 61%,
       transparent 76%
     );
@@ -699,7 +789,7 @@ export const EraRail = styled.div`
 
   white-space: nowrap;
 
-  color: rgba(65, 45, 31, 0.1);
+  color: rgba(140, 98, 57, 0.1);
 
   font:
     500 clamp(27px, 9vw, 36px) / 1
@@ -745,15 +835,15 @@ export const EraIntro = styled.div`
     margin: 0 0 12px;
 
     font-family: var(--font-logo);
-    font-size: 31px;
-    font-weight: 400;
+    font-size: 25px;
+    font-weight: 300;
     line-height: 1.2;
   }
 
   p {
     margin: 0;
 
-    color: #715e50;
+    color: var(--brown);
 
     font-family: var(--font-pretendard);
     font-size: 14px;
@@ -807,6 +897,8 @@ export const EraPhoto = styled.figure`
       width: 58%;
       height: 30vh;
 
+      border-radius: 10px;
+
       transform: rotate(-3deg);
     `}
 
@@ -819,6 +911,7 @@ export const EraPhoto = styled.figure`
       width: 48%;
       height: 25vh;
 
+    border-radius: 10px;
       transform: rotate(5deg);
     `}
 
@@ -830,6 +923,8 @@ export const EraPhoto = styled.figure`
 
       width: 48%;
       height: 22vh;
+
+      border-radius: 10px;
 
       transform: rotate(2deg);
     `}
@@ -843,7 +938,7 @@ export const EraCode = styled.div`
 
   z-index: 9;
 
-  color: #755f4f;
+    color: var(--brown);
 
   font-size: 9px;
   letter-spacing: 0.18em;
@@ -874,7 +969,7 @@ export const FinalMoment = styled.div`
   strong {
     display: block;
 
-    color: #4e3503;
+    color: var(--brown);
 
     font-family: "Times New Roman", sans-serif;
     font-size: clamp(135px, 44vw, 177px);
@@ -890,7 +985,7 @@ export const FinalMoment = styled.div`
     margin-top: 18px;
 
     font-family: "Pretendard", sans-serif;
-    font-size: 34px;
+    font-size: 28px;
     font-weight: 600;
 
     line-height: 1.1;
@@ -903,7 +998,7 @@ export const FinalMoment = styled.div`
     margin-top: 10px;
 
     font-family: "Pretendard", sans-serif;
-    font-size: clamp(30px, 8vw, 38px);
+    font-size: 24px;
     font-weight: 300;
 
     line-height: 1.25;
@@ -926,9 +1021,9 @@ export const PaddyChapter = styled.section`
   background:
     linear-gradient(
       180deg,
-      #eef0f1 0%,
-      #f4eee7 22%,
-      #eee0d0 100%
+      #E5E3E0 0%,
+      #F4F2EE 34%,
+      #F3EEE3 100%
     );
 `;
 
@@ -940,7 +1035,7 @@ export const PaddyMeta = styled.div`
 
   z-index: 5;
 
-  color: #806a58;
+  color: var(--brown);
 
   font-size: 9px;
   letter-spacing: 0.2em;
@@ -958,7 +1053,7 @@ export const SpeechHint = styled.div`
 
   opacity: 0;
 
-color: #292B2F;
+color: var(--night);
 
   font-family: "Pretendard", sans-serif;
   font-size: clamp(34px, 10vw, 42px);
@@ -1038,7 +1133,7 @@ export const Speech = styled.div`
     border-top:
       1px solid var(--line);
 
-    background: #ffffff;
+    background: var(--surface);
   }
 
   strong {
@@ -1052,6 +1147,8 @@ export const Speech = styled.div`
 
     font-size: 10px;
     letter-spacing: 0.15em;
+      font-family: "Unkempt", cursive;
+
   }
 
   p {
@@ -1078,14 +1175,25 @@ export const RegisterChapter = styled.section`
   width: 100%;
   height: 205svh;
 
-  color: var(--ink);
+  color: var(--surface);
 
   background:
+    radial-gradient(
+      circle at 82% 24%,
+      rgba(244, 242, 238, 0.1),
+      transparent 34%
+    ),
+    radial-gradient(
+  circle at 12% 72%,
+  rgba(244, 242, 238, 0.1),
+  transparent 30%
+),
     linear-gradient(
       180deg,
-      #eee0d0 0%,
-      #f6f0e8 42%,
-      #34251b 100%
+      #332A23 0%,
+      #222222 38%,
+      #1B1B1B 72%,
+      #2B211A 100%
     );
 `;
 
@@ -1108,12 +1216,14 @@ export const RegisterHead = styled.div`
 
     line-height: 1.2;
     letter-spacing: -0.045em;
+
+    color: var(--surface);
   }
 
   p {
     margin: 0;
 
-    color: #725e50;
+    color: var(--neutral);
 
     font-family: "Pretendard", sans-serif;
     font-size: 13px;
@@ -1140,17 +1250,17 @@ export const Slot = styled.div`
   padding: 24px 0 26px;
 
   border-top:
-    1px solid #aa9079;
+    1px solid rgba(209, 204, 199, 0.58);
 
   border-bottom:
-    1px solid #aa9079;
+    1px solid rgba(209, 204, 199, 0.58);
 
   text-align: center;
 
   span {
     display: block;
 
-    color: #886e59;
+    color: var(--shelve);
 
     font-size: 9px;
     letter-spacing: 0.18em;
@@ -1167,9 +1277,14 @@ export const Slot = styled.div`
 
   line-height: 0.9;
   letter-spacing: -0.05em;
+
+  color: var(--surface);
+
+  text-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.28);
 }
   b {
-    color: #826957;
+    color: var(--heart);
 
     font-size: 11px;
 
@@ -1192,7 +1307,7 @@ export const RegisterPaddy = styled.img`
 
   filter:
     drop-shadow(
-      0 14px 15px rgba(0, 0, 0, 0.12)
+      0 16px 18px rgba(0, 0, 0, 0.3)
     );
 `;
 
@@ -1217,34 +1332,52 @@ export const EnterButton = styled.button`
 
   padding: 17px 20px;
 
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
   border-radius: 999px;
 
-  background: #302217;
+  background: var(--gallery-cream);
 
-  color: #ffffff;
+  color: var(--night);
 
   text-align: left;
 
   cursor: pointer;
 
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.24);
+
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+
+  &:active {
+    transform: scale(0.985);
+    background: var(--neutral);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.72;
+  }
+
   strong {
     display: block;
 
     font-size: 14px;
+    font-family: "Pretendard";
   }
 
   span {
     display: block;
-
+    font-family: "Pretendard";
     margin-top: 4px;
 
     font-size: 9px;
 
     letter-spacing: 0.1em;
 
-    opacity: 0.67;
+    opacity: 0.8;
   }
 
   i {
@@ -1278,14 +1411,14 @@ export const Door = styled.div`
     background:
       linear-gradient(
         180deg,
-        #281a13,
-        #3b281d
+        #222222,
+        #8C6239
       );
 
     transform:
       scaleX(
         ${({ $closing }) =>
-          $closing ? 1 : 0}
+    $closing ? 1 : 0}
       );
 
     transition:
