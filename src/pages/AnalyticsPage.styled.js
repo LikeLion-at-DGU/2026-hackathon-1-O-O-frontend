@@ -159,7 +159,6 @@ export const ItemGrid = styled.div`
 export const ItemCard = styled.div`
   background-color: #d1ccc7;
   border-radius: 20px;
-  min-height: 220px;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -208,13 +207,12 @@ export const ItemImage = styled.img`
 
 export const ItemInfo = styled.div`
   width: 100%;
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-  padding: 8px 6px 12px;
+  padding: 8px 6px 6px;
   text-align: center;
   box-sizing: border-box;
 `;
@@ -230,7 +228,13 @@ export const ItemName = styled.p`
   line-height: 140%;
   margin: 0;
   word-break: keep-all;
+  height: 34px;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const ReasonBadge = styled.span`
