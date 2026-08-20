@@ -4,6 +4,15 @@ import styled from "styled-components";
 
 let lastShelfLogAt = 0;
 
+const isShelfClickMessage = (message) => {
+    return (
+        message.role === "user_action" &&
+        /^\d+번 진열대 클릭$/.test(
+            message.content,
+        )
+    );
+};
+
 const normalizeServerMessage = (message) => ({
     id: message.message_id,
     type:
@@ -148,9 +157,16 @@ const useChatStore = create(
             } = {}) =>
                 set({
                     messages: messages.length
-                        ? messages.map(
-                            normalizeServerMessage,
-                        )
+                        ? messages
+                            .filter(
+                                (message) =>
+                                    !isShelfClickMessage(
+                                        message,
+                                    ),
+                            )
+                            .map(
+                                normalizeServerMessage,
+                            )
                         : INITIAL_MESSAGES,
 
                     pendingAction: pending_action,
@@ -162,9 +178,16 @@ const useChatStore = create(
             ) =>
                 set({
                     messages: serverMessages.length
-                        ? serverMessages.map(
-                            normalizeServerMessage,
-                        )
+                        ? serverMessages
+                            .filter(
+                                (message) =>
+                                    !isShelfClickMessage(
+                                        message,
+                                    ),
+                            )
+                            .map(
+                                normalizeServerMessage,
+                            )
                         : INITIAL_MESSAGES,
                 }),
 
@@ -210,12 +233,16 @@ const useChatStore = create(
                     );
 
                     const newMessages = serverMessages
+                        .filter(
+                            (message) =>
+                                !isShelfClickMessage(message),
+                        )
                         .map(normalizeServerMessage)
                         .filter(
                             (message) =>
                                 !existingIds.has(message.id),
                         );
-
+                        
                     return {
                         messages: newMessages.length
                             ? [
