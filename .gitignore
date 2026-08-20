@@ -23,8 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
-# 환경 변수 — 값은 .env.example 참고
-.env
+
 
 # 압축·산출물 잔해
 *.zip
