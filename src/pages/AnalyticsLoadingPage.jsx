@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { getAnalytics } from "../api/analytics";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import * as S from "./AnalyticsLoadingPage.style";
@@ -8,16 +8,19 @@ import paddyThinkImg from "../assets/paddy-think.png";
 export default function AnalyticsLoadingPage() {
   const navigate = useNavigate();
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const pollTimerRef = useRef(null);
 
+  // Header가 ?slug=로 넘기는데 useParams만 읽어 sessionStorage 폴백으로만
+  // 동작하고 있었다. visit_id는 slug가 아니라 폴백에서 뺀다.
   const reportSlug =
     slug ||
-    sessionStorage.getItem("report_slug") ||
-    sessionStorage.getItem("visit_id");
+    searchParams.get("slug") ||
+    sessionStorage.getItem("report_slug");
 
   useEffect(() => {
     if (!reportSlug) {
-      navigate("/analtytics");
+      navigate("/analytics");
       return;
     }
 
@@ -31,6 +34,12 @@ export default function AnalyticsLoadingPage() {
         // 준비 완료되면 실제 분석 결과 페이지로 이동
         if (data?.status === "ready") {
           navigate(`/analytics/${reportSlug}`, { replace: true, state: { reportData: data } });
+          return;
+        }
+
+        // 분석이 실패로 끝났으면 무한 폴링하지 않고 결과 페이지로 넘긴다
+        if (data?.status === "failed") {
+          navigate(`/analytics/${reportSlug}`, { replace: true });
           return;
         }
 

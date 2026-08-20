@@ -4,19 +4,27 @@ import styled from "styled-components";
 
 let lastShelfLogAt = 0;
 
-const isShelfClickMessage = (message) => {
-    return (
-        message.role === "user_action" &&
-        /^\d+번 진열대 클릭$/.test(
-            message.content,
-        )
+// 화면에 보이면 안 되는 클릭 로그. 진열대/상품 클릭과 프리셋 버튼 라벨은 숨기되,
+// 손님이 버튼으로 답한 말("맞아요" 등)은 남긴다. 서버가 action_type을 내려주지
+// 않아 문구 패턴으로 구분한다 — 서버 문구(chat/messages.py)와 짝이다.
+const HIDDEN_CLICK_PATTERNS = [
+    /^\d+번 진열대 클릭$/,
+    /상품 클릭$/,
+    /^(가격|재질|디자인 의도)$/,
+];
+
+const isHiddenClickLog = (message) =>
+    message.role === "user_action" &&
+    HIDDEN_CLICK_PATTERNS.some((pattern) =>
+        pattern.test(message.content),
     );
-};
 
 const normalizeServerMessage = (message) => ({
     id: message.message_id,
+    // preset은 서버가 미리 써 둔 답변이라 어시스턴트 말풍선(왼쪽)이어야 한다
     type:
-        message.role === "assistant"
+        message.role === "assistant" ||
+            message.role === "preset"
             ? "assistant"
             : "user",
     role: message.role,
@@ -160,7 +168,7 @@ const useChatStore = create(
                         ? messages
                             .filter(
                                 (message) =>
-                                    !isShelfClickMessage(
+                                    !isHiddenClickLog(
                                         message,
                                     ),
                             )
@@ -181,7 +189,7 @@ const useChatStore = create(
                         ? serverMessages
                             .filter(
                                 (message) =>
-                                    !isShelfClickMessage(
+                                    !isHiddenClickLog(
                                         message,
                                     ),
                             )
@@ -202,7 +210,13 @@ const useChatStore = create(
                         ),
                     );
 
+                    // syncChatState와 같은 필터를 태운다. 여기만 빠져 있어서
+                    // "N번 진열대 클릭"이 폴링 전 잠깐 표시되는 깜빡임이 있었다.
                     const newMessages = serverMessages
+                        .filter(
+                            (message) =>
+                                !isHiddenClickLog(message),
+                        )
                         .map(normalizeServerMessage)
                         .filter(
                             (message) =>
@@ -235,7 +249,7 @@ const useChatStore = create(
                     const newMessages = serverMessages
                         .filter(
                             (message) =>
-                                !isShelfClickMessage(message),
+                                !isHiddenClickLog(message),
                         )
                         .map(normalizeServerMessage)
                         .filter(

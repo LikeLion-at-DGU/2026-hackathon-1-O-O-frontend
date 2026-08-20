@@ -78,8 +78,26 @@ export const streamChat = async ({
   );
 
   if (!response.ok) {
+    // 스트림이 열리기 전의 실패는 JSON {"error":{code,message}}로 온다.
+    // 상태코드만 던지면 429(분당 한도)와 403(종료된 관람)이 전부
+    // "답변을 불러오지 못했어요"로 뭉개진다.
+    let serverMessage = "";
+    try {
+      const body = await response.json();
+      serverMessage = body?.error?.message ?? "";
+    } catch {
+      // body가 JSON이 아니면 상태코드로만 안내한다
+    }
+
+    if (response.status === 429) {
+      throw new Error(
+        serverMessage ||
+          "질문이 잠시 몰렸어요. 조금 뒤에 다시 물어봐 주세요.",
+      );
+    }
+
     throw new Error(
-      `채팅 요청 실패: ${response.status}`,
+      serverMessage || `채팅 요청 실패: ${response.status}`,
     );
   }
 
@@ -110,7 +128,14 @@ export const streamChat = async ({
       return;
     }
 
-    const data = JSON.parse(rawData);
+    let data;
+    try {
+      data = JSON.parse(rawData);
+    } catch {
+      // 조각난 프레임 하나 때문에 스트림 전체를 끊지 않는다
+      console.warn("SSE 프레임 파싱 실패, 건너뜀:", rawData);
+      return;
+    }
 
     console.log(
       "SSE 채팅 응답:",

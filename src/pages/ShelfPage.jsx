@@ -22,9 +22,12 @@
         }
     }, [zoneId]);
 
-    const sceneId = currentScene?.scene_id || zoneId;
+    // 서버 scene_id를 모르면 측정하지 않는다. zoneId("1")로 폴백하면 서버에
+    // 없는 id라 그 이벤트가 rejected로 빠지고, 엉뚱한 집계만 남는다.
+    const sceneId = currentScene?.scene_id ?? null;
 
-    // ⭐️ 진열대 체류시간 측정 (상품 상세를 보더라도 진열대 시간은 계속 누적)
+    // 진열대 체류시간 측정. 상품 상세로 넘어가면 이 페이지가 언마운트되어
+    // 진열대 체류는 멈춘다(상품 체류는 서버가 진열대에 합산한다).
     useDwellTimer({
         eventType: "scene_dwell",
         targetId: sceneId,

@@ -22,8 +22,16 @@
         location.pathname.startsWith("/analytics") && !isLoadingPage;
 
     const finishVisit = async () => {
-        const visitId = sessionStorage.getItem("visit_id");
-        const visitToken = sessionStorage.getItem("visit_token");
+        // 다른 호출부와 같은 우선순위로 양쪽 저장소를 다 본다. 여기만
+        // sessionStorage 전용이라 세션 복구 후 관람 종료가 막혔다.
+        const visitId =
+        localStorage.getItem("visitId") ||
+        localStorage.getItem("visit_id") ||
+        sessionStorage.getItem("visit_id");
+        const visitToken =
+        localStorage.getItem("visitToken") ||
+        localStorage.getItem("visit_token") ||
+        sessionStorage.getItem("visit_token");
 
         if (!visitId || !visitToken) {
         alert("방문 정보가 없습니다.");
@@ -62,7 +70,9 @@
         }
         } catch (error) {
         console.error("🚨 관람 종료 요청 실패:", error.response?.data || error);
-        alert(`관람 종료 실패: ${error.response?.data?.message || "서버 응답 오류"}`);
+        // 서버 에러 포맷은 {"error":{code,message}}다. data.message를 읽어
+        // 모든 실패가 "서버 응답 오류"로만 보였다.
+        alert(`관람 종료 실패: ${error.response?.data?.error?.message || "서버 응답 오류"}`);
         }
     };
 
