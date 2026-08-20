@@ -17,7 +17,7 @@ export const MessageArea = styled.div`
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 16px;
+    gap: 6px;
 
     padding: 15px 20px 24px;
     box-sizing: border-box;

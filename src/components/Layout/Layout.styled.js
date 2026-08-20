@@ -68,7 +68,7 @@ export const Chat = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 6px;
 
   padding: 16px 0 8px;
   box-sizing: border-box;
