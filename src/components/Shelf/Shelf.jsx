@@ -77,7 +77,9 @@ export default function Shelf() {
       });
     }
 
-    if (product.scene_id) {
+    // 관람 종료 후에는 채팅이 닫혀(403) 기록하지 않는다 — ShelfPage의
+    // scene_click 가드와 같은 규칙이다.
+    if (product.scene_id && !sessionStorage.getItem("report_slug")) {
       try {
         const response = await createChatMessage({
           type: "product_click",
