@@ -107,14 +107,23 @@ function Layout() {
       applyActionResponse(
         response.data.messages ?? [],
       );
+      
+      
+      if (
+      option.type ===
+        "hypothesis_no" &&
+      option.label === "아니에요"
+    ) {
+      navigate("/chat");
+    }
+
     } catch (error) {
       console.error(
         "트리거 응답 실패:",
         error.response?.data ?? error,
       );
 
-      // 중복 클릭 또는 만료된 가설이면
-      // 서버 상태로 다시 맞춘다.
+      // 중복 클릭 또는 만료된 가설이면 서버 상태로 다시 맞c출 것.
       try {
         const response =
           await getChatMessages();
