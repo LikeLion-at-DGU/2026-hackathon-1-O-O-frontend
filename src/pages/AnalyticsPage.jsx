@@ -237,14 +237,21 @@ export default function AnalyticsPage() {
     // 1. 서버에서 이미 체류시간 긴 순으로 정렬되어 내려오는 scenes 사용
     const rawScenes = report.scenes || [];
 
-    const sortedZones = rawScenes.map((s) => {
-      const sec = Math.round((s.dwell_ms ?? 0) / 1000);
-      return {
-        zone_name: s.scene_name || `${s.scene_no}번 진열대`,
-        raw_sec: sec,
-        duration_min: Math.max(1, Math.round(sec / 60) || 1), // 최소 1분 단위 보정
-      };
-    });
+// AnalyticsPage.jsx 내 useMemo 내부
+
+const sortedZones = rawScenes.map((s, index) => {
+  const sec = Math.round((s.dwell_ms ?? 0) / 1000);
+  
+  // ⭐️ scene_name(여성의류 등) 대신 항상 'N번 진열대' 형식으로 고정
+  const shelfNumber = s.scene_no ?? (index + 1);
+  const zoneName = `${shelfNumber}번 진열대`;
+
+  return {
+    zone_name: zoneName, // 예: "1번 진열대", "2번 진열대"
+    raw_sec: sec,
+    duration_min: Math.max(1, Math.round(sec / 60) || 1),
+  };
+});
 
     // 2. Top 1, Top 2 진열대 추출 (없을 경우 기본값)
     const top1Zone = sortedZones[0] || {
