@@ -419,25 +419,6 @@ export default function LandingPage() {
             }
         };
 
-        const updateScenes = () => {
-            [
-                [heroRef, "01 / INVITATION"],
-                [eraRef, "02 / 50 YEARS"],
-                [collectionRef, "03 / FALL WINTER"],
-                [paddyRef, "04 / PADDY"],
-                [registerRef, "05 / MUSE"],
-            ].forEach(([ref, label]) => {
-                if (!ref.current) return;
-                const rect = ref.current.getBoundingClientRect();
-                if (
-                    rect.top < window.innerHeight * 0.55 &&
-                    rect.bottom > window.innerHeight * 0.55
-                ) {
-                    setSceneLabel(label);
-                }
-            });
-        };
-
         const update = () => {
             raf = null;
             const total = document.documentElement.scrollHeight - window.innerHeight;

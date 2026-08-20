@@ -17,8 +17,12 @@ export default function ErasSection({ refs }) {
         cognacRef,
         silverRef,
         finalMomentRef,
-        photoRefs,
-        imageRefs,
+        photoRef1,
+        photoRef2,
+        photoRef3,
+        imageRef1,
+        imageRef2,
+        imageRef3,
     } = refs;
 
     return (
@@ -39,14 +43,14 @@ export default function ErasSection({ refs }) {
                 </S.EraIntro>
 
                 <S.EraPhotos ref={photosRef}>
-                    <S.EraPhoto ref={photoRefs[0]} $variant="one">
-                        <img ref={imageRefs[0]} src={munich1} alt="뮌헨 아카이브" />
+                    <S.EraPhoto ref={photoRef1} $variant="one">
+                        <img ref={imageRef1} src={munich1} alt="뮌헨 아카이브" />
                     </S.EraPhoto>
-                    <S.EraPhoto ref={photoRefs[1]} $variant="two">
-                        <img ref={imageRefs[1]} src={munich2} alt="뮌헨 아카이브" />
+                    <S.EraPhoto ref={photoRef2} $variant="two">
+                        <img ref={imageRef2} src={munich2} alt="뮌헨 아카이브" />
                     </S.EraPhoto>
-                    <S.EraPhoto ref={photoRefs[2]} $variant="three">
-                        <img ref={imageRefs[2]} src={munich3} alt="뮌헨 아카이브" />
+                    <S.EraPhoto ref={photoRef3} $variant="three">
+                        <img ref={imageRef3} src={munich3} alt="뮌헨 아카이브" />
                     </S.EraPhoto>
                 </S.EraPhotos>
 
