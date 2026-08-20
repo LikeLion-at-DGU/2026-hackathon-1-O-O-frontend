@@ -110,6 +110,8 @@ Vitest 단위 테스트가 회귀에 취약했던 핵심 로직을 고정합니�
 | 테스트 | 검증 내용 |
 | --- | --- |
 | `components/Product/__tests__/productColor.test.js` | 서버 색상 응답 정규화 — 문자열/배열/중복/`"색상:"` 접두어/콤마 중복까지 어떤 형태로 와도 대표 색상 1개만 노출 |
+| `stores/__tests__/chatMessages.test.js` | 채팅 메시지 규칙 — 서버 메시지 정규화(assistant/preset/user), 숨김 클릭 로그 필터, 서버 동기화 시 로컬 임시(local-/stream-) 메시지 병합·중복 방지 |
+| `hooks/__tests__/lookbookJobRules.test.js` | 화보 생성 폴링 판정 — 완료/실패 상태 해석(대소문자 무관), 진행률(0~1 비율·0~100 퍼센트) 정규화, 실패 유형별 안내 문구 |
 | `utils/__tests__/storage.test.js` | 방문 인증 저장소 — snake_case 표준 키 저장, 과거 세션 camelCase 키 폴백, 방문 종료 판정 |
 | `utils/__tests__/productImage.test.js` | 로컬 상품 이미지 경로 및 원본 파일명이 뒤바뀐 상품(p_416↔p_418) 교차 매핑 |
 | `router/__tests__/paths.test.js` | 경로 헬퍼와 PATHS 상수 무결성 (삭제된 `/home` 미포함 포함) |
