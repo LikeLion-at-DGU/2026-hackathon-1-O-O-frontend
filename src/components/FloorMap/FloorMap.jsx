@@ -18,8 +18,8 @@ const GUIDE_ITEMS = [
   { id: 7, text: "F/W 신상" },
 ];
 
-export default function FloorMap({ showGuideMessage = false, guideClickPath = null, }) {
-  const [activeZone, setActiveZone] = useState(null);
+export default function FloorMap({ showGuideMessage = false }) {
+  const activeZone = null;
   const [
   isGuideMessageVisible,
   setIsGuideMessageVisible,

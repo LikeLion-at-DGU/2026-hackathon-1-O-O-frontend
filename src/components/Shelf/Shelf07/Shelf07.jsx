@@ -1,4 +1,3 @@
-import React from "react";
 import * as S from "./Shelf07.style";
 
 export default function Shelf07({ products = [], onProductClick }) {

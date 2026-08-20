@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function PlusButton({
   cx = 11.5,
   cy = 12,

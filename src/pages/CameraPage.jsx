@@ -24,6 +24,7 @@ function CameraPage() {
   useEffect(() => {
     let stream = null;
     let isMounted = true;
+    const videoElement = videoRef.current;
 
     const startCamera = async () => {
       try {
@@ -87,12 +88,11 @@ function CameraPage() {
 
         if (
           isMounted &&
-          videoRef.current
+          videoElement
         ) {
-          videoRef.current.srcObject =
-            stream;
+          videoElement.srcObject = stream;
 
-          await videoRef.current.play();
+          await videoElement.play();
         }
       } catch (error) {
         console.error(
@@ -119,9 +119,8 @@ function CameraPage() {
           );
       }
 
-      if (videoRef.current) {
-        videoRef.current.srcObject =
-          null;
+      if (videoElement) {
+        videoElement.srcObject = null;
       }
     };
   }, []);

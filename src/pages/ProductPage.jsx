@@ -1,11 +1,8 @@
 // src/pages/ProductPage.jsx
-import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { createPortal } from "react-dom";
 
 import useChatStore from "../stores/useChatStore";
 import * as S from "../components/Shelf/Shelf.style";
-import { MessageBubble } from "../components/ChatMessage/ChatMessage.styled";
 import { shelfData } from "../components/Shelf/ShelfData";
 
 import useProduct from "../hooks/useProduct";

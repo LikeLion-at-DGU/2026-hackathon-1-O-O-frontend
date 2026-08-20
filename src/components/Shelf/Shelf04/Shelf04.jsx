@@ -1,4 +1,3 @@
-import React from "react";
 import * as S from "./Shelf04.style";
 
 function Shelf04({

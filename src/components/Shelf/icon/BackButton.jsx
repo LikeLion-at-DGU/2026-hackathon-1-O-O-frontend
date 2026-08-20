@@ -1,6 +1,4 @@
 // src/components/Shelf/icon/BackButton.jsx
-import React from "react";
-
 export default function BackButton({ onClick, style }) {
   return (
     <svg
