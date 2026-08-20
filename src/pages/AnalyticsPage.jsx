@@ -237,13 +237,14 @@ export default function AnalyticsPage() {
     // 1. 서버에서 이미 체류시간 긴 순으로 정렬되어 내려오는 scenes 사용
     const rawScenes = report.scenes || [];
 
-    // 하한 1분 보정을 하지 않는다. 5초 체류가 "1분"으로 표시되고, 항목별
-    // 올림 합이 총 관람시간보다 커지는 문제가 있었다. 1분 미만은 표시 단계에서
-    // "1분 미만"으로 처리한다.
-    const sortedZones = rawScenes.map((s) => {
+    // 이름은 main 쪽 의도대로 항상 "N번 진열대"로 고정하고,
+    // 시간은 1분 하한을 두지 않는다 — 5초 체류가 "1분"으로 표시되고 항목별
+    // 올림 합이 총 관람시간보다 커지는 문제. 1분 미만은 표시 단계에서 처리한다.
+    const sortedZones = rawScenes.map((s, index) => {
       const sec = Math.round((s.dwell_ms ?? 0) / 1000);
+      const shelfNumber = s.scene_no ?? (index + 1);
       return {
-        zone_name: s.scene_name || `${s.scene_no}번 진열대`,
+        zone_name: `${shelfNumber}번 진열대`,
         raw_sec: sec,
         duration_min: Math.round(sec / 60),
       };

@@ -6,6 +6,7 @@ import { BgmManager } from "../utils/bgmManager";
 import { shelfData } from "../components/Shelf/ShelfData";
 import { enterStore } from "../api/visits";
 
+import paddyhead from "../assets/paddy-head.png";
 import paddyChoice from "../assets/paddy-choice.png";
 import paddyThink from "../assets/paddy-think.png";
 import paddyCheer from "../assets//paddy-cheer.png";
@@ -148,9 +149,9 @@ export default function LandingPage() {
             if (envelopeRef.current) {
                 envelopeRef.current.style.transform = `
             translate(-50%, -50%)
-          translate(${58 * (1 - fly)}vw, ${-60 * (1 - fly)}vh)
-          rotate(${28 * (1 - fly)}deg)
-          scale(${0.14 + 0.86 * fly})
+            translate(${58 * (1 - fly)}vw, ${-60 * (1 - fly)}vh)
+            rotate(${28 * (1 - fly)}deg)
+            scale(${0.14 + 0.86 * fly})
         `;
                 envelopeRef.current.style.opacity = `${1 - clamp((p - 0.67) / 0.09)}`;
             }
@@ -169,9 +170,9 @@ export default function LandingPage() {
                 paperRef.current.style.opacity = `${paperReveal}`;
 
                 paperRef.current.style.transform = `
-    translate(-50%, ${y}%)
-    scale(${scale})
-  `;
+                translate(-50%, ${y}%)
+                scale(${scale})
+                `;
 
                 // 편지가 봉투에서 올라오기 시작하면
                 // 봉투보다 앞으로 나오게
@@ -195,8 +196,8 @@ export default function LandingPage() {
 
             eraStickyRef.current.style.backgroundColor =
                 p < 0.62
-                    ? mixColor("#f6f0e7", "#d9b894", p / 0.62)
-                    : mixColor("#d9b894", "#eef0f2", (p - 0.62) / 0.38);
+                    ? mixColor("#F3EEE3", "#D1CCC7", p / 0.62)
+                    : mixColor("#D1CCC7", "#F4F2EE", (p - 0.62) / 0.38);
 
             if (fiberRef.current) fiberRef.current.style.opacity = `${0.2 - 0.18 * p}`;
             if (grainRef.current) grainRef.current.style.opacity = `${0.2 - 0.17 * p}`;
@@ -296,8 +297,8 @@ export default function LandingPage() {
 
                 yearRef.current.style.color =
                     p < 0.75
-                        ? mixColor("#3b2a1e", "#986740", p / 0.75)
-                        : mixColor("#774645", "#bec6d1", (p - 0.75) / 0.25);
+                        ? mixColor("#222222", "#8C6239", p / 0.75)
+                        : mixColor("#8C6239", "#D1CCC7", (p - 0.75) / 0.25);
             }
 
             if (codeRef.current) codeRef.current.textContent = code;
@@ -344,13 +345,13 @@ export default function LandingPage() {
                 const lineColor =
                     p < 0.5
                         ? mixColor(
-                            "#8B8279",
-                            "#6A625B",
+                            "#D1CCC7",
+                            "#8C6239",
                             p / 0.5
                         )
                         : mixColor(
-                            "#6A625B",
-                            "#F1E9DF",
+                            "#8C6239",
+                            "#E5E3E0",
                             (p - 0.5) / 0.5
                         );
 
@@ -481,7 +482,7 @@ export default function LandingPage() {
             <S.Progress $progress={pageProgress} />
 
             {/* 오른쪽 챕터  */}
-            <S.Index>{sceneLabel}</S.Index>
+            {/* <S.Index>{sceneLabel}</S.Index> */}
 
             <S.HeroChapter ref={heroRef}>
                 <S.StickyNight>
@@ -501,21 +502,83 @@ export default function LandingPage() {
 
                     <S.InvitationPaper ref={paperRef}>
                         <S.PaperContent ref={paperContentRef}>
-                            <S.Eyebrow>INVITATION / MCM 50TH ANNIVERSARY</S.Eyebrow>
+                            <S.InvitationLabel>
+                                INVITATION
+                            </S.InvitationLabel>
+
                             <h1>
-                                MCM의
+                                MCM의 새로운
                                 <br />
-                                뮤즈가 될,
-                                <br />
-                                단 한 사람
+                                뮤즈가 되어볼까요?
                             </h1>
-                            <S.PaperRule />
-                            <p>
-                                50년의 이야기를 잇고,
-                                <br />
-                                <strong>다음 장면을 함께할 한 사람.</strong>
-                            </p>
-                            <S.PaperStamp>MÜNCHEN · 1976 → SEOUL · 2026</S.PaperStamp>
+
+                            <S.InvitationPaddy
+                                src={paddyhead}
+                                alt="패디"
+                            />
+
+                            <S.InvitationCopy>
+                                저희의 브랜드에 영감을 줄 사람을 찾습니다!
+                            </S.InvitationCopy>
+
+                            <S.PaddySignature>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 23"
+                                    fill="none"
+                                    aria-hidden="true"
+                                >
+                                    <g filter="url(#paw-blur)">
+                                        <ellipse
+                                            cx="11.5742"
+                                            cy="14.9728"
+                                            rx="7.55274"
+                                            ry="6.42002"
+                                            fill="currentColor"
+                                        />
+
+                                        <ellipse
+                                            cx="11.5738"
+                                            cy="4.02118"
+                                            rx="3.0211"
+                                            ry="3.02119"
+                                            fill="currentColor"
+                                        />
+
+                                        <ellipse
+                                            cx="19.1271"
+                                            cy="7.04267"
+                                            rx="3.0211"
+                                            ry="3.02119"
+                                            fill="currentColor"
+                                        />
+
+                                        <ellipse
+                                            cx="4.0211"
+                                            cy="7.04267"
+                                            rx="3.0211"
+                                            ry="3.02119"
+                                            fill="currentColor"
+                                        />
+                                    </g>
+
+                                    <defs>
+                                        <filter
+                                            id="paw-blur"
+                                            x="-1"
+                                            y="-1"
+                                            width="26"
+                                            height="25"
+                                            filterUnits="userSpaceOnUse"
+                                            colorInterpolationFilters="sRGB"
+                                        >
+                                            <feGaussianBlur stdDeviation="0.35" />
+                                        </filter>
+                                    </defs>
+                                </svg>
+
+                                <span>from. PADDY</span>
+                            </S.PaddySignature>
                         </S.PaperContent>
                     </S.InvitationPaper>
 
@@ -529,13 +592,19 @@ export default function LandingPage() {
                                 >
                                     <path
                                         d="
-                                            M 12 2
-                                            H 838
-                                            Q 850 2 842 14
-                                            L 450 278
-                                            Q 425 300 400 278
-                                            L 8 14
-                                            Q 0 2 12 2
+                                            M 18 2
+                                            H 832
+
+                                            Q 844 2 836 14
+
+                                            L 454 270
+
+                                            Q 425 292 396 270
+
+                                            L 14 14
+
+                                            Q 6 2 18 2
+
                                             Z
                                         "
                                     />
@@ -589,9 +658,9 @@ export default function LandingPage() {
                         </S.EraPhoto>
                     </S.EraPhotos>
 
-                    <S.EraCode ref={codeRef}>
+                    {/* <S.EraCode ref={codeRef}>
                         MÜNCHEN / ARCHITECTURE / MUSIC / MOVEMENT
-                    </S.EraCode>
+                    </S.EraCode> */}
 
                     <S.FinalMoment ref={finalMomentRef}>
                         <div>
@@ -605,7 +674,7 @@ export default function LandingPage() {
 
             <S.PaddyChapter ref={paddyRef}>
                 <S.StickyBase>
-                    <S.PaddyMeta>PADDY / MCM</S.PaddyMeta>
+                    {/* <S.PaddyMeta>PADDY / MCM</S.PaddyMeta> */}
                     <S.SpeechHint ref={speechHintRef}>
                         패디와 함께
                         <br />
@@ -628,7 +697,7 @@ export default function LandingPage() {
             <S.RegisterChapter ref={registerRef}>
                 <S.StickyBase>
                     <S.RegisterHead>
-                        <S.Eyebrow>MUSE REGISTRATION</S.Eyebrow>
+                        {/* <S.Eyebrow>MUSE REGISTRATION</S.Eyebrow> */}
                         <h2>
                             당신의 번호를
                             <br />
@@ -657,7 +726,7 @@ export default function LandingPage() {
                             </strong>
 
                             <span>
-                                패디와 함께 MCM HAUS 입장하기
+                                패디와 함께 MCM 롯데백화점 잠실점 입장하기
                             </span>
                         </div>
 

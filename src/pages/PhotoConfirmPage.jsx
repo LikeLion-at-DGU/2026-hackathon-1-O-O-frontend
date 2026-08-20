@@ -422,11 +422,15 @@ const Container = styled.div`
 `;
 
 const TitleArea = styled.div`
-  margin-bottom: 16px;
+display: flex;
+flex-direction: column;
+
+  gap: 16px;
+  margin-bottom: 8px;
 `;
 
 const Title = styled.h2`
-  margin: 0 0 6px;
+  margin: 50px 0 6px;
 color: var(--Deep-Slate, #222);
 text-align: center;
 font-family: Pretendard;
@@ -485,19 +489,26 @@ const ButtonGroup = styled.div`
 `;
 
 const RetakeButton = styled.button`
-  flex: 1;
-  height: 52px;
-  
+  height: 60px;
+  width: 106px;
+  margin: 0;
 color: var(--Deep-Slate, #222);
 font-family: Pretendard;
 font-size: var(--Font-size-XL, 20px);
 font-style: normal;
 font-weight: 600;
-line-height: 140%; /* 28px */
+line-height: 140%;
 
-  background-color: #E5E3E0;
+  background: var(--neutral, #E5E3E0);
+
+display: flex;
+padding: 10px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+
   border: 1px solid #ddd;
-  border-radius: 12px;
+  border-radius: 20px;
   cursor: pointer;
 
   &:disabled {
@@ -507,17 +518,29 @@ line-height: 140%; /* 28px */
 `;
 
 const ConfirmButton = styled.button`
-  flex: 2;
-  height: 52px;
+  margin: 0;
 
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
+  height: 60px;
+    width: 245px;
 
-  background-color: #111;
+
+color: var(--neutral, #E5E3E0);
+font-family: Pretendard;
+font-size: var(--Font-size-XL, 20px);
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 28px */
+
+  background-color: #222;
   border: none;
-  border-radius: 12px;
+  border-radius: 20px;
   cursor: pointer;
+  display: flex;
+padding: 16px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+align-self: stretch;
 
   &:disabled {
     opacity: 0.6;
