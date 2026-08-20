@@ -130,7 +130,7 @@ export const DownloadButton = styled.button`
   padding: 16px;
 
   color: #e5e3e0;
-  font-family: Pretendard, sans-serif;
+  font-family: Pretendard;
   font-size: 20px;
   font-weight: 600;
   line-height: 140%;
