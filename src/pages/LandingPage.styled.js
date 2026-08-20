@@ -21,6 +21,10 @@ export const MobileContainer = styled.div`
   width: 402px;
   min-height: 100dvh;
 
+  min-height: 100vh;
+  min-height: 100svh;
+
+
   margin: 0 auto;
 
   font-family: var(--font-pretendard);
@@ -121,6 +125,8 @@ export const StickyBase = styled.div`
 
   height: 100vh;
   height: 100dvh;
+
+   height: 100lvh;
 
   overflow: hidden;
 `;
