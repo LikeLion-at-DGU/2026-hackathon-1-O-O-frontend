@@ -27,10 +27,13 @@ function Router() {
   // ⭐️ visit_id 검사 및 리다이렉트 로직
   useEffect(() => {
     // 1. 검사를 건너뛸 '공개 페이지' 경로 설정 (랜딩 페이지, 로딩, 공유된 화보 주소 등)
+    // 화보 공유 주소(/lookbook/...)는 방문 ID가 없는 외부 사용자가 여는 링크다.
+    // 구 주소(/l/...)만 열어두면 실제 공유 주소가 랜딩으로 튕긴다.
     const isPublicPage =
       location.pathname === "/" ||
       location.pathname === "/lookbook-loading-preview" ||
-      location.pathname.startsWith("/l/");
+      location.pathname.startsWith("/l/") ||
+      location.pathname.startsWith("/lookbook");
 
     // 2. 공개 페이지가 아닌데(즉, 매장이나 챗봇 화면인데)
     if (!isPublicPage) {

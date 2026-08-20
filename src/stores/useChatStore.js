@@ -4,6 +4,13 @@ import styled from "styled-components";
 
 let lastShelfLogAt = 0;
 
+// 로컬 임시 메시지 id. Date.now()만 쓰면 같은 밀리초에 만든 두 메시지가
+// React key를 공유해 렌더가 꼬인다.
+const newLocalId = () =>
+    typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
 // 화면에 보이면 안 되는 클릭 로그. 진열대/상품 클릭과 프리셋 버튼 라벨은 숨기되,
 // 손님이 버튼으로 답한 말("맞아요" 등)은 남긴다. 서버가 action_type을 내려주지
 // 않아 문구 패턴으로 구분한다 — 서버 문구(chat/messages.py)와 짝이다.
@@ -122,12 +129,12 @@ const useChatStore = create(
                         messages: [
                             ...state.messages,
                             {
-                                id: Date.now(),
+                                id: newLocalId(),
                                 type: "user",
                                 text: question,
                             },
                             {
-                                id: Date.now() + 1,
+                                id: newLocalId(),
                                 type: "assistant",
                                 text: answer,
                             },
@@ -141,7 +148,7 @@ const useChatStore = create(
                     messages: [
                         ...state.messages,
                         {
-                            id: Date.now(),
+                            id: newLocalId(),
                             type,
                             text,
                         },
@@ -276,7 +283,7 @@ const useChatStore = create(
                     messages: [
                         ...state.messages,
                         {
-                            id: `stream-${Date.now()}`,
+                            id: `stream-${newLocalId()}`,
                             type: "assistant",
                             role: "assistant",
                             text: "",

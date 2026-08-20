@@ -34,6 +34,15 @@ function ChatPage() {
 
   const messagesEndRef = useRef(null);
 
+  // 진행 중인 SSE 스트림. 화면을 떠나면 끊는다.
+  const streamAbortRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      streamAbortRef.current?.abort();
+    };
+  }, []);
+
   // 메시지가 추가되면 맨 아래로 이동
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -161,9 +170,11 @@ function ChatPage() {
       // 스트리밍 답변을 담을 빈 말풍선
       startAssistantMessage();
 
+      streamAbortRef.current = new AbortController();
       await streamChat({
         message: trimmedValue,
         onDelta: appendAssistantDelta,
+        signal: streamAbortRef.current.signal,
       });
 
       // 서버에 저장된 message_id와 role로 동기화
@@ -172,12 +183,18 @@ function ChatPage() {
 
       syncChatState(response.data);
     } catch (error) {
+      // 화면 이탈로 우리가 끊은 스트림은 오류가 아니다
+      if (error?.name === "AbortError") {
+        return;
+      }
+
       console.error(
         "AI 채팅 전송 실패:",
         error,
       );
 
       appendAssistantDelta(
+        error?.message ||
         "죄송해요. 답변을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
       );
     } finally {

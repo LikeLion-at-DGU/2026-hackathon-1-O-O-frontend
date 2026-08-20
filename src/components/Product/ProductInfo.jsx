@@ -39,19 +39,17 @@ function ProductInfo({
   // 프리셋 모달 체류는 더 이상 product_dwell로 보내지 않는다 — 페이지 체류와
   // 같은 타입이라 같은 구간이 중복 계상됐다. 클릭 자체는 question_submit
   // (onQuestionClick)과 preset_view(위)로 남는다.
+  // 이벤트 전송은 updater 밖에서 한다 — StrictMode는 updater를 두 번 실행할
+  // 수 있어, 안에 두면 같은 클릭이 서버에 두 번 기록된다.
   const handlePresetClick = (key, label) => {
-    setSelectedPreset((current) => {
-      if (current === key) {
-        return null;
-      }
+    const isClosing = selectedPreset === key;
+    setSelectedPreset(isClosing ? null : key);
+    if (isClosing) return;
 
-      if (typeof onQuestionClick === "function") {
-        onQuestionClick(label);
-      }
-      sendPresetView(key);
-
-      return key;
-    });
+    if (typeof onQuestionClick === "function") {
+      onQuestionClick(label);
+    }
+    sendPresetView(key);
   };
 
   const handleCloseModal = () => {
