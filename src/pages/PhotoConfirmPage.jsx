@@ -46,6 +46,22 @@ function dataURLtoBlob(dataUrl) {
   });
 }
 
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      window.setTimeout(
+        () =>
+          reject(
+            new Error(
+              "MediaPipe 시간 초과"
+            )
+          ),
+        ms
+      )
+    ),
+  ]);
+
 export default function PhotoConfirmPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -94,28 +110,27 @@ export default function PhotoConfirmPage() {
         );
       }
 
-      const savedProducts =
+      const savedCandidate =
         sessionStorage.getItem(
-          "selected_products"
+          "selected_candidate"
         );
 
-      const productIds = savedProducts
-        ? JSON.parse(savedProducts)
-            .map((item) =>
-              typeof item === "string"
-                ? item
-                : item?.product_id || item?.id
-            )
-            .filter(Boolean)
-            .map(String)
-        : [];
+      let selectedCandidate = null;
 
-      if (
-        !Array.isArray(productIds) ||
-        productIds.length === 0
-      ) {
+      try {
+        selectedCandidate = savedCandidate
+          ? JSON.parse(savedCandidate)
+          : null;
+      } catch {
+        selectedCandidate = null;
+      }
+
+      const selectedProductId =
+        selectedCandidate?.product_id;
+
+      if (!selectedProductId) {
         throw new Error(
-          "선택한 상품이 없습니다. 리포트에서 상품을 선택해 주세요."
+          "선택한 화보 후보가 없습니다. 리포트에서 상품을 다시 선택해 주세요."
         );
       }
 
@@ -136,7 +151,10 @@ export default function PhotoConfirmPage() {
 
       try {
         const mediaPipeResult =
-          await processPhotoWithMediaPipe(photo);
+          await withTimeout(
+            processPhotoWithMediaPipe(photo),
+            8000
+          );
 
         if (
           mediaPipeResult?.maskBlob instanceof Blob &&
@@ -191,7 +209,9 @@ export default function PhotoConfirmPage() {
        * 필수 필드부터 생성합니다.
        */
       const payload = {
-        product_ids: productIds,
+        product_ids: [
+          String(selectedProductId),
+        ],
         photo_key,
         consent: true,
       };
@@ -268,7 +288,7 @@ export default function PhotoConfirmPage() {
        * share_slug URL에서 로딩과 완성 화면을 모두 처리합니다.
        * replace를 사용하여 확인 페이지로 뒤로 가지 않게 합니다.
        */
-      navigate(`/l/${shareSlug}`, {
+      navigate(`/lookbook/${shareSlug}`, {
         replace: true,
         state: {
           jobId,
@@ -321,7 +341,7 @@ export default function PhotoConfirmPage() {
 
   if (!photo) {
     return (
-      <MobileLayout>
+      <MobileLayout hideShoot>
         <CenterBox>
           <p>촬영된 사진이 없습니다.</p>
 
@@ -339,7 +359,7 @@ export default function PhotoConfirmPage() {
   }
 
   return (
-    <MobileLayout>
+    <MobileLayout hideShoot>
       <Container>
         <TitleArea>
           <Title>

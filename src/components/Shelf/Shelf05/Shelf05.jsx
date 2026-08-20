@@ -31,7 +31,7 @@ function Shelf05({
           <S.ProductImage
             src={product.imageUrl}
             alt={product.name ?? "상품"}
-             $up={product.id === "p-55"}
+            $is604={product.id === "p_604"}
           />
         )}
       </S.Hanger>

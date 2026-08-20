@@ -97,14 +97,17 @@ export const ProductImage = styled.img`
   position: absolute;
 
   left: 50%;
-  top: ${({ $up }) => ($up ? "30px" : "50px")};
+  top: 50px;
 
   width: 150px;
   height: 162px;
 
   object-fit: contain;
 
-  transform: translateX(-50%);
+  transform: ${({ $is604 }) =>
+    $is604
+      ? "translateX(-50%) translateY(-20px)"
+      : "translateX(-50%)"};
 
   filter: drop-shadow(
     0 3px 3px rgba(0, 0, 0, 0.14)

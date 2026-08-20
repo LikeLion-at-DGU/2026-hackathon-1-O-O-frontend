@@ -41,27 +41,54 @@ export const createLookbook = async (slug, payload) => {
     throw new Error("리포트 slug가 없습니다.");
   }
 
+  const endpoint = `/reports/${slug}/lookbook`;
+
   console.info(
-    "[Lookbook] 생성 요청 상품 ID",
+    "[Lookbook] 화보 생성 POST 요청",
     {
+      endpoint,
       reportSlug: slug,
-      productIds: payload?.product_ids ?? [],
+      payload,
     }
   );
 
-  const response = await api.post(
-    `/reports/${slug}/lookbook`,
-    payload
-  );
+  try {
+    const response = await api.post(
+      endpoint,
+      payload
+    );
 
-  return response.data;
+    console.info(
+      "[Lookbook] 화보 생성 POST 응답",
+      {
+        endpoint,
+        status: response.status,
+        data: response.data,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "[Lookbook] 화보 생성 POST 실패",
+      {
+        endpoint,
+        payload,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      }
+    );
+
+    throw error;
+  }
 };
 
 /**
  * 화보 생성 상태 조회
  * GET /api/v1/lookbooks/jobs/{job_id}
  *
- * 인증이 필요 없는 공개 API
+ * 명세상 X-Visit-Token 인증 예외
  */
 export const getLookbookJob = async (jobId) => {
   if (!jobId) {
