@@ -1,13 +1,9 @@
 import { api } from "./api";
+import { getVisitId, getVisitToken } from "../utils/storage";
 
-const visitId = () =>
-  localStorage.getItem("visitId") ??
-  sessionStorage.getItem("visit_id");
+const visitId = () => getVisitId();
 
-const visitToken = () =>
-  localStorage.getItem("visitToken") ??
-  sessionStorage.getItem("visit_token") ??
-  "";
+const visitToken = () => getVisitToken();
 
 export const getChatMessages = () =>
   api.get("/chat/messages", {

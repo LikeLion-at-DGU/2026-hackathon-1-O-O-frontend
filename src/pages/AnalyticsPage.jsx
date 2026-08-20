@@ -29,10 +29,9 @@ export default function AnalyticsPage() {
   const navigate = useNavigate();
   const { slug } = useParams();
 
+  // visit_id는 slug가 아니다 — 폴백으로 넣으면 404만 만든다
   const reportSlug =
-    slug ||
-    sessionStorage.getItem("report_slug") ||
-    sessionStorage.getItem("visit_id");
+    slug || sessionStorage.getItem("report_slug");
 
   const [report, setReport] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);

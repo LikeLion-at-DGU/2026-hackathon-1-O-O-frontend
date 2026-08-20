@@ -7,6 +7,7 @@
         drainEventBuffer,
         hasProductInteraction,
     } from "../../api/events";
+    import { getVisitId, getVisitToken } from "../../utils/storage";
     import { Link, useLocation, useNavigate } from "react-router-dom";
 
     function Header({ hideShoot = false, showActions = true }) {
@@ -22,16 +23,8 @@
         location.pathname.startsWith("/analytics") && !isLoadingPage;
 
     const finishVisit = async () => {
-        // 다른 호출부와 같은 우선순위로 양쪽 저장소를 다 본다. 여기만
-        // sessionStorage 전용이라 세션 복구 후 관람 종료가 막혔다.
-        const visitId =
-        localStorage.getItem("visitId") ||
-        localStorage.getItem("visit_id") ||
-        sessionStorage.getItem("visit_id");
-        const visitToken =
-        localStorage.getItem("visitToken") ||
-        localStorage.getItem("visit_token") ||
-        sessionStorage.getItem("visit_token");
+        const visitId = getVisitId();
+        const visitToken = getVisitToken();
 
         if (!visitId || !visitToken) {
         alert("방문 정보가 없습니다.");

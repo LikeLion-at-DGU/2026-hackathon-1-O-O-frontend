@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 import { useEffect } from "react";
 import Layout from "../components/Layout/Layout";
+import { getVisitId } from "../utils/storage";
 
 import LandingPage from "../pages/LandingPage";
 import HomePage from "../pages/HomePage";
@@ -37,8 +38,7 @@ function Router() {
 
     // 2. 공개 페이지가 아닌데(즉, 매장이나 챗봇 화면인데)
     if (!isPublicPage) {
-      const visitId =
-        localStorage.getItem("visitId") || localStorage.getItem("visit_id");
+      const visitId = getVisitId();
 
       // 3. visitId가 없으면 랜딩 페이지로 쫓아냄
       if (!visitId) {

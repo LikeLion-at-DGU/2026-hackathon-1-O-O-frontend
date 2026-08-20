@@ -1,4 +1,10 @@
 import { api } from "./api";
+import {
+  getAnonymousUuid,
+  getVisitId,
+  getVisitToken,
+  isVisitFinished,
+} from "../utils/storage";
 
 const QUEUE_KEY = "pending_events";
 const PRODUCT_INTERACTION_KEY =
@@ -51,9 +57,6 @@ const getQueue = () => {
 const saveQueue = (events) => {
   sessionStorage.setItem(QUEUE_KEY, JSON.stringify(events));
 };
-
-const isVisitFinished = () =>
-  Boolean(sessionStorage.getItem("report_slug"));
 
 // 이벤트 데이터 포맷 검증 및 정제
 const sanitizeEvent = (event) => {
@@ -126,21 +129,9 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
     return;
   }
 
-  // ⭐️ 1. localStorage에서 인증 값 우선 추출 (스네이크/카멜 케이스 모두 대응)
-  const visitToken =
-    localStorage.getItem("visitToken") ||
-    localStorage.getItem("visit_token") ||
-    "";
-
-  const anonymousUuid =
-    localStorage.getItem("anonymous_uuid") ||
-    localStorage.getItem("anonymousUuid") ||
-    "";
-
-  const visitId =
-    localStorage.getItem("visitId") ||
-    localStorage.getItem("visit_id") ||
-    "";
+  const visitToken = getVisitToken();
+  const anonymousUuid = getAnonymousUuid();
+  const visitId = getVisitId();
 
   // ⭐️ 2. 필수 키가 아직 없으면(초기 로딩 중) 버리지 않고 1초 후 재시도
   if (!visitToken || !visitId || !anonymousUuid) {

@@ -14,6 +14,7 @@ import Shelf04 from "./Shelf04/Shelf04";
 import BackButton from "./icon/BackButton";
 import { sendEvent } from "../../api/events";
 import { createChatMessage } from "../../api/chat";
+import { getVisitId, isVisitFinished } from "../../utils/storage";
 import Shelf07 from "./Shelf07/Shelf07";
 import Shelf05 from "./Shelf05/Shelf05";
 
@@ -89,7 +90,7 @@ export default function Shelf() {
   const handleProductClick = async (product) => {
     if (!product) return;
 
-    const visitId = sessionStorage.getItem("visit_id");
+    const visitId = getVisitId();
 
     if (visitId) {
       await sendEvent({
@@ -101,7 +102,7 @@ export default function Shelf() {
 
     // 관람 종료 후에는 채팅이 닫혀(403) 기록하지 않는다 — ShelfPage의
     // scene_click 가드와 같은 규칙이다.
-    if (product.scene_id && !sessionStorage.getItem("report_slug")) {
+    if (product.scene_id && !isVisitFinished()) {
       try {
         const response = await createChatMessage({
           type: "product_click",
