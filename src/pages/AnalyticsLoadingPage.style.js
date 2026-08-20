@@ -22,11 +22,9 @@ export const LoadingWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-
   height: 100vh;
   padding: 0 24px;
-  background-color: #F4F2EE; /* 지정한 웜베이지 배경색 */
-
+  background-color: #f4f2ee;
 `;
 
 export const VisualBadge = styled.div`
@@ -39,7 +37,6 @@ export const VisualBadge = styled.div`
   margin-bottom: 24px;
   margin-top: 200px;
 
-  /* 캐릭터 뒤 오라 컬러를 #E07A5F 톤에 맞춤 */
   &::before {
     content: "";
     position: absolute;
@@ -61,14 +58,14 @@ export const CharacterImage = styled.img`
 export const MainTitle = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  color: #2D2D2D;
+  color: #2d2d2d;
   text-align: center;
   margin-bottom: 8px;
 `;
 
 export const SubTitle = styled.p`
   font-size: 14px;
-  color: #7A7A7A;
+  color: #7a7a7a;
   text-align: center;
   margin: 0;
 `;
@@ -76,7 +73,7 @@ export const SubTitle = styled.p`
 export const LoadingProgressBar = styled.div`
   width: 250px;
   height: 4px;
-  background: #E5E0D8; /* 베이지 배경에 자연스럽게 묻어나는 바 트랙 */
+  background: #e5e0d8;
   border-radius: 999px;
   overflow: hidden;
   position: relative;
@@ -89,7 +86,7 @@ export const LoadingProgressBar = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, #E07A5F, transparent); /* 변경한 선 색상 */
+    background: linear-gradient(90deg, transparent, #e07a5F, transparent);
     animation: ${shimmer} 1.5s infinite ease-in-out;
   }
 `;
