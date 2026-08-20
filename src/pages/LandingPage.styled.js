@@ -19,10 +19,10 @@ export const MobileContainer = styled.div`
   position: relative;
 
   width: 402px;
-  min-height: 100dvh;
 
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: 100dvh;
+
 
 
   margin: 0 auto;
