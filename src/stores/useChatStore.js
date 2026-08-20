@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import styled from "styled-components";
 
 let lastShelfLogAt = 0;
 
@@ -38,16 +37,6 @@ const normalizeServerMessage = (message) => ({
     text: message.content,
     createdAt: message.created_at,
 });
-
-export const MessageText = styled.p`
-  white-space: pre-line;
-  color: var(--neutral, #e5e3e0);
-  font-family: Pretendard;
-  font-size: var(--Font-size-SM, 14px);
-  font-style: normal;
-  font-weight: 300;
-  line-height: 140%;
-`;
 
 const INITIAL_MESSAGES = [
     {

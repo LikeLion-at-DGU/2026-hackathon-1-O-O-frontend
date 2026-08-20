@@ -39,7 +39,7 @@
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         // ⭐️ 마지막 머문 시간까지 포함된 잔여 이벤트 전량 회수
-        const remainingEvents = drainEventBuffer ? drainEventBuffer() : [];
+        const remainingEvents = drainEventBuffer();
         console.log("📦 [관람 종료] 최종 동봉 이벤트 (현재 보고있던 시간 포함):", remainingEvents);
 
         const response = await api.post(
