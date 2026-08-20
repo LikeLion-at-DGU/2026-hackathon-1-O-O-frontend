@@ -40,7 +40,7 @@ function ProductInfo({
       );
 
       sendEvent({
-        event_type: "question_dwell",
+        event_type: "product_dwell",
         product_id: String(targetProductId),
         metadata: {
           preset_key: presetKey,

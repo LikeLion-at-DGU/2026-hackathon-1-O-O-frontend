@@ -9,11 +9,15 @@ let isFlushing = false;
 // 표준 UUID v4 생성
 const createUUID = () => {
   try {
-    if (typeof window !== "undefined" && window.crypto && typeof window.crypto.randomUUID === "function") {
+    if (
+      typeof window !== "undefined" &&
+      window.crypto &&
+      typeof window.crypto.randomUUID === "function"
+    ) {
       return window.crypto.randomUUID();
     }
   } catch {
-    // 무시하고 아래 대체 로직 실행
+    // 대체 로직 실행
   }
 
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -22,52 +26,45 @@ const createUUID = () => {
     return v.toString(16);
   });
 };
+
 const isValidUUID = (value) => {
   if (typeof value !== "string") {
     return false;
   }
-
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
+    value
   );
 };
 
+// 큐 관리 함수 (sessionStorage)
 const getQueue = () => {
   try {
-    return JSON.parse(
-      sessionStorage.getItem(QUEUE_KEY) ??
-        "[]",
-    );
+    return JSON.parse(sessionStorage.getItem(QUEUE_KEY) ?? "[]");
   } catch {
     return [];
   }
 };
 
 const saveQueue = (events) => {
-  sessionStorage.setItem(QUEUE_KEY, JSON.stringify(events),);
+  sessionStorage.setItem(QUEUE_KEY, JSON.stringify(events));
 };
 
 const isVisitFinished = () =>
-  Boolean(sessionStorage.getItem("report_slug"),);
+  Boolean(sessionStorage.getItem("report_slug"));
 
+// 이벤트 데이터 포맷 검증 및 정제
 const sanitizeEvent = (event) => {
   const dwellMs =
     event.dwell_ms ??
     event.metadata?.dwell_ms ??
     event.metadata?.dwell_time_ms ??
-    (event.dwell_sec
-      ? event.dwell_sec * 1000
-      : undefined);
+    (event.dwell_sec ? event.dwell_sec * 1000 : undefined);
 
-  const finalEventId = isValidUUID(
-    event.event_id,
-  )
+  const finalEventId = isValidUUID(event.event_id)
     ? event.event_id
     : createUUID();
 
-  const eventType = String(
-    event.event_type || "scene_dwell",
-  )
+  const eventType = String(event.event_type || "scene_dwell")
     .toLowerCase()
     .trim();
 
@@ -78,248 +75,150 @@ const sanitizeEvent = (event) => {
 
   if (
     !sceneId &&
-    (eventType.startsWith("scene_") ||
-      eventType === "hotspot_click")
+    (eventType.startsWith("scene_") || eventType === "hotspot_click")
   ) {
     try {
       const scenes = JSON.parse(
-        sessionStorage.getItem("scenes") ??
-          "[]",
+        sessionStorage.getItem("scenes") ?? "[]"
       );
-
-      sceneId =
-        scenes[0]?.scene_id ?? "sc_01";
+      sceneId = scenes[0]?.scene_id ?? null;
     } catch {
-      sceneId = "sc_01";
+      sceneId = null;
     }
   }
 
   const metadata = {};
 
-  if (
-    dwellMs !== undefined &&
-    !Number.isNaN(Number(dwellMs))
-  ) {
-    const normalizedDwellMs =
-      Math.round(Number(dwellMs));
-
-    metadata.dwell_ms =
-      normalizedDwellMs;
-
-    metadata.dwell_time_ms =
-      normalizedDwellMs;
+  if (dwellMs !== undefined && !Number.isNaN(Number(dwellMs))) {
+    const normalizedDwellMs = Math.round(Number(dwellMs));
+    metadata.dwell_ms = normalizedDwellMs;
+    metadata.dwell_time_ms = normalizedDwellMs;
   }
 
   return {
     event_id: finalEventId,
     event_type: eventType,
-
     client_timestamp:
-      event.client_timestamp ??
-      new Date().toISOString(),
-
+      event.client_timestamp ?? new Date().toISOString(),
     ...(sceneId && {
       scene_id: String(sceneId),
     }),
-
     ...(event.product_id && {
-      product_id: String(
-        event.product_id,
-      ),
+      product_id: String(event.product_id),
     }),
-
-    metadata,
+    ...(Object.keys(metadata).length > 0 && { metadata }),
   };
 };
 
-export const flushEvents = async ({
-  keepalive = false,
-} = {}) => {
-  if (
-    isFlushing ||
-    isVisitFinished()
-  ) {
+// 이벤트 배치 전송 함수
+export const flushEvents = async ({ keepalive = false } = {}) => {
+  if (isFlushing || isVisitFinished()) {
     return;
   }
 
   const rawEvents = getQueue();
+  if (!rawEvents.length) {
+    return;
+  }
 
+  // ⭐️ 1. localStorage에서 인증 값 우선 추출 (스네이크/카멜 케이스 모두 대응)
   const visitToken =
-    localStorage.getItem("visitToken") ??
-    sessionStorage.getItem(
-      "visit_token",
-    ) ??
+    localStorage.getItem("visitToken") ||
+    localStorage.getItem("visit_token") ||
     "";
 
   const anonymousUuid =
-    localStorage.getItem(
-      "anonymous_uuid",
-    ) ??
-    sessionStorage.getItem(
-      "anonymous_uuid",
-    ) ??
+    localStorage.getItem("anonymous_uuid") ||
+    localStorage.getItem("anonymousUuid") ||
     "";
 
   const visitId =
-    localStorage.getItem("visitId") ??
-    sessionStorage.getItem(
-      "visit_id",
-    ) ??
+    localStorage.getItem("visitId") ||
+    localStorage.getItem("visit_id") ||
     "";
 
-  if (
-    !rawEvents.length ||
-    !visitToken ||
-    !visitId
-  ) {
+  // ⭐️ 2. 필수 키가 아직 없으면(초기 로딩 중) 버리지 않고 1초 후 재시도
+  if (!visitToken || !visitId || !anonymousUuid) {
+    clearTimeout(flushTimer);
+    flushTimer = setTimeout(() => {
+      flushEvents().catch(() => {});
+    }, FLUSH_INTERVAL);
     return;
   }
 
   isFlushing = true;
 
-  // 전송할 이벤트를 큐에서 먼저 제거
-  saveQueue([]);
+  const events = rawEvents.map(sanitizeEvent);
 
-  const events =
-    rawEvents.map(sanitizeEvent);
-
+  // ⭐️ 3. 백엔드 필수 헤더 명시적 주입
   const headers = {
     "Content-Type": "application/json",
     "X-Visit-Token": visitToken,
-
-    ...(anonymousUuid && {
-      "X-Anonymous-UUID":
-        anonymousUuid,
-    }),
+    "X-Anonymous-UUID": anonymousUuid,
   };
 
-  /* 중요!! visit_id는 개별 event 안이 아니라 EventBatch 최상단에 들어감. */
   const payload = {
     visit_id: visitId,
     events,
   };
 
   try {
-    console.log(
-      "[Events] 전송 payload:",
-      payload,
-    );
+    console.log("[Events] 전송 payload:", payload);
 
     if (keepalive) {
       const response = await fetch(
         `${
-          import.meta.env
-            .VITE_API_BASE_URL ||
-          "/api/v1"
+          import.meta.env.VITE_API_BASE_URL || "/api/v1"
         }/events`,
         {
           method: "POST",
           headers,
           body: JSON.stringify(payload),
           keepalive: true,
-        },
+        }
       );
 
       if (!response.ok) {
-        let errorData;
-
-        try {
-          errorData =
-            await response.json();
-        } catch {
-          errorData = null;
-        }
-
-        console.error(
-          "❌ [Events] keepalive 실패:",
-          errorData,
-        );
-
-        throw new Error(
-          `이벤트 전송 실패: ${response.status}`,
-        );
+        throw new Error(`이벤트 전송 실패: ${response.status}`);
       }
 
+      // 전송 성공 시 큐 초기화
+      saveQueue([]);
       return;
     }
 
-    const response = await api.post(
-      "/events",
-      payload,
-      {
-        headers,
-      },
-    );
+    const response = await api.post("/events", payload, { headers });
+    console.log("✅ [Events] 전송 성공:", response.data);
 
-    console.log(
-      "✅ [Events] 전송 성공:",
-      response.data,
-    );
-
+    // ⭐️ 전송 성공 확인 후 안전하게 큐 비우기
+    saveQueue([]);
     return response.data;
   } catch (error) {
-    const status =
-      error.response?.status;
+    const status = error.response?.status;
+    const errorData = error.response?.data;
 
-    const errorData =
-      error.response?.data;
+    console.warn("⚠️ [Events] 전송 실패:", errorData ?? error.message);
 
-    /*
-     * 일시적인 오류일 때만 다시 큐에 넣고 400 데이터 오류를 다시 넣으면 계속 실패함*/
-    if (
-      !isVisitFinished() &&
-      status !== 400 &&
-      status !== 401
-    ) {
-      saveQueue([
-        ...rawEvents,
-        ...getQueue(),
-      ]);
+    // 400(검증 실패), 401(인증 실패)인 잘못된 요청은 큐에서 제거하여 무한 에러 방지
+    if (status === 400 || status === 401) {
+      saveQueue([]);
     }
-
-    console.warn(
-      "⚠️ [Events] 전송 실패:",
-      errorData ?? error.message,
-    );
-
-    console.warn(
-      "⚠️ [Events] 전송 payload:",
-      payload,
-    );
-
-    if (errorData?.error?.detail) {
-      console.warn(
-        "⚠️ [Events] validation detail:",
-        errorData.error.detail,
-      );
-    }
-
     throw error;
   } finally {
     isFlushing = false;
   }
 };
 
-export const sendEvent = async (
-  eventData,
-) => {
-  if (
-    !eventData ||
-    !eventData.event_type
-  ) {
+// 개별 이벤트 큐 등록 함수
+export const sendEvent = async (eventData) => {
+  if (!eventData || !eventData.event_type) {
     return;
   }
 
-  const cleanedEvent =
-    sanitizeEvent(eventData);
-
-  saveQueue([
-    ...getQueue(),
-    cleanedEvent,
-  ]);
+  const cleanedEvent = sanitizeEvent(eventData);
+  saveQueue([...getQueue(), cleanedEvent]);
 
   clearTimeout(flushTimer);
-
   flushTimer = setTimeout(() => {
     flushEvents().catch(() => {});
   }, FLUSH_INTERVAL);
@@ -331,22 +230,14 @@ export const sendEvent = async (
 
 export const drainEventBuffer = () => {
   const rawEvents = getQueue();
-
   saveQueue([]);
   clearTimeout(flushTimer);
-
-  return rawEvents.map(
-    sanitizeEvent,
-  );
+  return rawEvents.map(sanitizeEvent);
 };
 
+// 페이지 이탈 시 잔여 이벤트 즉시 전송
 if (typeof window !== "undefined") {
-  window.addEventListener(
-    "pagehide",
-    () => {
-      flushEvents({
-        keepalive: true,
-      }).catch(() => {});
-    },
-  );
+  window.addEventListener("pagehide", () => {
+    flushEvents({ keepalive: true }).catch(() => {});
+  });
 }
