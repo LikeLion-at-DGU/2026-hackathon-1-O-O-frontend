@@ -7,12 +7,17 @@ import { shelfData } from "../components/Shelf/ShelfData";
 import { enterStore } from "../api/visits";
 
 import paddyhead from "../assets/paddy-head.png";
-import paddyChoice from "../assets/paddy-choice.png";
-import paddyThink from "../assets/paddy-think.png";
-import paddyCheer from "../assets//paddy-cheer.png";
 import munich1 from "../assets/munich-1.png";
 import munich2 from "../assets/munich-2.png";
 import munich3 from "../assets/munich-3.png";
+
+import hellopaddy from "../assets/hellopaddy.png";
+import worrypaddy from "../assets/worrypaddy.png";
+import heartpaddy from "../assets/heartpaddy.png";
+
+import MCM from "../assets/MCM.png"
+import mcmbag1 from "../assets/mcmbag1.png"
+import mcmbag2 from "../assets/mcmbag2.png"
 
 const MAP_ROUTE = "/map";
 
@@ -34,6 +39,7 @@ export default function LandingPage() {
 
     const heroRef = useRef(null);
     const eraRef = useRef(null);
+    const collectionRef = useRef(null);
     const paddyRef = useRef(null);
     const registerRef = useRef(null);
 
@@ -55,6 +61,11 @@ export default function LandingPage() {
     const cognacRef = useRef(null);
     const silverRef = useRef(null);
     const finalMomentRef = useRef(null);
+
+    const collectionStickyRef = useRef(null);
+    const collectionVisualRef = useRef(null);
+    const collectionCopyRef = useRef(null);
+    const collectionLineRef = useRef(null);
 
     const photoRefs = [useRef(null), useRef(null), useRef(null)];
     const imageRefs = [useRef(null), useRef(null), useRef(null)];
@@ -231,13 +242,13 @@ export default function LandingPage() {
             imageRefs.forEach((ref) => {
                 if (!ref.current) return;
                 ref.current.style.filter = `
-          sepia(${sepia})
-          saturate(${saturation})
-          contrast(${contrast})
-          brightness(${brightness})
-          blur(${blur}px)
-        `;
-            });
+                    sepia(${sepia})
+                    saturate(${saturation})
+                    contrast(${contrast})
+                    brightness(${brightness})
+                    blur(${blur}px)
+                    `;
+                });
 
             const transforms = [
                 [-3, -0.2, -20, -23, 1.08],
@@ -339,6 +350,40 @@ export default function LandingPage() {
             setSpeechPhase(p < 0.34 ? 0 : p < 0.67 ? 1 : 2);
         };
 
+        const updateCollection = () => {
+            const p = sectionProgress(collectionRef);
+
+            if (collectionStickyRef.current) {
+                collectionStickyRef.current.style.backgroundColor =
+                    mixColor("#F4F2EE", "#161616", clamp(p / 0.34));
+            }
+
+            if (collectionVisualRef.current) {
+                const reveal = clamp((p - 0.08) / 0.34);
+                const leave = clamp((p - 0.78) / 0.18);
+
+                collectionVisualRef.current.style.opacity = `${reveal * (1 - leave)}`;
+                collectionVisualRef.current.style.transform = `
+                    translateY(${lerp(48, -18, reveal)}px)
+                    scale(${lerp(0.88, 1.08, reveal)})
+                `;
+            }
+
+            if (collectionCopyRef.current) {
+                const reveal = clamp((p - 0.32) / 0.24);
+                const leave = clamp((p - 0.86) / 0.12);
+
+                collectionCopyRef.current.style.opacity = `${reveal * (1 - leave)}`;
+                collectionCopyRef.current.style.transform =
+                    `translateY(${lerp(34, 0, reveal)}px)`;
+            }
+
+            if (collectionLineRef.current) {
+                collectionLineRef.current.style.transform =
+                    `scaleX(${clamp((p - 0.42) / 0.28)})`;
+            }
+        };
+
         const updateRegister = () => {
             const p = sectionProgress(registerRef);
             if (slotRef.current) {
@@ -372,8 +417,9 @@ export default function LandingPage() {
             [
                 [heroRef, "01 / INVITATION"],
                 [eraRef, "02 / 50 YEARS"],
-                [paddyRef, "03 / PADDY"],
-                [registerRef, "04 / MUSE"],
+                [collectionRef, "03 / FALL WINTER"],
+                [paddyRef, "04 / PADDY"],
+                [registerRef, "05 / MUSE"],
             ].forEach(([ref, label]) => {
                 if (!ref.current) return;
                 const rect = ref.current.getBoundingClientRect();
@@ -394,6 +440,7 @@ export default function LandingPage() {
             updateScenes();
             updateHero();
             updateEra();
+            updateCollection();
             updatePaddy();
             updateRegister();
         };
@@ -672,6 +719,44 @@ export default function LandingPage() {
                 </S.EraSticky>
             </S.ErasChapter>
 
+            <S.CollectionChapter ref={collectionRef}>
+                <S.CollectionSticky ref={collectionStickyRef}>
+                    <S.CollectionGlow />
+
+                    <S.CollectionVisual ref={collectionVisualRef} aria-hidden="true">
+                        <S.CollectionImage $position="left">
+                            <img src={mcmbag1} alt="" />
+                        </S.CollectionImage>
+                        <S.CollectionImage $position="center">
+                            <img src={MCM} alt="" />
+                        </S.CollectionImage>
+                        <S.CollectionImage $position="right">
+                            <img src={mcmbag2} alt="" />
+                        </S.CollectionImage>
+                        <S.CollectionYear>50</S.CollectionYear>
+                    </S.CollectionVisual>
+
+                    <S.CollectionCopy ref={collectionCopyRef}>
+                        <S.CollectionKicker>MCM 50TH ANNIVERSARY</S.CollectionKicker>
+                        <h2>
+                            2026
+                            <span>FALL / WINTER</span>
+                        </h2>
+                        <S.CollectionLine ref={collectionLineRef} />
+                        <p>
+                            회고적이면서도 미래지향적인 컬렉션은 뮌헨의 문화와 음악을 통해
+                            MCM의 50주년을 기념합니다. 최첨단 소재와 미래적인 스타일,
+                            스터드 실루엣과 혁신적인 가죽 제품은 하우스의 정체성을 드러냅니다.
+                        </p>
+                        <strong>ART · TECHNOLOGY · TRAVEL</strong>
+                    </S.CollectionCopy>
+
+                    <S.CollectionSideText>
+                        MÜNCHEN / ARCHIVE × FUTURE
+                    </S.CollectionSideText>
+                </S.CollectionSticky>
+            </S.CollectionChapter>
+
             <S.PaddyChapter ref={paddyRef}>
                 <S.StickyBase>
                     {/* <S.PaddyMeta>PADDY / MCM</S.PaddyMeta> */}
@@ -683,7 +768,7 @@ export default function LandingPage() {
 
                     <S.PaddySmall
                         ref={paddyImgRef}
-                        src={speechPhase === 2 ? paddyThink : paddyChoice}
+                        src={speechPhase === 2 ? hellopaddy : worrypaddy}
                         alt="패디"
                     />
 
@@ -713,7 +798,7 @@ export default function LandingPage() {
                     </S.Slot>
 
                     <S.RegisterPaddy
-                        src={registerDone ? paddyCheer : paddyThink}
+                        src={registerDone ? heartpaddy : hellopaddy }
                         alt="패디"
                     />
 

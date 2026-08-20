@@ -1005,6 +1005,265 @@ export const FinalMoment = styled.div`
     letter-spacing: -0.04em;
   }
 `;
+/* =========================================================
+   03 / 2026 FALL WINTER
+========================================================= */
+
+export const CollectionChapter = styled.section`
+  position: relative;
+
+  width: 100%;
+  height: 230svh;
+
+  background: #161616;
+`;
+
+export const CollectionSticky = styled(StickyBase)`
+  isolation: isolate;
+
+  color: var(--surface);
+  background: var(--paper);
+`;
+
+export const CollectionGlow = styled.div`
+  position: absolute;
+  inset: 0;
+
+  z-index: -1;
+
+  background:
+    radial-gradient(
+      circle at 16% 25%,
+      rgba(140, 98, 57, 0.42),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 82% 72%,
+      rgba(210, 214, 219, 0.16),
+      transparent 31%
+    ),
+    linear-gradient(
+      145deg,
+      transparent 35%,
+      rgba(255, 255, 255, 0.04)
+    );
+`;
+
+export const CollectionVisual = styled.div`
+  position: absolute;
+  inset: 0;
+
+  z-index: 1;
+
+  opacity: 0;
+
+  will-change: transform, opacity;
+`;
+
+export const CollectionImage = styled.figure`
+  position: absolute;
+
+  overflow: hidden;
+
+  margin: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.42);
+
+  ${({ $position }) =>
+    $position === "left" &&
+    css`
+      left: -8%;
+      top: 15%;
+
+      width: 48%;
+      height: 43%;
+
+      transform: rotate(-7deg);
+    `}
+
+  ${({ $position }) =>
+    $position === "center" &&
+    css`
+      left: 27%;
+      top: 6%;
+
+      z-index: 2;
+
+      width: 56%;
+      height: 54%;
+
+      transform: rotate(2deg);
+    `}
+
+  ${({ $position }) =>
+    $position === "right" &&
+    css`
+      right: -10%;
+      top: 29%;
+
+      width: 44%;
+      height: 38%;
+
+      transform: rotate(8deg);
+    `}
+
+  img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    filter:
+      grayscale(0.72)
+      sepia(0.22)
+      saturate(0.8)
+      contrast(1.16)
+      brightness(0.7);
+  }
+
+  &::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+      150deg,
+      transparent 30%,
+      rgba(210, 214, 219, 0.22)
+    );
+
+    mix-blend-mode: screen;
+  }
+`;
+
+export const CollectionYear = styled.span`
+  position: absolute;
+
+  right: -4%;
+  top: 5%;
+
+  z-index: 3;
+
+  color: transparent;
+
+  font-family: "Times New Roman", serif;
+  font-size: clamp(190px, 62vw, 250px);
+  font-weight: 600;
+
+  line-height: 0.8;
+  letter-spacing: -0.11em;
+
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.18);
+`;
+
+export const CollectionCopy = styled.div`
+  position: absolute;
+
+  left: 7%;
+  right: 7%;
+  bottom: 7.5vh;
+
+  z-index: 5;
+
+  opacity: 0;
+
+  will-change: transform, opacity;
+
+  h2 {
+    margin: 10px 0 13px;
+
+    font-family: "Times New Roman", serif;
+    font-size: clamp(65px, 19vw, 77px);
+    font-weight: 500;
+
+    line-height: 0.75;
+    letter-spacing: -0.075em;
+  }
+
+  h2 span {
+    display: block;
+
+    margin-top: 16px;
+
+    font-family: var(--font-pretendard);
+    font-size: 16px;
+    font-weight: 500;
+
+    line-height: 1;
+    letter-spacing: 0.18em;
+  }
+
+  p {
+    max-width: 340px;
+
+    margin: 17px 0 14px;
+
+    color: rgba(255, 255, 255, 0.72);
+
+    font-size: 12px;
+    font-weight: 300;
+
+    line-height: 1.72;
+    letter-spacing: -0.015em;
+
+    word-break: keep-all;
+  }
+
+  > strong {
+    color: #d1ccc7;
+
+    font-size: 8px;
+    font-weight: 500;
+
+    letter-spacing: 0.24em;
+  }
+`;
+
+export const CollectionKicker = styled.span`
+  color: #c7a47b;
+
+  font-size: 8px;
+  font-weight: 600;
+
+  letter-spacing: 0.22em;
+`;
+
+export const CollectionLine = styled.i`
+  display: block;
+
+  width: 100%;
+  height: 1px;
+
+  transform: scaleX(0);
+  transform-origin: left center;
+
+  background: linear-gradient(
+    90deg,
+    #8c6239,
+    rgba(209, 204, 199, 0.22)
+  );
+`;
+
+export const CollectionSideText = styled.div`
+  position: absolute;
+
+  right: 10px;
+  top: 50%;
+
+  z-index: 6;
+
+  transform: translateY(-50%);
+
+  writing-mode: vertical-rl;
+
+  color: rgba(255, 255, 255, 0.38);
+
+  font-size: 7px;
+  letter-spacing: 0.22em;
+`;
 
 /* =========================================================
    03 / PADDY
@@ -1066,21 +1325,23 @@ color: var(--night);
 export const PaddySmall = styled.img`
   position: absolute;
 
-  right: 4%;
-  bottom: 18vh;
+  right: 5%;
+  bottom: 24vh;
 
   z-index: 5;
 
-  width: 42%;
-  max-width: 170px;
+  width: 34%;
+  max-width: 137px;
+  height: auto;
 
-  filter:
-    drop-shadow(
-      0 16px 18px rgba(74, 49, 31, 0.16)
-    );
+  object-fit: contain;
+
+  filter: drop-shadow(
+    0 12px 16px rgba(74, 49, 31, 0.16)
+  );
 
   transform:
-    translateY(30px)
+    translateY(20px)
     rotate(-3deg)
     scale(0.92);
 `;
@@ -1297,18 +1558,20 @@ export const Slot = styled.div`
 export const RegisterPaddy = styled.img`
   position: absolute;
 
-  right: -3%;
-  bottom: 15vh;
+  right: 5%;
+  bottom: 16vh;
 
   z-index: 6;
 
-  width: 37%;
-  max-width: 150px;
+  width: 27%;
+  max-width: 108px;
+  height: auto;
 
-  filter:
-    drop-shadow(
-      0 16px 18px rgba(0, 0, 0, 0.3)
-    );
+  object-fit: contain;
+
+  filter: drop-shadow(
+    0 12px 16px rgba(0, 0, 0, 0.25)
+  );
 `;
 
 /* =========================
