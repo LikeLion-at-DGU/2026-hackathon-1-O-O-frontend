@@ -7,29 +7,18 @@ import {
 import ChatMessage from "../ChatMessage/ChatMessage";
 import bearImage from "../../assets/bear.png";
 import {
+  useCallback,
   useEffect,
   useRef,
-  useState,
 } from "react";
 import useChatStore from "../../stores/useChatStore";
-
-import {
-  answerPendingAction,
-  getChatMessages,
-} from "../../api/chat";
+import { useChatSync } from "../../hooks/useChatSync";
 
 function Layout() {
   const navigate = useNavigate();
 
-  const {
-    messages,
-    pendingAction,
-    syncChatState,
-    applyActionResponse,
-  } = useChatStore();
-
-  const [isActionLoading, setIsActionLoading] =
-    useState(false);
+  const messages = useChatStore((state) => state.messages);
+  const pendingAction = useChatStore((state) => state.pendingAction);
 
   const chatRef = useRef(null);
 
@@ -41,104 +30,23 @@ function Layout() {
     }
   }, [messages]);
 
-  // 서버 채팅 및 pending_action 조회
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadChatMessages = async () => {
-      const visitId =
-        localStorage.getItem("visitId") ??
-        sessionStorage.getItem(
-          "visit_id",
-        );
-
-      if (!visitId) {
-        return;
-      }
-
-      try {
-        const response =
-          await getChatMessages();
-
-        if (isMounted) {
-          syncChatState(response.data);
-        }
-      } catch (error) {
-        console.error(
-          "채팅 트리거 조회 실패:",
-          error.response?.data ?? error,
-        );
-      }
-    };
-
-    // 처음 화면 진입 시 즉시 조회
-    loadChatMessages();
-
-    // 이후 3초마다 트리거 확인
-    const pollingId = window.setInterval(
-      loadChatMessages,
-      3000,
-    );
-
-    return () => {
-      isMounted = false;
-      window.clearInterval(pollingId);
-    };
-  }, [syncChatState]);
-
-  // 트리거 선택지 클릭
-  const handleAction = async (
-    action,
-    option,
-  ) => {
-    if (isActionLoading) {
-      return;
-    }
-
-    try {
-      setIsActionLoading(true);
-
-      const response =
-        await answerPendingAction({
-          pendingAction: action,
-          option,
-        });
-
-      applyActionResponse(
-        response.data.messages ?? [],
-      );
-      
-      
+  // "아니에요"는 자유 대화로 이어간다
+  const handleAnswered = useCallback(
+    (option) => {
       if (
-      option.type ===
-        "hypothesis_no" &&
-      option.label === "아니에요"
-    ) {
-      navigate("/chat");
-    }
-
-    } catch (error) {
-      console.error(
-        "트리거 응답 실패:",
-        error.response?.data ?? error,
-      );
-
-      // 중복 클릭 또는 만료된 가설이면 서버 상태로 다시 맞c출 것.
-      try {
-        const response =
-          await getChatMessages();
-
-        syncChatState(response.data);
-      } catch (reloadError) {
-        console.error(
-          "채팅 상태 복구 실패:",
-          reloadError,
-        );
+        option.type === "hypothesis_no" &&
+        option.label === "아니에요"
+      ) {
+        navigate("/chat");
       }
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
+    },
+    [navigate],
+  );
+
+  // 폴링·트리거 응답은 ChatPage와 공유하는 훅이 담당한다
+  const { handleAction, isActionLoading } = useChatSync({
+    onAnswered: handleAnswered,
+  });
 
   return (
     <MobileLayout>

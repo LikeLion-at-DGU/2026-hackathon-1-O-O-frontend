@@ -1,4 +1,11 @@
 import { api } from "./api";
+import {
+  getAnonymousUuid,
+  getVisitId,
+  getVisitToken,
+  isVisitFinished,
+} from "../utils/storage";
+import { logger } from "../utils/logger";
 
 const QUEUE_KEY = "pending_events";
 const PRODUCT_INTERACTION_KEY =
@@ -52,8 +59,18 @@ const saveQueue = (events) => {
   sessionStorage.setItem(QUEUE_KEY, JSON.stringify(events));
 };
 
-const isVisitFinished = () =>
-  Boolean(sessionStorage.getItem("report_slug"));
+// 전송을 시작한 뒤 새 이벤트가 큐에 추가될 수 있다. 성공 시 큐 전체를 비우면
+// 그 사이 들어온 체류 이벤트까지 유실되므로, 실제 전송한 id만 제거한다.
+const removeSentEvents = (sentEvents) => {
+  const sentIds = new Set(
+    sentEvents.map((event) => event.event_id)
+  );
+  saveQueue(
+    getQueue().filter(
+      (event) => !sentIds.has(event.event_id)
+    )
+  );
+};
 
 // 이벤트 데이터 포맷 검증 및 정제
 const sanitizeEvent = (event) => {
@@ -126,21 +143,9 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
     return;
   }
 
-  // ⭐️ 1. localStorage에서 인증 값 우선 추출 (스네이크/카멜 케이스 모두 대응)
-  const visitToken =
-    localStorage.getItem("visitToken") ||
-    localStorage.getItem("visit_token") ||
-    "";
-
-  const anonymousUuid =
-    localStorage.getItem("anonymous_uuid") ||
-    localStorage.getItem("anonymousUuid") ||
-    "";
-
-  const visitId =
-    localStorage.getItem("visitId") ||
-    localStorage.getItem("visit_id") ||
-    "";
+  const visitToken = getVisitToken();
+  const anonymousUuid = getAnonymousUuid();
+  const visitId = getVisitId();
 
   // ⭐️ 2. 필수 키가 아직 없으면(초기 로딩 중) 버리지 않고 1초 후 재시도
   if (!visitToken || !visitId || !anonymousUuid) {
@@ -173,7 +178,8 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
   };
 
   try {
-    console.log("[Events] 전송 payload:", payload);
+    // 전체 payload를 찍지 않는다 — 행동 로그 자체가 개인 데이터다
+    logger.debug("[Events] 전송", { count: events.length });
 
     if (keepalive) {
       const response = await fetch(
@@ -192,16 +198,15 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
         throw new Error(`이벤트 전송 실패: ${response.status}`);
       }
 
-      // 전송 성공 시 큐 초기화
-      saveQueue([]);
+      removeSentEvents(events);
       return;
     }
 
     const response = await api.post("/events", payload, { headers });
-    console.log("✅ [Events] 전송 성공:", response.data);
+    logger.debug("✅ [Events] 전송 성공:", response.data);
 
     // ⭐️ 전송 성공 확인 후 안전하게 큐 비우기
-    saveQueue([]);
+    removeSentEvents(events);
     return response.data;
   } catch (error) {
     const status = error.response?.status;

@@ -1,18 +1,37 @@
     // src/components/Header/Header.jsx
     import * as S from "./Header.styled";
-    import { useState } from "react";
+    import { useEffect, useRef, useState } from "react";
     import SoundButton from "../SoundButton";
     import { api } from "../../api/api";
     import {
         drainEventBuffer,
         hasProductInteraction,
     } from "../../api/events";
+    import { getVisitId, getVisitToken } from "../../utils/storage";
     import { Link, useLocation, useNavigate } from "react-router-dom";
+import { showToast } from "../../utils/toast";
 
     function Header({ hideShoot = false, showActions = true }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+    const continueButtonRef = useRef(null);
+
+    // 모달 접근성: 열리면 안전한 선택지에 포커스를 주고, Escape로 닫는다
+    useEffect(() => {
+        if (!isExitModalOpen) return undefined;
+
+        continueButtonRef.current?.focus();
+
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                setIsExitModalOpen(false);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isExitModalOpen]);
 
     const isLoadingPage =
         location.pathname.includes("loading") ||
@@ -22,19 +41,11 @@
         location.pathname.startsWith("/analytics") && !isLoadingPage;
 
     const finishVisit = async () => {
-        // 다른 호출부와 같은 우선순위로 양쪽 저장소를 다 본다. 여기만
-        // sessionStorage 전용이라 세션 복구 후 관람 종료가 막혔다.
-        const visitId =
-        localStorage.getItem("visitId") ||
-        localStorage.getItem("visit_id") ||
-        sessionStorage.getItem("visit_id");
-        const visitToken =
-        localStorage.getItem("visitToken") ||
-        localStorage.getItem("visit_token") ||
-        sessionStorage.getItem("visit_token");
+        const visitId = getVisitId();
+        const visitToken = getVisitToken();
 
         if (!visitId || !visitToken) {
-        alert("방문 정보가 없습니다.");
+        showToast("방문 정보가 없습니다.");
         return;
         }
 
@@ -46,7 +57,7 @@
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         // ⭐️ 마지막 머문 시간까지 포함된 잔여 이벤트 전량 회수
-        const remainingEvents = drainEventBuffer ? drainEventBuffer() : [];
+        const remainingEvents = drainEventBuffer();
         console.log("📦 [관람 종료] 최종 동봉 이벤트 (현재 보고있던 시간 포함):", remainingEvents);
 
         const response = await api.post(
@@ -72,7 +83,7 @@
         console.error("🚨 관람 종료 요청 실패:", error.response?.data || error);
         // 서버 에러 포맷은 {"error":{code,message}}다. data.message를 읽어
         // 모든 실패가 "서버 응답 오류"로만 보였다.
-        alert(`관람 종료 실패: ${error.response?.data?.error?.message || "서버 응답 오류"}`);
+        showToast(`관람 종료 실패: ${error.response?.data?.error?.message || "서버 응답 오류"}`);
         }
     };
 
@@ -86,8 +97,10 @@
     };
 
     const handleExitAnyway = () => {
-        setIsExitModalOpen(false);
-        finishVisit();
+        sessionStorage.removeItem("local_zone_sec_map");
+        sessionStorage.removeItem("selected_candidate");
+        sessionStorage.removeItem("selected_products");
+        navigate("/", { replace: true });
     };
 
     const handlePhotoShoot = () => {
@@ -105,7 +118,7 @@
         }
 
         if (!selectedCandidate?.product_id) {
-        alert("화보에 담을 아이템을 먼저 선택해 주세요.");
+        showToast("화보에 담을 아이템을 먼저 선택해 주세요.");
         return;
         }
 
@@ -156,6 +169,7 @@
                 <S.ExitModalActions>
                 <S.ContinueButton
                     type="button"
+                    ref={continueButtonRef}
                     onClick={() => setIsExitModalOpen(false)}
                 >
                     조금 더 둘러볼게요.

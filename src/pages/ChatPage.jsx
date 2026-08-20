@@ -1,18 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import ChatMessage from "../components/ChatMessage/ChatMessage";
 import bearImage from "../assets/bear.png";
 import useChatStore from "../stores/useChatStore";
 
-
-import {
-  answerPendingAction,
-  getChatMessages,
-  streamChat,
-} from "../api/chat";
+import { streamChat } from "../api/chat";
+import { useChatSync } from "../hooks/useChatSync";
+import * as S from "./ChatPage.styled";
 
 function ChatPage() {
   const navigate = useNavigate();
@@ -21,20 +17,25 @@ function ChatPage() {
     messages,
     addCustomMessage,
     pendingAction,
-    syncChatState,
-    applyActionResponse,
     startAssistantMessage,
     appendAssistantDelta,
   } = useChatStore();
 
   const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] =  useState(false);
-  const [ isActionLoading, setIsActionLoading,] = useState(false);
-
+  const [isSending, setIsSending] = useState(false);
 
   const messagesEndRef = useRef(null);
 
-  // 메시지가 추가되면 맨 아래로 이동
+  // 1. SSE 스트림 제어 (컴포넌트 언마운트 시 스트림 중단)
+  const streamAbortRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      streamAbortRef.current?.abort();
+    };
+  }, []);
+
+  // 2. 메시지 추가 시 하단 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -42,143 +43,48 @@ function ChatPage() {
     });
   }, [messages]);
 
-  // 채팅 메시지와 pending_action 조회
-  useEffect(() => {
-    // SSE 답변 생성 중에는 서버 조회 멈춤 / (안그러면 임시 답변 사라질수도 잇대서...)
-    if (isSending) {
-      return undefined;
-    }
+  // 3. 채팅 동기화 및 Action 핸들링 (답변 생성 중 폴링 일시 정지)
+  const { handleAction, isActionLoading, refresh } = useChatSync({
+    paused: isSending,
+  });
 
-    let isMounted = true;
-
-    const loadChatMessages = async () => {
-      const visitId =
-        localStorage.getItem("visitId") ??
-        sessionStorage.getItem(
-          "visit_id",
-        );
-
-      if (!visitId) {
-        return;
-      }
-
-      try {
-        const response =
-          await getChatMessages();
-
-        if (isMounted) {
-          syncChatState(response.data);
-        }
-      } catch (error) {
-        console.error(
-          "채팅 내역 조회 실패:",
-          error.response?.data ?? error,
-        );
-      }
-    };
-
-    // 처음 진입했을 때 즉시 조회
-    loadChatMessages();
-
-    // 이후 3초마다 트리거 확인
-    const pollingId = window.setInterval(
-      loadChatMessages,
-      3000,
-    );
-
-    return () => {
-      isMounted = false;
-      window.clearInterval(pollingId);
-    };
-  }, [isSending, syncChatState]);
-
-  // 트리거 버튼 클릭
-  const handleAction = async (
-    action,
-    option,
-  ) => {
-    if (isActionLoading) {
-      return;
-    }
-
-    try {
-      setIsActionLoading(true);
-
-      const response =
-        await answerPendingAction({
-          pendingAction: action,
-          option,
-        });
-
-      applyActionResponse(
-        response.data.messages ?? [],
-      );
-    } catch (error) {
-      console.error(
-        "트리거 응답 실패:",
-        error.response?.data ?? error,
-      );
-
-      // 이미 답변한 트리거나 만료된 트리거면
-      // 서버의 최신 상태로 다시 맞춘다.
-      try {
-        const response =
-          await getChatMessages();
-
-        syncChatState(response.data);
-      } catch (reloadError) {
-        console.error(
-          "채팅 상태 복구 실패:",
-          reloadError,
-        );
-      }
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  // 직접 입력 채팅
+  // 4. 메시지 전송 및 SSE 스트리밍 핸들러
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const trimmedValue =
-      inputValue.trim();
-
+    const trimmedValue = inputValue.trim();
     if (!trimmedValue || isSending) {
       return;
     }
 
-    addCustomMessage(
-      "user",
-      trimmedValue,
-    );
-
+    addCustomMessage("user", trimmedValue);
     setInputValue("");
 
     try {
       setIsSending(true);
 
-      // 스트리밍 답변을 담을 빈 말풍선
+      // 스트리밍 응답용 빈 말풍선 생성
       startAssistantMessage();
 
+      streamAbortRef.current = new AbortController();
       await streamChat({
         message: trimmedValue,
         onDelta: appendAssistantDelta,
+        signal: streamAbortRef.current.signal,
       });
 
-      // 서버에 저장된 message_id와 role로 동기화
-      const response =
-        await getChatMessages();
-
-      syncChatState(response.data);
+      // 서버 메시지 상태 동기화
+      await refresh();
     } catch (error) {
-      console.error(
-        "AI 채팅 전송 실패:",
-        error,
-      );
+      if (error?.name === "AbortError") {
+        return;
+      }
+
+      console.error("AI 채팅 전송 실패:", error);
 
       appendAssistantDelta(
-        "죄송해요. 답변을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+        error?.message ||
+          "죄송해요. 답변을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
       );
     } finally {
       setIsSending(false);
@@ -187,57 +93,41 @@ function ChatPage() {
 
   return (
     <MobileLayout>
-      <ChatPageContainer>
-        <MessageArea>
+      <S.ChatPageContainer>
+        <S.MessageArea>
           {messages.map((message) => (
             <ChatMessage
               key={message.id}
               type={message.type}
               profileImage={
-                message.type ===
-                "assistant"
-                  ? bearImage
-                  : undefined
+                message.type === "assistant" ? bearImage : undefined
               }
               pendingAction={
-                pendingAction?.reply_to ===
-                message.id
-                  ? pendingAction
-                  : null
+                pendingAction?.reply_to === message.id ? pendingAction : null
               }
               onAction={handleAction}
-              isActionLoading={
-                isActionLoading
-              }
+              isActionLoading={isActionLoading}
             >
               {message.text}
             </ChatMessage>
           ))}
 
           <div ref={messagesEndRef} />
-        </MessageArea>
+        </S.MessageArea>
 
-        <BottomArea>
-
-          <ChatForm onSubmit={handleSubmit}>
-            <ChatInput
+        <S.BottomArea>
+          <S.ChatForm onSubmit={handleSubmit}>
+            <S.ChatInput
               type="text"
               value={inputValue}
-              onChange={(event) =>
-                setInputValue(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setInputValue(event.target.value)}
               placeholder="메시지를 입력해 주세요"
               aria-label="채팅 메시지"
             />
 
-            <SendButton
+            <S.SendButton
               type="submit"
-              disabled={
-                !inputValue.trim() ||
-                isSending
-              }
+              disabled={!inputValue.trim() || isSending}
               aria-label="메시지 전송"
             >
               <svg
@@ -254,15 +144,13 @@ function ChatPage() {
                   strokeLinejoin="round"
                 />
               </svg>
-            </SendButton>
-          </ChatForm>
-          <br/>
-          <BackChat
-            type="button"
-            onClick={() => navigate(-1)}
-          >
-            돌아가기
+            </S.SendButton>
+          </S.ChatForm>
 
+          <br />
+
+          <S.BackChat type="button" onClick={() => navigate(-1)}>
+            돌아가기
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="11"
@@ -275,164 +163,11 @@ function ChatPage() {
                 fill="#71717A"
               />
             </svg>
-          </BackChat>
-        </BottomArea>
-      </ChatPageContainer>
+          </S.BackChat>
+        </S.BottomArea>
+      </S.ChatPageContainer>
     </MobileLayout>
   );
 }
 
 export default ChatPage;
-
-const ChatPageContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-
-  width: 100%;
-  height: calc(100dvh - 72px);
-  min-height: 0;
-
-  background: #F4F2EE;
-`;
-
-const MessageArea = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 16px;
-
-  padding: 15px 20px 24px;
-  box-sizing: border-box;
-
-  -webkit-overflow-scrolling: touch;
-/* ⭐️ 1. 스크롤바 너비 및 배경 투명화 */
-  &::-webkit-scrollbar {
-    width: 6px;
-    background-color: transparent; /* 스크롤바 전체 배경 투명 */
-  }
-
-  /* ⭐️ 2. 스크롤 트랙(레일) 투명화 */
-  &::-webkit-scrollbar-track {
-    background-color: transparent;
-  }
-
-  /* ⭐️ 3. 움직이는 스크롤 바(Thumb) 디자인 */
-  &::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.15); /* 은은한 반투명 막대 */
-    border-radius: 10px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.3);
-  }
-
-  /* Firefox 전용 */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
-`;
-
-const BottomArea = styled.div`
-  flex-shrink: 0;
-
-  padding:
-    8px 20px
-    calc(
-      12px +
-        env(safe-area-inset-bottom)
-    );
-
-  background: #F4F2EE;
-  border-top: 1px solid #f1f1f3;
-`;
-
-const BackChat = styled.button`
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 0;
-
-  color: #71717a;
-  font-family: Pretendard, sans-serif;
-  font-size: 12px;
-  font-weight: 300;
-  line-height: 140%;
-
-  background: none;
-  border: none;
-  cursor: pointer;
-
-  &:hover{
-    color: var(--Deep-Slate, #222);
-  }
-`;
-
-const ChatForm = styled.form`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  width: 100%;
-  padding: 6px 6px 6px 16px;
-  box-sizing: border-box;
-
-  border: 1px solid #e4e4e7;
-  border-radius: 24px;
-  background: #F4F2EE;
-
-  &:focus-within {
-    border-color: #18181b;
-  }
-`;
-
-const ChatInput = styled.input`
-  flex: 1;
-  min-width: 0;
-  height: 36px;
-
-  padding: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-
-  color: #18181b;
-  font-family: Pretendard, sans-serif;
-  font-size: 14px;
-
-  &::placeholder {
-    color: #a1a1aa;
-  }
-`;
-
-const SendButton = styled.button`
-  flex-shrink: 0;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  width: 36px;
-  height: 36px;
-  padding: 0;
-
-  border: none;
-  border-radius: 50%;
-
-  background: #18181b;
-  color: #ffffff;
-
-  cursor: pointer;
-
-  &:disabled {
-    background: #e4e4e7;
-    color: #a1a1aa;
-    cursor: default;
-  }
-`;

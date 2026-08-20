@@ -17,6 +17,10 @@ export const MapRoot = styled.div`
   .swiper-pagination-bullet {
     pointer-events: auto;
   }
+
+  @media (max-width: 600px) {
+    min-height: 0;
+  }
 `;
 
 // ⭐️ 363px x 300px 기본 카드 프레임 (모든 오버레이와 맵의 공통 기준점)
@@ -27,6 +31,11 @@ export const MapContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 100%;
+  }
 `;
 
 // ⭐️ 1. '지도를 눌러 보세요!' 오버레이
@@ -56,6 +65,11 @@ export const GuideOverlay = styled.div`
   &:hover {
     color: #222222;
   }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 100%;
+  }
 `;
 
 // ⭐️ 2. 진열대 안내 (+ 버튼 클릭 시 팝업 오버레이)
@@ -76,6 +90,12 @@ export const ShelfInfoOverlay = styled.div`
   box-sizing: border-box;
   color: #ffffff;
   z-index: 20;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 100%;
+    padding-top: 16%;
+  }
 `;
 
 export const ShelfInfoTitle = styled.div`
@@ -86,8 +106,12 @@ export const ShelfInfoTitle = styled.div`
 
 export const ShelfInfoGrid = styled.div`
   display: grid;
-  grid-templateColumns: 1fr 1fr;
-  width: 210px;
+  /* grid-templateColumns(camelCase)는 CSS로 출력되지 않아 목록이 한 열로
+     흘렀다. 열 우선 채움으로 왼쪽 1~4, 오른쪽 5~7이 세로로 쌓인다. */
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
+  width: min(210px, 70%);
   column-gap: 30px;
   row-gap: 7px;
 `;
@@ -115,6 +139,11 @@ export const PlusButtonLayer = styled.div`
 
   & g {
     pointer-events: auto;
+  }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 100%;
   }
 `;
 

@@ -18,6 +18,11 @@ export const Container = styled.div`
 
   background-color: ${COLORS.zoneDefault};
   border-radius: 20px;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 100%;
+  }
 `;
 
 export const Tier = styled.div`
@@ -28,7 +33,8 @@ export const Tier = styled.div`
   align-items: center;
   justify-items: center;
 
-  height: 80px;
+  flex: 1;
+  min-height: 0;
 
   padding: 4px 8px;
 

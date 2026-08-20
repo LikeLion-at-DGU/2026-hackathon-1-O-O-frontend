@@ -47,6 +47,17 @@ export const PageContainer = styled.div`
   padding: 0;
   background-color: transparent; /* ⭐️ 이중 여백을 없애기 위해 투명화 */
 `;
+
+export const ShelfViewport = styled.div`
+  position: relative;
+  width: 363px;
+  height: 300px;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 100%;
+  }
+`;
 export const ShelfArea = styled.div`
 display: flex;
   justify-content: center;

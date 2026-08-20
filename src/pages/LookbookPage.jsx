@@ -1,9 +1,4 @@
-import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { useState } from "react";
 import {
     useNavigate,
     useParams,
@@ -13,26 +8,14 @@ import MobileLayout from "../components/MobileLayout/MobileLayout";
 import LookbookLoadingPage from "./LookbookLoadingPage";
 import * as S from "./LookbookPage.styled";
 
-import {
-    createLookbook,
-    getLookbook,
-    getLookbookJob,
-} from "../api/lookbooks";
+import { createLookbook } from "../api/lookbooks";
 import { getApiError } from "../api/errors";
-
-const COMPLETE_STATUSES = [
-    "ready",
-    "completed",
-    "succeeded",
-    "success",
-];
-
-const FAILED_STATUSES = [
-    "failed",
-    "error",
-];
-
-const DEFAULT_POLL_INTERVAL = 3000;
+import { useLookbookImageActions } from "../hooks/useLookbookImageActions";
+import {
+    DEFAULT_LOOKBOOK_POLL_INTERVAL,
+    useLookbookPolling,
+} from "../hooks/useLookbookPolling";
+import { showToast } from "../utils/toast";
 
 function LookbookPage() {
     const navigate = useNavigate();
@@ -43,603 +26,27 @@ function LookbookPage() {
         routeShareSlug ||
         sessionStorage.getItem("share_slug");
 
-    const timerRef = useRef(null);
-    const mountedRef = useRef(true);
-
-    const [lookbook, setLookbook] =
-        useState(null);
-
-    const [progress, setProgress] =
-        useState(0);
-
-    const [stage, setStage] =
-        useState("");
-
-    const [step, setStep] =
-        useState("");
-
-    const [errorMessage, setErrorMessage] =
-        useState("");
-
     const [isRetrying, setIsRetrying] =
         useState(false);
 
-    const [jobFailure, setJobFailure] =
-        useState(null);
-
-    const clearPollTimer = useCallback(() => {
-        if (timerRef.current) {
-            window.clearTimeout(
-                timerRef.current
-            );
-
-            timerRef.current = null;
-        }
-    }, []);
-
-    /*
-     * 완성 화보를 조회합니다.
-     */
-    const loadCompletedLookbook =
-        useCallback(
-            async (targetShareSlug) => {
-                const data = await getLookbook(
-                    targetShareSlug
-                );
-
-                console.info(
-                    "[Lookbook] 완성 화보 응답",
-                    {
-                        shareSlug:
-                            targetShareSlug,
-                        imageUrl:
-                            data?.image_url,
-                        width: data?.width,
-                        height: data?.height,
-                        attempt: data?.attempt,
-                    }
-                );
-
-                if (!mountedRef.current) {
-                    return null;
-                }
-
-                setLookbook(data);
-                setProgress(100);
-                setErrorMessage("");
-                setJobFailure(null);
-
-                sessionStorage.setItem(
-                    "share_slug",
-                    targetShareSlug
-                );
-
-                sessionStorage.setItem(
-                    "lookbook_attempt",
-                    String(data.attempt ?? 1)
-                );
-
-                return data;
-            },
-            []
-        );
-
-    /*
-     * job_id가 없을 때 share_slug로 완성 여부를
-     * 주기적으로 확인합니다.
-     *
-     * 공유 링크를 다른 사람이 열었을 때도 이 흐름을
-     * 사용할 수 있습니다.
-     */
-    const pollByShareSlug = useCallback(
-        async (targetShareSlug) => {
-            if (!mountedRef.current) return;
-
-            try {
-                await loadCompletedLookbook(
-                    targetShareSlug
-                );
-            } catch (error) {
-                if (!mountedRef.current) return;
-
-                const status =
-                    error.response?.status;
-
-                if (status === 409) {
-                    timerRef.current =
-                        window.setTimeout(
-                            () =>
-                                pollByShareSlug(
-                                    targetShareSlug
-                                ),
-                            DEFAULT_POLL_INTERVAL
-                        );
-
-                    return;
-                }
-
-                if (status === 404) {
-                    setErrorMessage(
-                        "존재하지 않는 화보이거나 삭제된 화보입니다."
-                    );
-
-                    return;
-                }
-
-                setErrorMessage(
-                    "화보를 불러오지 못했습니다."
-                );
-            }
-        },
-        [loadCompletedLookbook]
-    );
-
-    /*
-     * job_id로 Redis 진행 상태를 조회합니다.
-     */
-    const pollJob = useCallback(
-        async (
-            jobId,
-            targetShareSlug,
-            initialDelay = 0
-        ) => {
-            if (!mountedRef.current) return;
-
-            if (initialDelay > 0) {
-                timerRef.current =
-                    window.setTimeout(
-                        () =>
-                            pollJob(
-                                jobId,
-                                targetShareSlug,
-                                0
-                            ),
-                        initialDelay
-                    );
-
-                return;
-            }
-
-            try {
-                const job = await getLookbookJob(
-                    jobId
-                );
-
-                if (!mountedRef.current) return;
-
-                const status = String(
-                    job?.status || ""
-                ).toLowerCase();
-
-                console.info(
-                    "[Lookbook] 생성 작업 상태",
-                    {
-                        jobId,
-                        status,
-                        progress: job?.progress,
-                        stage: job?.stage,
-                        step: job?.step,
-                        shareSlug:
-                            job?.share_slug ||
-                            targetShareSlug,
-                        errorCode:
-                            job?.error_code,
-                        retryable:
-                            job?.retryable,
-                    }
-                );
-
-                const rawProgress =
-                    Number(job?.progress) || 0;
-
-                setProgress(
-                    rawProgress <= 1
-                        ? Math.round(rawProgress * 100)
-                        : Math.round(rawProgress)
-                );
-
-                setStage(job?.stage || "");
-                setStep(job?.step || "");
-
-                if (
-                    COMPLETE_STATUSES.includes(status)
-                ) {
-                    clearPollTimer();
-
-                    await loadCompletedLookbook(
-                        job.share_slug ||
-                        targetShareSlug
-                    );
-
-                    return;
-                }
-
-                if (
-                    FAILED_STATUSES.includes(status)
-                ) {
-                    clearPollTimer();
-
-                    const errorCode =
-                        job?.error_code || "";
-
-                    const retryable =
-                        Boolean(job?.retryable);
-
-                    console.error(
-                        "[Lookbook] 화보 이미지 생성 실패",
-                        {
-                            jobId,
-                            shareSlug:
-                                job?.share_slug ||
-                                targetShareSlug,
-                            status,
-                            errorCode:
-                                errorCode || null,
-                            retryable,
-                            progress: job?.progress,
-                            stage: job?.stage,
-                            step: job?.step,
-                            pollAfterMs:
-                                job?.poll_after_ms,
-                            attempt: job?.attempt,
-                            response: job,
-                        }
-                    );
-
-                    setJobFailure({
-                        errorCode,
-                        retryable,
-                    });
-
-                    setErrorMessage(
-                        errorCode ===
-                            "GEN_CONTENT_BLOCKED"
-                            ? "사진을 처리할 수 없습니다. 다른 사진으로 다시 촬영해 주세요."
-                            : retryable
-                              ? "화보 생성이 잠시 지연됐습니다. 다시 시도해 주세요."
-                              : "화보 생성에 실패했습니다."
-                    );
-
-                    return;
-                }
-
-                const nextPoll =
-                    Number(job?.poll_after_ms) ||
-                    DEFAULT_POLL_INTERVAL;
-
-                timerRef.current =
-                    window.setTimeout(
-                        () =>
-                            pollJob(
-                                jobId,
-                                job.share_slug ||
-                                targetShareSlug,
-                                0
-                            ),
-                        nextPoll
-                    );
-            } catch (error) {
-                if (!mountedRef.current) return;
-
-                console.error(
-                    "화보 상태 조회 실패:",
-                    error.response?.data || error
-                );
-
-                if (error.response?.status === 404) {
-                    try {
-                        await loadCompletedLookbook(
-                            targetShareSlug
-                        );
-                    } catch (lookbookError) {
-                        if (!mountedRef.current) return;
-
-                        if (
-                            lookbookError.response?.status ===
-                            409
-                        ) {
-                            pollByShareSlug(
-                                targetShareSlug
-                            );
-                            return;
-                        }
-
-                        setErrorMessage(
-                            "화보 진행 상태를 복구하지 못했습니다."
-                        );
-                    }
-
-                    return;
-                }
-
-                // 일시적인 네트워크 오류는 다시 조회합니다.
-                timerRef.current =
-                    window.setTimeout(
-                        () =>
-                            pollJob(
-                                jobId,
-                                targetShareSlug,
-                                0
-                            ),
-                        DEFAULT_POLL_INTERVAL
-                    );
-            }
-        },
-        [
-            clearPollTimer,
-            loadCompletedLookbook,
-            pollByShareSlug,
-        ]
-    );
-
-    /*
-     * 페이지 진입 시:
-     *
-     * 1. 우선 완성 화보 조회
-     * 2. 아직 준비 중이면 job 폴링
-     * 3. job_id가 없으면 share_slug로 폴링
-     */
-    const startLoading =
-        useCallback(async () => {
-            if (!shareSlug) {
-                setErrorMessage(
-                    "화보 주소가 올바르지 않습니다."
-                );
-
-                return;
-            }
-
-            clearPollTimer();
-            setErrorMessage("");
-            setJobFailure(null);
-
-            const storedShareSlug =
-                sessionStorage.getItem(
-                    "share_slug"
-                );
-
-            const jobId =
-                sessionStorage.getItem(
-                    "lookbook_job_id"
-                );
-
-            const pollAfterMs =
-                Number(
-                    sessionStorage.getItem(
-                        "lookbook_poll_after_ms"
-                    )
-                ) || DEFAULT_POLL_INTERVAL;
-
-            sessionStorage.setItem(
-                "share_slug",
-                shareSlug
-            );
-
-            /*
-             * 방금 생성 요청으로 이동한 경우에는 완성 화보 API를
-             * 먼저 호출하지 않고 작업 상태부터 확인합니다.
-             * 아직 생성 중인 화보에 대한 불필요한 409 응답을 피합니다.
-             */
-            if (
-                jobId &&
-                storedShareSlug === shareSlug
-            ) {
-                pollJob(
-                    jobId,
-                    shareSlug,
-                    pollAfterMs
-                );
-
-                return;
-            }
-
-            try {
-                await loadCompletedLookbook(
-                    shareSlug
-                );
-            } catch (error) {
-                if (!mountedRef.current) return;
-
-                const status =
-                    error.response?.status;
-
-                if (status === 404) {
-                    setErrorMessage(
-                        "존재하지 않는 화보입니다."
-                    );
-
-                    return;
-                }
-
-                if (status !== 409) {
-                    setErrorMessage(
-                        "화보를 불러오지 못했습니다."
-                    );
-
-                    return;
-                }
-
-                if (
-                    jobId &&
-                    storedShareSlug === shareSlug
-                ) {
-                    pollJob(
-                        jobId,
-                        shareSlug,
-                        pollAfterMs
-                    );
-                } else {
-                    pollByShareSlug(shareSlug);
-                }
-            }
-        }, [
-            clearPollTimer,
-            loadCompletedLookbook,
-            pollByShareSlug,
-            pollJob,
-            shareSlug,
-        ]);
-
-    useEffect(() => {
-        mountedRef.current = true;
-        startLoading();
-
-        return () => {
-            mountedRef.current = false;
-            clearPollTimer();
-        };
-    }, [clearPollTimer, startLoading]);
-
-    /*
-     * 이미지 Blob과 File 생성
-     */
-    const getImageFile = async () => {
-        if (!lookbook?.image_url) {
-            throw new Error(
-                "저장할 이미지가 없습니다."
-            );
-        }
-
-        const response = await fetch(
-            lookbook.image_url
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `이미지 요청 실패: ${response.status}`
-            );
-        }
-
-        const blob = await response.blob();
-
-        const extension =
-            blob.type === "image/png"
-                ? "png"
-                : "jpg";
-
-        return new File(
-            [blob],
-            `OandO-${shareSlug}.${extension}`,
-            {
-                type:
-                    blob.type || "image/jpeg",
-            }
-        );
-    };
-
-    /*
-     * OS 공유 시트로 이미지 파일 공유
-     */
-    const handleShare = async () => {
-        try {
-            const imageFile =
-                await getImageFile();
-
-            const shareData = {
-                files: [imageFile],
-                title: "O&O Lookbook",
-                text: "O&O에서 만든 나만의 화보",
-            };
-
-            if (
-                navigator.share &&
-                (!navigator.canShare ||
-                    navigator.canShare(shareData))
-            ) {
-                await navigator.share(shareData);
-                return;
-            }
-
-            alert(
-                "이 브라우저에서는 이미지 파일 공유를 지원하지 않습니다. 이미지 저장을 이용해 주세요."
-            );
-        } catch (error) {
-            /*
-             * 공유창을 사용자가 닫은 경우는 별도 오류 안내를
-             * 표시하지 않습니다.
-             */
-            if (error?.name === "AbortError") {
-                return;
-            }
-
-            console.error(
-                "이미지 공유 실패:",
-                error
-            );
-
-            alert(
-                "이미지를 공유하지 못했습니다."
-            );
-        }
-    };
-
-    /*
-     * 이미지 저장
-     *
-     * iOS Safari에서는 download가 무시될 수 있으므로
-     * 파일 공유를 먼저 시도합니다.
-     */
-    const handleDownload = async () => {
-        try {
-            const imageFile =
-                await getImageFile();
-
-            const isIOS =
-                /iPad|iPhone|iPod/.test(
-                    navigator.userAgent
-                ) ||
-                (navigator.platform ===
-                    "MacIntel" &&
-                    navigator.maxTouchPoints > 1);
-
-            const shareData = {
-                files: [imageFile],
-                title: "O&O Lookbook",
-            };
-
-            if (
-                isIOS &&
-                navigator.share &&
-                (!navigator.canShare ||
-                    navigator.canShare(shareData))
-            ) {
-                await navigator.share(shareData);
-                return;
-            }
-
-            const downloadUrl =
-                URL.createObjectURL(imageFile);
-
-            const link =
-                document.createElement("a");
-
-            link.href = downloadUrl;
-            link.download = imageFile.name;
-
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-
-            window.setTimeout(() => {
-                URL.revokeObjectURL(
-                    downloadUrl
-                );
-            }, 1000);
-        } catch (error) {
-            if (error?.name === "AbortError") {
-                return;
-            }
-
-            console.error(
-                "이미지 저장 실패:",
-                error
-            );
-
-            alert(
-                "이미지를 저장하지 못했습니다. 이미지를 길게 눌러 저장해 주세요."
-            );
-        }
-    };
+    const {
+        lookbook,
+        progress,
+        stage,
+        step,
+        errorMessage,
+        jobFailure,
+        startLoading,
+        clearLoadingError,
+    } = useLookbookPolling(shareSlug);
+
+    const {
+        handleShare,
+        handleDownload,
+    } = useLookbookImageActions({
+        imageUrl: lookbook?.image_url,
+        shareSlug,
+    });
 
     /*
      * 기존 사진과 상품으로 재생성
@@ -660,7 +67,7 @@ function LookbookPage() {
             );
 
         if (!reportSlug || !savedRequest) {
-            alert(
+            showToast(
                 "재생성에 필요한 원본 정보를 찾지 못했습니다."
             );
 
@@ -680,7 +87,7 @@ function LookbookPage() {
             !skipLimitCheck &&
             Number(remaining) <= 0
         ) {
-            alert(
+            showToast(
                 "화보 재생성 가능 횟수를 모두 사용했습니다."
             );
 
@@ -689,8 +96,7 @@ function LookbookPage() {
 
         try {
             setIsRetrying(true);
-            setErrorMessage("");
-            setJobFailure(null);
+            clearLoadingError();
 
             const payload =
                 JSON.parse(savedRequest);
@@ -737,7 +143,7 @@ function LookbookPage() {
                 "lookbook_poll_after_ms",
                 String(
                     result.poll_after_ms ??
-                    DEFAULT_POLL_INTERVAL
+                    DEFAULT_LOOKBOOK_POLL_INTERVAL
                 )
             );
 
@@ -760,17 +166,17 @@ function LookbookPage() {
                 getApiError(error);
 
             if (status === 429) {
-                alert(
+                showToast(
                     "화보 재생성 가능 횟수를 모두 사용했습니다."
                 );
             } else if (
                 status === 409
             ) {
-                alert(
+                showToast(
                     "이미 화보 생성 요청을 처리하고 있습니다."
                 );
             } else {
-                alert(
+                showToast(
                     message ||
                     "화보를 다시 만들지 못했습니다."
                 );

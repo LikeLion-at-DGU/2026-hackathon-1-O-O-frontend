@@ -18,6 +18,10 @@ export const Container = styled.div`
   justify-content: center;
 
   overflow: visible;
+
+  @media (max-width: 600px) {
+    height: 100%;
+  }
 `;
 
 export const ShelfRow = styled.div`

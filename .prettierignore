@@ -1,0 +1,6 @@
+dist
+node_modules
+output
+public
+package-lock.json
+*.zip

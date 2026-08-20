@@ -1,18 +1,14 @@
-    import { useEffect, useRef, useMemo } from "react";
-    import { useParams } from "react-router-dom";
+import { useEffect, useRef, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import Shelf from "../components/Shelf/Shelf";
+import useChatStore from "../stores/useChatStore";
+import { useDwellTimer } from "../hooks/useDwellTimer";
 
-    import Shelf from "../components/Shelf/Shelf";
-    import useChatStore from "../stores/useChatStore";
-    import { createChatMessage } from "../api/chat";
-    import { useDwellTimer } from "../hooks/useDwellTimer";
-
-    function ShelfPage() {
+function ShelfPage() {
     const { zoneId } = useParams();
-
     const selectShelf = useChatStore((state) => state.selectShelf);
-    const addServerMessages = useChatStore((state) => state.addServerMessages);
 
-    // 현재 진열대 scene 객체 가져오기
+    // 1. 현재 진열대(Scene) 객체 조회
     const currentScene = useMemo(() => {
         try {
         const scenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
@@ -22,12 +18,12 @@
         }
     }, [zoneId]);
 
-    // 서버 scene_id를 모르면 측정하지 않는다. zoneId("1")로 폴백하면 서버에
-    // 없는 id라 그 이벤트가 rejected로 빠지고, 엉뚱한 집계만 남는다.
+    // 2. 서버 scene_id 유효성 검증
+    // 서버 scene_id가 없을 경우 측정을 중단하여 유효하지 않은 zoneId 폴백으로 인한 rejected 이벤트 방지
     const sceneId = currentScene?.scene_id ?? null;
 
-    // 진열대 체류시간 측정. 상품 상세로 넘어가면 이 페이지가 언마운트되어
-    // 진열대 체류는 멈춘다(상품 체류는 서버가 진열대에 합산한다).
+    // 3. 진열대 체류 시간(scene_dwell) 측정
+    // 상세 페이지 이동 시 컴포넌트가 언마운트되며 체류 정산 완료
     useDwellTimer({
         eventType: "scene_dwell",
         targetId: sceneId,
@@ -39,32 +35,14 @@
 
     const recordedZoneRef = useRef(null);
 
-    // 진열대 클릭 챗봇 메시지 기록
+    // 4. 진열대 선택 상태 갱신 (중복 호출 방지)
     useEffect(() => {
         if (recordedZoneRef.current === zoneId) return;
         recordedZoneRef.current = zoneId;
-
-        const recordSceneClick = async () => {
         selectShelf(zoneId);
-
-        if (!currentScene?.scene_id) return;
-        if (sessionStorage.getItem("report_slug")) return;
-
-        try {
-            const response = await createChatMessage({
-            type: "scene_click",
-            scene_id: currentScene.scene_id,
-            });
-            addServerMessages(response.data.messages ?? []);
-        } catch (error) {
-            console.error("진열대 클릭 메시지 저장 실패:", error);
-        }
-        };
-
-        recordSceneClick();
-    }, [zoneId, currentScene, selectShelf, addServerMessages]);
+    }, [zoneId, selectShelf]);
 
     return <Shelf />;
-    }
+}
 
-    export default ShelfPage;
+export default ShelfPage;

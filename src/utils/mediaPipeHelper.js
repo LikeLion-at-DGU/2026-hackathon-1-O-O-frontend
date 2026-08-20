@@ -114,6 +114,13 @@ export const processPhotoWithMediaPipe = async (imageSrc) => {
 
         await faceDetection.send({ image: img });
 
+        // 촬영마다 새 인스턴스를 만들므로 쓰고 나면 반드시 닫는다 — 안 닫으면
+        // 다시 찍기를 반복할수록 WASM 리소스가 누적된다. 닫기 실패는 무시한다.
+        await Promise.allSettled([
+          selfieSegmentation.close(),
+          faceDetection.close(),
+        ]);
+
         // ----------------------------------------------------
         // 3. 마스크 캔버스를 Blob으로 변환하여 반환
         // ----------------------------------------------------

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as S from "./LandingPage.styled";
 
@@ -33,6 +33,26 @@ const mixColor = (from, to, t) => {
     const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
     return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 };
+
+// 렌더 밖(모듈 로드 시점)에서 한 번만 만든다. 렌더 중 Math.random은 순수성
+// 규칙 위반이고, 별 배치와 뮤즈 번호는 세션 동안 고정이면 충분하다.
+const STARS = Array.from({ length: 62 }, (_, id) => ({
+    id,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    opacity: 0.2 + Math.random() * 0.7,
+    scale: 0.55 + Math.random() * 1.8,
+}));
+
+const getOrCreateMuseNo = () => {
+    const saved = sessionStorage.getItem("mcmMuseNo");
+    if (saved) return saved;
+    const created = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
+    sessionStorage.setItem("mcmMuseNo", created);
+    return created;
+};
+
+const INITIAL_MUSE_NO = getOrCreateMuseNo();
 
 export default function LandingPage() {
     const navigate = useNavigate();
@@ -77,7 +97,6 @@ export default function LandingPage() {
     const slotRef = useRef(null);
 
     const [pageProgress, setPageProgress] = useState(0);
-    const [sceneLabel, setSceneLabel] = useState("01 / INVITATION");
     const [speechPhase, setSpeechPhase] = useState(0);
     const [registerDone, setRegisterDone] = useState(false);
     const [doorClosing, setDoorClosing] = useState(false);
@@ -109,25 +128,8 @@ export default function LandingPage() {
 
 
 
-    const stars = useMemo(
-        () =>
-            Array.from({ length: 62 }, (_, id) => ({
-                id,
-                left: Math.random() * 100,
-                top: Math.random() * 100,
-                opacity: 0.2 + Math.random() * 0.7,
-                scale: 0.55 + Math.random() * 1.8,
-            })),
-        []
-    );
-
-    const museNo = useMemo(() => {
-        const saved = sessionStorage.getItem("mcmMuseNo");
-        if (saved) return saved;
-        const created = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
-        sessionStorage.setItem("mcmMuseNo", created);
-        return created;
-    }, []);
+    const stars = STARS;
+    const museNo = INITIAL_MUSE_NO;
 
     const finalMuse = `N.${museNo}`;
 
@@ -239,7 +241,7 @@ export default function LandingPage() {
             const brightness = lerp(0.94, 1.03, p);
             const blur = lerp(1.2, 0, p);
 
-            imageRefs.forEach((ref) => {
+            [imageRef1, imageRef2, imageRef3].forEach((ref) => {
                 if (!ref.current) return;
                 ref.current.style.filter = `
                     sepia(${sepia})
@@ -256,7 +258,7 @@ export default function LandingPage() {
                 [2, 0, 20, -20, 1.07],
             ];
 
-            photoRefs.forEach((ref, i) => {
+            [photoRef1, photoRef2, photoRef3].forEach((ref, i) => {
                 if (!ref.current) return;
                 const [r1, r2, x, y, scale] = transforms[i];
                 ref.current.style.borderWidth = `${lerp(11, 2, p)}px`;
@@ -437,7 +439,6 @@ export default function LandingPage() {
             const total = document.documentElement.scrollHeight - window.innerHeight;
             setPageProgress(total > 0 ? window.scrollY / total : 0);
 
-            updateScenes();
             updateHero();
             updateEra();
             updateCollection();
@@ -694,14 +695,14 @@ export default function LandingPage() {
                     </S.EraIntro>
 
                     <S.EraPhotos ref={photosRef}>
-                        <S.EraPhoto ref={photoRefs[0]} $variant="one">
-                            <img ref={imageRefs[0]} src={munich1} alt="뮌헨 아카이브" />
+                        <S.EraPhoto ref={photoRef1} $variant="one">
+                            <img ref={imageRef1} src={munich1} alt="뮌헨 아카이브" />
                         </S.EraPhoto>
-                        <S.EraPhoto ref={photoRefs[1]} $variant="two">
-                            <img ref={imageRefs[1]} src={munich2} alt="뮌헨 아카이브" />
+                        <S.EraPhoto ref={photoRef2} $variant="two">
+                            <img ref={imageRef2} src={munich2} alt="뮌헨 아카이브" />
                         </S.EraPhoto>
-                        <S.EraPhoto ref={photoRefs[2]} $variant="three">
-                            <img ref={imageRefs[2]} src={munich3} alt="뮌헨 아카이브" />
+                        <S.EraPhoto ref={photoRef3} $variant="three">
+                            <img ref={imageRef3} src={munich3} alt="뮌헨 아카이브" />
                         </S.EraPhoto>
                     </S.EraPhotos>
 

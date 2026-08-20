@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+
+# 압축·산출물 잔해
+*.zip
+output/

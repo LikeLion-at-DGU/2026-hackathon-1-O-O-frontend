@@ -1,13 +1,9 @@
 import { api } from "./api";
+import { getVisitId, getVisitToken } from "../utils/storage";
 
-const visitId = () =>
-  localStorage.getItem("visitId") ??
-  sessionStorage.getItem("visit_id");
+const visitId = () => getVisitId();
 
-const visitToken = () =>
-  localStorage.getItem("visitToken") ??
-  sessionStorage.getItem("visit_token") ??
-  "";
+const visitToken = () => getVisitToken();
 
 export const getChatMessages = () =>
   api.get("/chat/messages", {
@@ -57,6 +53,7 @@ export const streamChat = async ({
   message,
   context,
   onDelta,
+  signal,
 }) => {
   const response = await fetch(
     `${import.meta.env.VITE_API_BASE_URL}/chat`,
@@ -74,6 +71,8 @@ export const streamChat = async ({
         message,
         ...(context && { context }),
       }),
+      // 화면을 떠나면 스트림을 끊는다. 없으면 언마운트 뒤에도 연결이 남는다.
+      ...(signal && { signal }),
     },
   );
 
@@ -109,6 +108,13 @@ export const streamChat = async ({
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  let readerReleased = false;
+
+  const releaseReader = () => {
+    if (readerReleased) return;
+    readerReleased = true;
+    reader.cancel().catch(() => {});
+  };
 
   let buffer = "";
   let complete;
@@ -164,30 +170,35 @@ export const streamChat = async ({
     }
   };
 
-  while (true) {
-    const { done, value } =
-      await reader.read();
+  try {
+    while (true) {
+      const { done, value } =
+        await reader.read();
 
-    if (done) {
-      break;
+      if (done) {
+        break;
+      }
+
+      buffer += decoder.decode(value, {
+        stream: true,
+      });
+
+      const lines = buffer.split(/\r?\n/);
+
+      buffer = lines.pop() ?? "";
+
+      lines.forEach(handleLine);
     }
 
-    buffer += decoder.decode(value, {
-      stream: true,
-    });
+    // 마지막 데이터 뒤에 줄바꿈이 없어도 처리
+    buffer += decoder.decode();
 
-    const lines = buffer.split(/\r?\n/);
-
-    buffer = lines.pop() ?? "";
-
-    lines.forEach(handleLine);
-  }
-
-  // 마지막 데이터 뒤에 줄바꿈이 없어도 처리
-  buffer += decoder.decode();
-
-  if (buffer.trim()) {
-    handleLine(buffer);
+    if (buffer.trim()) {
+      handleLine(buffer);
+    }
+  } finally {
+    // 정상 종료·에러·abort 어느 경로든 리더를 정리한다
+    releaseReader();
   }
 
   if (!complete) {

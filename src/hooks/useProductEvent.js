@@ -21,28 +21,4 @@ export default function useProductEvent(productId) {
     });
   }, [productId]);
 
-  // 2. 챗봇/상품 질문 클릭 이벤트 전송
-  const sendQuestionClick = async (question) => {
-    if (!productId || !question) return;
-
-    try {
-      await sendEvent({
-        event_type: "question_submit",
-        product_id: String(productId),
-        client_timestamp: new Date().toISOString(),
-        metadata: {
-          question: String(question),
-        },
-      });
-    } catch (error) {
-      console.error(
-        "질문 이벤트 저장 실패:",
-        error.response?.data ?? error
-      );
-    }
-  };
-
-  return {
-    sendQuestionClick,
-  };
 }
