@@ -14,6 +14,7 @@ import Shelf04 from "./Shelf04/Shelf04";
 import BackButton from "./icon/BackButton";
 import { sendEvent } from "../../api/events";
 import { createChatMessage } from "../../api/chat";
+import { getVisitId, isVisitFinished } from "../../utils/storage";
 import Shelf07 from "./Shelf07/Shelf07";
 import Shelf05 from "./Shelf05/Shelf05";
 
@@ -53,6 +54,28 @@ export default function Shelf() {
     swiperRef.current?.slideTo(urlZone - 1, 0, false);
   }, [urlZone]);
 
+  // 인접 진열대 이미지를 미리 디코드한다. 캐시가 빈 상태에서 6→7처럼 넘어가면
+  // 다음 존 이미지가 전환 도중 뒤늦게 떠서 튀어 보인다. 표시 가능성이 높은
+  // 양옆 존만 대상으로 하고, 실패해도 화면 동작에는 영향이 없다.
+  useEffect(() => {
+    [urlZone - 1, urlZone + 1]
+      .filter((zone) => zone >= 1 && zone <= 7)
+      .forEach((zone) => {
+        const scene = serverScenes.find((item) => Number(item.no) === zone);
+        const sources = scene
+          ? (scene.products ?? []).map(
+              (product) => `/images/${product.product_id ?? product.id}-Photoroom.png`
+            )
+          : (shelfData[zone] || []).map((product) => product.imageUrl);
+
+        sources.forEach((src) => {
+          const image = new Image();
+          image.src = src;
+          image.decode?.().catch(() => {});
+        });
+      });
+  }, [urlZone, serverScenes]);
+
   const handleSettled = async (swiper) => {
     const zone = (swiper.realIndex ?? swiper.activeIndex) + 1;
     if (zone === swiperZoneRef.current) return;
@@ -67,7 +90,7 @@ export default function Shelf() {
   const handleProductClick = async (product) => {
     if (!product) return;
 
-    const visitId = sessionStorage.getItem("visit_id");
+    const visitId = getVisitId();
 
     if (visitId) {
       await sendEvent({
@@ -79,7 +102,7 @@ export default function Shelf() {
 
     // 관람 종료 후에는 채팅이 닫혀(403) 기록하지 않는다 — ShelfPage의
     // scene_click 가드와 같은 규칙이다.
-    if (product.scene_id && !sessionStorage.getItem("report_slug")) {
+    if (product.scene_id && !isVisitFinished()) {
       try {
         const response = await createChatMessage({
           type: "product_click",
@@ -199,6 +222,8 @@ export default function Shelf() {
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
+                  // 슬라이드 내용이 전환 중 옆 슬라이드 영역으로 새지 않게 한다
+                  overflow: "hidden",
                 }}
               >
                 {zone === 4 ? (

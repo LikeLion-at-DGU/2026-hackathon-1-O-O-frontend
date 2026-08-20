@@ -6,6 +6,7 @@ import * as S from "./AnalyticsPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import checkActiveImg from "../assets/check.svg";
 import checkInactiveImg from "../assets/check.png";
+import { showToast } from "../utils/toast";
 
 const defaultBagImg =
   "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23eee%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20alignment-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23aaa%22%20font-size%3D%2214%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E";
@@ -13,7 +14,8 @@ const defaultBagImg =
 const CANDIDATE_RETRY_DELAY = 2000;
 const CANDIDATE_MAX_RETRIES = 5;
 
-export const getProductImage = (product) => {
+// 이 파일 안에서만 쓴다. export하면 컴포넌트 파일 규칙(react-refresh)에 걸린다.
+const getProductImage = (product) => {
   return (
     product?.cutout_url ??
     product?.thumbnail ??
@@ -28,23 +30,23 @@ export default function AnalyticsPage() {
   const navigate = useNavigate();
   const { slug } = useParams();
 
+  // visit_id는 slug가 아니다 — 폴백으로 넣으면 404만 만든다
   const reportSlug =
-    slug ||
-    sessionStorage.getItem("report_slug") ||
-    sessionStorage.getItem("visit_id");
+    slug || sessionStorage.getItem("report_slug");
 
   const [report, setReport] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [candidateProducts, setCandidateProducts] = useState([]);
   const [candidateError, setCandidateError] = useState("");
-  const [isPending, setIsPending] = useState(true);
+  // slug가 없으면 처음부터 pending이 아니다 — effect 안에서 동기 setState로
+  // 내리던 것을 초기값 계산으로 옮긴다 (연쇄 렌더 방지)
+  const [isPending, setIsPending] = useState(() => Boolean(reportSlug));
   const pollTimerRef = useRef(null);
 
   useEffect(() => {
     if (!reportSlug) {
       console.warn("⚠️ [AnalyticsPage] reportSlug 없음");
-      setIsPending(false);
       return;
     }
 
@@ -338,7 +340,7 @@ export default function AnalyticsPage() {
 
   const handleGoToCamera = () => {
     if (!selectedCandidate?.product_id) {
-      alert("화보에 담을 아이템을 1개 선택해 주세요.");
+      showToast("화보에 담을 아이템을 1개 선택해 주세요.");
       return;
     }
 

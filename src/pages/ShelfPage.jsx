@@ -3,14 +3,13 @@
 
     import Shelf from "../components/Shelf/Shelf";
     import useChatStore from "../stores/useChatStore";
-    import { createChatMessage } from "../api/chat";
     import { useDwellTimer } from "../hooks/useDwellTimer";
 
     function ShelfPage() {
     const { zoneId } = useParams();
 
     const selectShelf = useChatStore((state) => state.selectShelf);
-    const addServerMessages = useChatStore((state) => state.addServerMessages);
+
 
     // 현재 진열대 scene 객체 가져오기
     const currentScene = useMemo(() => {
@@ -39,30 +38,15 @@
 
     const recordedZoneRef = useRef(null);
 
-    // 진열대 클릭 챗봇 메시지 기록
+    // 진열대 선택 상태만 갱신한다. 예전에는 scene_click 채팅 메시지도 만들었는데,
+    // "N번 진열대 클릭" 말풍선이 타임라인을 도배해 생성 자체를 없앴다.
+    // 분석용 수치는 scene_dwell·hotspot_click 이벤트가 계속 담당하고,
+    // 챗봇의 진열대 문맥은 상품 클릭에서 서버가 유추한다.
     useEffect(() => {
         if (recordedZoneRef.current === zoneId) return;
         recordedZoneRef.current = zoneId;
-
-        const recordSceneClick = async () => {
         selectShelf(zoneId);
-
-        if (!currentScene?.scene_id) return;
-        if (sessionStorage.getItem("report_slug")) return;
-
-        try {
-            const response = await createChatMessage({
-            type: "scene_click",
-            scene_id: currentScene.scene_id,
-            });
-            addServerMessages(response.data.messages ?? []);
-        } catch (error) {
-            console.error("진열대 클릭 메시지 저장 실패:", error);
-        }
-        };
-
-        recordSceneClick();
-    }, [zoneId, currentScene, selectShelf, addServerMessages]);
+    }, [zoneId, selectShelf]);
 
     return <Shelf />;
     }

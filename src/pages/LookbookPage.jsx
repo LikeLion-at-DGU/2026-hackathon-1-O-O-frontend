@@ -19,6 +19,7 @@ import {
     getLookbookJob,
 } from "../api/lookbooks";
 import { getApiError } from "../api/errors";
+import { showToast } from "../utils/toast";
 
 const COMPLETE_STATUSES = [
     "ready",
@@ -100,6 +101,20 @@ function LookbookPage() {
                     }
                 );
 
+                // 완성 화면으로 전환하기 전에 이미지 디코드까지 끝낸다 —
+                // 100% 직후 빈 화면이 잠깐 보이던 전환 공백을 없앤다
+                if (data?.image_url) {
+                    try {
+                        const image = new Image();
+                        image.src = data.image_url;
+                        await (image.decode
+                            ? image.decode()
+                            : Promise.resolve());
+                    } catch {
+                        // 디코드 실패해도 표시는 진행한다
+                    }
+                }
+
                 if (!mountedRef.current) {
                     return null;
                 }
@@ -132,44 +147,47 @@ function LookbookPage() {
      * 사용할 수 있습니다.
      */
     const pollByShareSlug = useCallback(
-        async (targetShareSlug) => {
-            if (!mountedRef.current) return;
-
-            try {
-                await loadCompletedLookbook(
-                    targetShareSlug
-                );
-            } catch (error) {
+        (targetShareSlug) => {
+            // useCallback 값은 초기화 중 자기 자신을 참조할 수 없어(TDZ)
+            // 내부 함수로 재귀한다.
+            const run = async () => {
                 if (!mountedRef.current) return;
 
-                const status =
-                    error.response?.status;
+                try {
+                    await loadCompletedLookbook(
+                        targetShareSlug
+                    );
+                } catch (error) {
+                    if (!mountedRef.current) return;
 
-                if (status === 409) {
-                    timerRef.current =
-                        window.setTimeout(
-                            () =>
-                                pollByShareSlug(
-                                    targetShareSlug
-                                ),
-                            DEFAULT_POLL_INTERVAL
+                    const status =
+                        error.response?.status;
+
+                    if (status === 409) {
+                        timerRef.current =
+                            window.setTimeout(
+                                run,
+                                DEFAULT_POLL_INTERVAL
+                            );
+
+                        return;
+                    }
+
+                    if (status === 404) {
+                        setErrorMessage(
+                            "존재하지 않는 화보이거나 삭제된 화보입니다."
                         );
 
-                    return;
-                }
+                        return;
+                    }
 
-                if (status === 404) {
                     setErrorMessage(
-                        "존재하지 않는 화보이거나 삭제된 화보입니다."
+                        "화보를 불러오지 못했습니다."
                     );
-
-                    return;
                 }
+            };
 
-                setErrorMessage(
-                    "화보를 불러오지 못했습니다."
-                );
-            }
+            return run();
         },
         [loadCompletedLookbook]
     );
@@ -178,23 +196,16 @@ function LookbookPage() {
      * job_id로 Redis 진행 상태를 조회합니다.
      */
     const pollJob = useCallback(
-        async (
-            jobId,
-            targetShareSlug,
-            initialDelay = 0
-        ) => {
+        (jobId, initialShareSlug, initialDelay = 0) => {
+            // pollByShareSlug와 같은 이유로 내부 함수로 재귀한다.
+            const run = async (targetShareSlug, delay) => {
             if (!mountedRef.current) return;
 
-            if (initialDelay > 0) {
+            if (delay > 0) {
                 timerRef.current =
                     window.setTimeout(
-                        () =>
-                            pollJob(
-                                jobId,
-                                targetShareSlug,
-                                0
-                            ),
-                        initialDelay
+                        () => run(targetShareSlug, 0),
+                        delay
                     );
 
                 return;
@@ -310,8 +321,7 @@ function LookbookPage() {
                 timerRef.current =
                     window.setTimeout(
                         () =>
-                            pollJob(
-                                jobId,
+                            run(
                                 job.share_slug ||
                                 targetShareSlug,
                                 0
@@ -355,15 +365,13 @@ function LookbookPage() {
                 // 일시적인 네트워크 오류는 다시 조회합니다.
                 timerRef.current =
                     window.setTimeout(
-                        () =>
-                            pollJob(
-                                jobId,
-                                targetShareSlug,
-                                0
-                            ),
+                        () => run(targetShareSlug, 0),
                         DEFAULT_POLL_INTERVAL
                     );
             }
+            };
+
+            return run(initialShareSlug, initialDelay);
         },
         [
             clearPollTimer,
@@ -482,10 +490,13 @@ function LookbookPage() {
 
     useEffect(() => {
         mountedRef.current = true;
-        startLoading();
+        // startLoading은 시작하며 에러 상태를 동기 setState로 초기화한다.
+        // effect 본문에서 바로 부르면 연쇄 렌더 경고라 한 틱 미룬다.
+        const kickoff = window.setTimeout(startLoading, 0);
 
         return () => {
             mountedRef.current = false;
+            window.clearTimeout(kickoff);
             clearPollTimer();
         };
     }, [clearPollTimer, startLoading]);
@@ -550,7 +561,7 @@ function LookbookPage() {
                 return;
             }
 
-            alert(
+            showToast(
                 "이 브라우저에서는 이미지 파일 공유를 지원하지 않습니다. 이미지 저장을 이용해 주세요."
             );
         } catch (error) {
@@ -567,7 +578,7 @@ function LookbookPage() {
                 error
             );
 
-            alert(
+            showToast(
                 "이미지를 공유하지 못했습니다."
             );
         }
@@ -635,7 +646,7 @@ function LookbookPage() {
                 error
             );
 
-            alert(
+            showToast(
                 "이미지를 저장하지 못했습니다. 이미지를 길게 눌러 저장해 주세요."
             );
         }
@@ -660,7 +671,7 @@ function LookbookPage() {
             );
 
         if (!reportSlug || !savedRequest) {
-            alert(
+            showToast(
                 "재생성에 필요한 원본 정보를 찾지 못했습니다."
             );
 
@@ -680,7 +691,7 @@ function LookbookPage() {
             !skipLimitCheck &&
             Number(remaining) <= 0
         ) {
-            alert(
+            showToast(
                 "화보 재생성 가능 횟수를 모두 사용했습니다."
             );
 
@@ -760,17 +771,17 @@ function LookbookPage() {
                 getApiError(error);
 
             if (status === 429) {
-                alert(
+                showToast(
                     "화보 재생성 가능 횟수를 모두 사용했습니다."
                 );
             } else if (
                 status === 409
             ) {
-                alert(
+                showToast(
                     "이미 화보 생성 요청을 처리하고 있습니다."
                 );
             } else {
-                alert(
+                showToast(
                     message ||
                     "화보를 다시 만들지 못했습니다."
                 );

@@ -8,11 +8,8 @@ import bearImage from "../assets/bear.png";
 import useChatStore from "../stores/useChatStore";
 
 
-import {
-  answerPendingAction,
-  getChatMessages,
-  streamChat,
-} from "../api/chat";
+import { streamChat } from "../api/chat";
+import { useChatSync } from "../hooks/useChatSync";
 
 function ChatPage() {
   const navigate = useNavigate();
@@ -21,18 +18,24 @@ function ChatPage() {
     messages,
     addCustomMessage,
     pendingAction,
-    syncChatState,
-    applyActionResponse,
     startAssistantMessage,
     appendAssistantDelta,
   } = useChatStore();
 
   const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] =  useState(false);
-  const [ isActionLoading, setIsActionLoading,] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
 
   const messagesEndRef = useRef(null);
+
+  // 진행 중인 SSE 스트림. 화면을 떠나면 끊는다.
+  const streamAbortRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      streamAbortRef.current?.abort();
+    };
+  }, []);
 
   // 메시지가 추가되면 맨 아래로 이동
   useEffect(() => {
@@ -43,99 +46,11 @@ function ChatPage() {
   }, [messages]);
 
   // 채팅 메시지와 pending_action 조회
-  useEffect(() => {
-    // SSE 답변 생성 중에는 서버 조회 멈춤 / (안그러면 임시 답변 사라질수도 잇대서...)
-    if (isSending) {
-      return undefined;
-    }
-
-    let isMounted = true;
-
-    const loadChatMessages = async () => {
-      const visitId =
-        localStorage.getItem("visitId") ??
-        sessionStorage.getItem(
-          "visit_id",
-        );
-
-      if (!visitId) {
-        return;
-      }
-
-      try {
-        const response =
-          await getChatMessages();
-
-        if (isMounted) {
-          syncChatState(response.data);
-        }
-      } catch (error) {
-        console.error(
-          "채팅 내역 조회 실패:",
-          error.response?.data ?? error,
-        );
-      }
-    };
-
-    // 처음 진입했을 때 즉시 조회
-    loadChatMessages();
-
-    // 이후 3초마다 트리거 확인
-    const pollingId = window.setInterval(
-      loadChatMessages,
-      3000,
-    );
-
-    return () => {
-      isMounted = false;
-      window.clearInterval(pollingId);
-    };
-  }, [isSending, syncChatState]);
-
-  // 트리거 버튼 클릭
-  const handleAction = async (
-    action,
-    option,
-  ) => {
-    if (isActionLoading) {
-      return;
-    }
-
-    try {
-      setIsActionLoading(true);
-
-      const response =
-        await answerPendingAction({
-          pendingAction: action,
-          option,
-        });
-
-      applyActionResponse(
-        response.data.messages ?? [],
-      );
-    } catch (error) {
-      console.error(
-        "트리거 응답 실패:",
-        error.response?.data ?? error,
-      );
-
-      // 이미 답변한 트리거나 만료된 트리거면
-      // 서버의 최신 상태로 다시 맞춘다.
-      try {
-        const response =
-          await getChatMessages();
-
-        syncChatState(response.data);
-      } catch (reloadError) {
-        console.error(
-          "채팅 상태 복구 실패:",
-          reloadError,
-        );
-      }
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
+  // 폴링·트리거 응답은 Layout과 공유하는 훅이 담당한다.
+  // SSE 답변 생성 중에는 폴링을 멈춘다 — 임시 말풍선이 덮이지 않게.
+  const { handleAction, isActionLoading, refresh } = useChatSync({
+    paused: isSending,
+  });
 
   // 직접 입력 채팅
   const handleSubmit = async (event) => {
@@ -161,23 +76,28 @@ function ChatPage() {
       // 스트리밍 답변을 담을 빈 말풍선
       startAssistantMessage();
 
+      streamAbortRef.current = new AbortController();
       await streamChat({
         message: trimmedValue,
         onDelta: appendAssistantDelta,
+        signal: streamAbortRef.current.signal,
       });
 
       // 서버에 저장된 message_id와 role로 동기화
-      const response =
-        await getChatMessages();
-
-      syncChatState(response.data);
+      await refresh();
     } catch (error) {
+      // 화면 이탈로 우리가 끊은 스트림은 오류가 아니다
+      if (error?.name === "AbortError") {
+        return;
+      }
+
       console.error(
         "AI 채팅 전송 실패:",
         error,
       );
 
       appendAssistantDelta(
+        error?.message ||
         "죄송해요. 답변을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
       );
     } finally {

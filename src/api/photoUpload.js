@@ -1,5 +1,6 @@
 import axios from "axios";
 import { requestUploadUrls } from "./lookbooks";
+import { logger } from "../utils/logger";
 
 const PHOTO_MAX_BYTES =
   5 * 1024 * 1024;
@@ -119,16 +120,11 @@ export const uploadPhotoAndMask =
       headers = {},
     } = presignData;
 
-    console.info(
-      "[Lookbook Upload] Presign 응답 값",
-      {
-        photo_upload_url,
-        mask_upload_url,
-        headers,
-        photo_key,
-        mask_key,
-      }
-    );
+    // presigned URL은 일정 시간 유효한 자격 증명이라 로그에 남기지 않는다
+    logger.debug("[Lookbook Upload] Presign 발급", {
+      hasPhotoUrl: Boolean(photo_upload_url),
+      hasMaskUrl: Boolean(mask_upload_url),
+    });
 
     if (
       !photo_key ||
@@ -142,15 +138,10 @@ export const uploadPhotoAndMask =
     /*
      * 원본 사진 업로드
      */
-    console.info(
-      "[Lookbook Upload] 사진 PUT 시작",
-      {
-        uploadUrl: photo_upload_url,
-        headers: headers.photo,
-        contentType: photoBlob.type,
-        byteSize: photoBlob.size,
-      }
-    );
+    logger.debug("[Lookbook Upload] 사진 PUT 시작", {
+      contentType: photoBlob.type,
+      byteSize: photoBlob.size,
+    });
 
     const photoUploadResponse =
       await uploadFileToStorage(
@@ -159,13 +150,9 @@ export const uploadPhotoAndMask =
       headers.photo
     );
 
-    console.info(
-      "[Lookbook Upload] 사진 PUT 완료",
-      {
-        status: photoUploadResponse?.status,
-        photo_key,
-      }
-    );
+    logger.debug("[Lookbook Upload] 사진 PUT 완료", {
+      status: photoUploadResponse?.status,
+    });
 
     let uploadedMaskKey = null;
 
@@ -179,15 +166,10 @@ export const uploadPhotoAndMask =
       mask_upload_url &&
       mask_key
     ) {
-      console.info(
-        "[Lookbook Upload] 마스크 PUT 시작",
-        {
-          uploadUrl: mask_upload_url,
-          headers: headers.mask,
-          contentType: maskBlob.type,
-          byteSize: maskBlob.size,
-        }
-      );
+      logger.debug("[Lookbook Upload] 마스크 PUT 시작", {
+        contentType: maskBlob.type,
+        byteSize: maskBlob.size,
+      });
 
       const maskUploadResponse =
         await uploadFileToStorage(
@@ -198,15 +180,11 @@ export const uploadPhotoAndMask =
 
       uploadedMaskKey = mask_key;
 
-      console.info(
-        "[Lookbook Upload] 마스크 PUT 완료",
-        {
-          status: maskUploadResponse?.status,
-          mask_key,
-        }
-      );
+      logger.debug("[Lookbook Upload] 마스크 PUT 완료", {
+        status: maskUploadResponse?.status,
+      });
     } else {
-      console.info(
+      logger.info(
         "[Lookbook Upload] 마스크 PUT 생략",
         {
           hasMaskBlob: Boolean(maskBlob),

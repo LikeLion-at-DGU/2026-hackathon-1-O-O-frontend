@@ -4,6 +4,7 @@ import FloorMap from "../components/FloorMap/FloorMap";
 import HomeContent from "../components/HomeContent/HomeContent";
 import styled from "styled-components";
 import { enterStore } from "../api/visits";
+import { getVisitId } from "../utils/storage";
 
 function HomePage() {
   const visitStarted = useRef(false);
@@ -14,7 +15,7 @@ function HomePage() {
     visitStarted.current = true;
 
     const startVisit = async () => {
-      const existingVisitId = sessionStorage.getItem("visit_id");
+      const existingVisitId = getVisitId();
 
       if (existingVisitId) {
         console.log("기존 방문 유지:", existingVisitId);

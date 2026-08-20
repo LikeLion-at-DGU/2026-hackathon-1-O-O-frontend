@@ -3,9 +3,21 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import styled from "styled-components";
 
 import MobileLayout from "../components/MobileLayout/MobileLayout";
+import {
+  ButtonGroup,
+  CenterBox,
+  ConfirmButton,
+  Container,
+  ErrorMessage,
+  ImageWrapper,
+  PreviewImage,
+  RetakeButton,
+  SubTitle,
+  Title,
+  TitleArea,
+} from "./PhotoConfirmPage.styled";
 
 import { uploadPhotoAndMask } from "../api/photoUpload";
 import { createLookbook } from "../api/lookbooks";
@@ -363,7 +375,7 @@ export default function PhotoConfirmPage() {
       <Container>
         <TitleArea>
           <Title>
-            사진을 확인해 주세요.
+            사진을 확인해주세요.
           </Title>
 
           <SubTitle>
@@ -410,150 +422,3 @@ export default function PhotoConfirmPage() {
     </MobileLayout>
   );
 }
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-
-  min-height: calc(100dvh - 103px);
-  padding: 24px 20px;
-
-  box-sizing: border-box;
-`;
-
-const TitleArea = styled.div`
-display: flex;
-flex-direction: column;
-
-  gap: 16px;
-  margin-bottom: 8px;
-`;
-
-const Title = styled.h2`
-  margin: 50px 0 6px;
-color: var(--Deep-Slate, #222);
-text-align: center;
-font-family: Pretendard;
-font-size: var(--Font-size-XL, 20px);
-font-style: normal;
-font-weight: 600;
-line-height: 140%; /* 28px */
-`;
-
-const SubTitle = styled.p`
-  margin: 0;
-color: var(--Neutral-N30, #A8A29D);
-font-family: Pretendard;
-font-size: 12px;
-font-style: normal;
-font-weight: var(--Font-weight-Light, 300);
-line-height: 140%; /* 16.8px */
-`;
-
-const ImageWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex: 1;
-  width: 100%;
-  max-height: 480px;
-
-  overflow: hidden;
-
-  background-color: #000;
-  border-radius: 16px;
-`;
-
-const PreviewImage = styled.img`
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-`;
-
-const ErrorMessage = styled.p`
-  margin: 14px 0 0;
-
-  color: #c8503c;
-  font-size: 13px;
-  line-height: 150%;
-  text-align: center;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 12px;
-
-  margin-top: 20px;
-`;
-
-const RetakeButton = styled.button`
-  height: 60px;
-  width: 106px;
-  margin: 0;
-color: var(--Deep-Slate, #222);
-font-family: Pretendard;
-font-size: var(--Font-size-XL, 20px);
-font-style: normal;
-font-weight: 600;
-line-height: 140%;
-
-  background: var(--neutral, #E5E3E0);
-
-display: flex;
-padding: 10px;
-justify-content: center;
-align-items: center;
-gap: 10px;
-
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const ConfirmButton = styled.button`
-  margin: 0;
-
-  height: 60px;
-    width: 245px;
-
-
-color: var(--neutral, #E5E3E0);
-font-family: Pretendard;
-font-size: var(--Font-size-XL, 20px);
-font-style: normal;
-font-weight: 600;
-line-height: 140%; /* 28px */
-
-  background-color: #222;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  display: flex;
-padding: 16px;
-justify-content: center;
-align-items: center;
-gap: 10px;
-align-self: stretch;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const CenterBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-
-  min-height: calc(100dvh - 103px);
-`;

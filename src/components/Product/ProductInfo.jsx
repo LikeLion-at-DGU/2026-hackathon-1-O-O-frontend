@@ -1,6 +1,7 @@
 // src/components/Product/ProductInfo.jsx
 import { useState } from "react";
 import { createChatMessage } from "../../api/chat";
+import { isVisitFinished } from "../../utils/storage";
 import * as S from "./ProductInfo.styled";
 
 const PRESET_BUTTONS = [
@@ -9,7 +10,13 @@ const PRESET_BUTTONS = [
   { key: "design_intent", label: "디자인 의도" },
 ];
 
-const isVisitFinished = () => Boolean(sessionStorage.getItem("report_slug"));
+// attributes.color는 문자열이 기본이지만 데이터에 따라 배열일 수 있다.
+// 다른 속성으로 색상을 대체하지 않고, 값이 없을 때만 없음을 표시한다.
+const formatProductColor = (color) => {
+  if (Array.isArray(color)) return color.filter(Boolean).join(", ") || "색상 정보 없음";
+  if (typeof color === "string" && color.trim()) return color.trim();
+  return "색상 정보 없음";
+};
 
 function ProductInfo({
   product,
@@ -39,19 +46,17 @@ function ProductInfo({
   // 프리셋 모달 체류는 더 이상 product_dwell로 보내지 않는다 — 페이지 체류와
   // 같은 타입이라 같은 구간이 중복 계상됐다. 클릭 자체는 question_submit
   // (onQuestionClick)과 preset_view(위)로 남는다.
+  // 이벤트 전송은 updater 밖에서 한다 — StrictMode는 updater를 두 번 실행할
+  // 수 있어, 안에 두면 같은 클릭이 서버에 두 번 기록된다.
   const handlePresetClick = (key, label) => {
-    setSelectedPreset((current) => {
-      if (current === key) {
-        return null;
-      }
+    const isClosing = selectedPreset === key;
+    setSelectedPreset(isClosing ? null : key);
+    if (isClosing) return;
 
-      if (typeof onQuestionClick === "function") {
-        onQuestionClick(label);
-      }
-      sendPresetView(key);
-
-      return key;
-    });
+    if (typeof onQuestionClick === "function") {
+      onQuestionClick(label);
+    }
+    sendPresetView(key);
   };
 
   const handleCloseModal = () => {
@@ -91,7 +96,7 @@ function ProductInfo({
         <S.TextWrapper>
           <S.ProductTitle>{productName}</S.ProductTitle>
           <S.ProductColor>
-            색상 : {loading ? "확인 중..." : product?.attributes?.color ?? "정보 없음"}
+            색상 : {loading ? "확인 중..." : formatProductColor(product?.attributes?.color)}
           </S.ProductColor>
         </S.TextWrapper>
       </S.ProductWrapper>

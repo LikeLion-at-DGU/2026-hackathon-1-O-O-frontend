@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { getVisitToken } from "../utils/storage";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -18,7 +20,7 @@ export const publicApi = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    const visitToken = localStorage.getItem("visitToken") ?? sessionStorage.getItem("visit_token");
+    const visitToken = getVisitToken();
     if (visitToken) config.headers["X-Visit-Token"] = visitToken;
     return config;
 });
