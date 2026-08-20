@@ -3,10 +3,18 @@ import styled from "styled-components";
 
 // ⭐️ 1. 상단 카드 영역 (최대 600px까지 비율 유지하며 확장)
 export const Content = styled.div`
-  width: calc(100% - 32px);
-  max-width: 568px; /* 600px 컨테이너 기준 좌우 16px 패딩 제외 */
+  /* 지도·선반의 363:300 비율을 유지하면서 화면의 가로·세로 여유 중
+     더 작은 값에 맞춘다. 작은 모바일에서도 내부가 잘리지 않는다. */
+  width: min(
+    calc(100% - 32px),
+    45.98dvh
+  );
+  max-width: 363px;
+  height: min(
+    calc(82.645vw - 26.446px),
+    38dvh
+  );
   aspect-ratio: 363 / 300;
-  max-height: 38dvh;
   margin: 14px auto 20px;
 
   border-radius: 24px;

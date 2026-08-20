@@ -368,7 +368,7 @@ export default function AnalyticsPage() {
 
   if (!report) {
     return (
-      <MobileLayout>
+      <MobileLayout hideShoot>
         <S.Container style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
           <S.MainTitle>리포트를 불러올 수 없습니다.</S.MainTitle>
         </S.Container>
@@ -377,7 +377,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <MobileLayout>
+    <MobileLayout hideShoot>
       <S.Container>
         {/* 1. 관람 결과 요약 카드 */}
         <S.SectionHeader>

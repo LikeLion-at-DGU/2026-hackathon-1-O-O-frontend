@@ -11,6 +11,11 @@ export const OuterFrame = styled.div`
     background-color: ${COLORS.zoneDefault};
     padding: 20px;
     border-radius: 20px;
+
+    @media (max-width: 600px) {
+        width: 100%;
+        height: 100%;
+    }
 `;
 
 // 2. 안쪽 밝은 배경
@@ -25,6 +30,10 @@ export const InnerBackground = styled.div`
     
     background-color: ${COLORS.background};
     border-radius: 8px;
+
+    @media (max-width: 600px) {
+        gap: clamp(8px, 6vw, 24px);
+    }
 `;
 
 // 3. 아이템 래퍼
@@ -34,11 +43,13 @@ export const ItemWrapper = styled.div`
     align-items: center;
     justify-content: flex-end;
     height: 100%;
+    min-width: 0;
 `;
 
 // 4. 상품 이미지
 export const ProductImage = styled.img`
     width: 82px;
+    max-width: 100%;
     object-fit: contain;
     cursor: pointer;
     z-index: 2;

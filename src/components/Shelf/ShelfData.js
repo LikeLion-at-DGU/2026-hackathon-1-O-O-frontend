@@ -1,3 +1,5 @@
+import { getLocalProductImage } from "../../utils/productImage";
+
     export const shelfData = {
     // 📌 1구역 (1번 ~ 9번 / 총 9개)
     1: [
@@ -101,6 +103,6 @@
 Object.entries(shelfData).forEach(([shelfNo, products]) => {
     products.forEach((product, index) => {
         const productNo = `${shelfNo}${String(index + 1).padStart(2, "0")}`;
-        product.imageUrl = `/images/p_${productNo}-Photoroom.png`;
+        product.imageUrl = getLocalProductImage(`p_${productNo}`);
     });
 });

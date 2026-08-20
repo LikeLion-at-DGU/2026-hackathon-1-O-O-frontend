@@ -17,6 +17,8 @@ import { createChatMessage } from "../../api/chat";
 import { getVisitId, isVisitFinished } from "../../utils/storage";
 import Shelf07 from "./Shelf07/Shelf07";
 import Shelf05 from "./Shelf05/Shelf05";
+import { ShelfViewport } from "./Shelf.style";
+import { getLocalProductImage } from "../../utils/productImage";
 
 const ZONES = [1, 2, 3, 4, 5, 6, 7];
 const clamp = (v) => Math.max(1, Math.min(7, Number(v) || 1));
@@ -64,7 +66,7 @@ export default function Shelf() {
         const scene = serverScenes.find((item) => Number(item.no) === zone);
         const sources = scene
           ? (scene.products ?? []).map(
-              (product) => `/images/${product.product_id ?? product.id}-Photoroom.png`
+              (product) => getLocalProductImage(product.product_id ?? product.id)
             )
           : (shelfData[zone] || []).map((product) => product.imageUrl);
 
@@ -163,13 +165,7 @@ export default function Shelf() {
   `}
 </style>
       {/* ⭐️ 선반 카드 영역 (363px 규격 안에 뒤로가기 버튼 + Swiper를 묶음) */}
-      <div
-        style={{
-          position: "relative",
-          width: "363px",
-          height: "300px",
-        }}
-      >
+      <ShelfViewport>
         {/* 선반 내부 좌측 상단 뒤로가기 버튼 */}
         <div style={{ position: "absolute", top: "9px", left: "8px", zIndex: 50 }}>
           <BackButton onClick={() => navigate("/map")} />
@@ -207,7 +203,7 @@ export default function Shelf() {
                       id: prodId,
                       name: product.name,
                       price: product.price,
-                      imageUrl: `/images/${prodId}-Photoroom.png`,
+                      imageUrl: getLocalProductImage(prodId),
                       scene_id: scene.scene_id,
                     };
                   })
@@ -251,7 +247,7 @@ export default function Shelf() {
             );
           })}
         </Swiper>
-      </div>
+      </ShelfViewport>
     </div>
   );
 }

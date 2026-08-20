@@ -1,4 +1,9 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+
+const bearBounce = keyframes`
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(2deg); }
+`;
 
 export const Container = styled.div`
   position: relative;
@@ -171,6 +176,11 @@ export const Character = styled.img`
 
   object-fit: contain;
   filter: drop-shadow(0 8px 4px rgba(0, 0, 0, 0.28));
+  animation: ${bearBounce} 1.1s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `;
 
 export const CardBorder = styled.svg`

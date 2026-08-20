@@ -324,7 +324,8 @@ const ChatInput = styled.input`
 
   color: #18181b;
   font-family: Pretendard, sans-serif;
-  font-size: 14px;
+  /* iOS Safari는 16px 미만 입력창에 포커스하면 화면을 자동 확대한다. */
+  font-size: 16px;
 
   &::placeholder {
     color: #a1a1aa;

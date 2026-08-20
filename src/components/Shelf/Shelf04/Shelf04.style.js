@@ -23,6 +23,10 @@ export const Container = styled.div`
 
 
   overflow: visible;
+
+  @media (max-width: 600px) {
+    height: 100%;
+  }
 `;
 
 /* ========================================
@@ -98,10 +102,9 @@ export const ShelfRow = styled.div`
     $rowIndex === 2 ? "30px" : "23px"};
     
     left: 7px;
-    right: 6px;
+    right: 7px;
 
     height: 5px;
-    width: 100px;
 
 
     background: #D1CCC7;
