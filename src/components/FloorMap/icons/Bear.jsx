@@ -1,7 +1,6 @@
-import React from "react";
 import { TEXT_STYLES, COLORS } from "../FloorMap.style";
 
-export default function BearEntrance({ x = 82, y = 235, onClick }) {
+export default function BearEntrance({ x = 82, y = 235 }) {
   return (
     <g
       transform={`translate(${x}, ${y})`}

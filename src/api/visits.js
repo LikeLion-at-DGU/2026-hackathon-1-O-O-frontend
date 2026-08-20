@@ -1,4 +1,7 @@
 import { api } from './api';
+import {
+  resetProductInteraction,
+} from "./events";
 
 // 입장 API 호출 함수
 export const enterStore = async (ageBand, gender) => {
@@ -25,10 +28,13 @@ export const enterStore = async (ageBand, gender) => {
             ...(ageBand && { age_band: ageBand }),
             ...(gender && { gender }),
           };
-
+          
     // 4. 입장 API 요청
     const response = await api.post("/enter", payload, { headers });
     const data = response.data;
+
+    // 새로운 방문이 시작되면 이전 방문의 상품 행동 기록을 초기화
+    resetProductInteraction();
 
     // 5. UUID 저장
     if (data.anonymous_uuid) {

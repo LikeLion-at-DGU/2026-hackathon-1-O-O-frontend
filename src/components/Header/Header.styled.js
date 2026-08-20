@@ -88,3 +88,77 @@ align-items: center;
 gap: 12px;
 
 `;
+
+export const ExitModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+
+  box-sizing: border-box;
+
+  background-color: rgb(0 0 0 / 55%);
+`;
+
+export const ExitModal = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  width: 315px;
+  max-width: 100%;
+  padding: 24px;
+
+  box-sizing: border-box;
+
+  background-color: #fff;
+  border-radius: 24px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+`;
+
+export const ExitModalMessage = styled.p`
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+
+  color: #222;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 140%;
+  text-align: center;
+`;
+
+export const ExitModalActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const ExitModalButton = styled.button`
+  padding: 8px 16px;
+
+  color: #222;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 140%;
+  white-space: nowrap;
+
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+`;
+
+export const ContinueButton = styled(ExitModalButton)`
+  background-color: #8c6239;
+`;
+
+export const ExitAnywayButton = styled(ExitModalButton)`
+  background-color: #e4e4e7;
+`;

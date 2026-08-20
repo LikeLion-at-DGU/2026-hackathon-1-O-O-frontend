@@ -1,13 +1,18 @@
     // src/components/Header/Header.jsx
     import * as S from "./Header.styled";
+    import { useState } from "react";
     import SoundButton from "../SoundButton";
     import { api } from "../../api/api";
-    import { drainEventBuffer } from "../../api/events";
+    import {
+        drainEventBuffer,
+        hasProductInteraction,
+    } from "../../api/events";
     import { Link, useLocation, useNavigate } from "react-router-dom";
 
     function Header({ hideShoot = false, showActions = true }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
     const isLoadingPage =
         location.pathname.includes("loading") ||
@@ -16,7 +21,7 @@
     const isAnalyticsPage =
         location.pathname.startsWith("/analytics") && !isLoadingPage;
 
-    const handleFinish = async () => {
+    const finishVisit = async () => {
         const visitId = sessionStorage.getItem("visit_id");
         const visitToken = sessionStorage.getItem("visit_token");
 
@@ -61,6 +66,20 @@
         }
     };
 
+    const handleFinish = () => {
+        if (!hasProductInteraction()) {
+        setIsExitModalOpen(true);
+        return;
+        }
+
+        finishVisit();
+    };
+
+    const handleExitAnyway = () => {
+        setIsExitModalOpen(false);
+        finishVisit();
+    };
+
     const handlePhotoShoot = () => {
         const savedCandidate =
         sessionStorage.getItem("selected_candidate");
@@ -84,6 +103,7 @@
     };
 
     return (
+        <>
         <S.HeaderContainer>
         <Link to="/map" style={{ textDecoration: "none", color: "inherit" }}>
             <S.Logo>
@@ -108,6 +128,40 @@
             </S.ButtonWrapper>
         )}
         </S.HeaderContainer>
+
+        {isExitModalOpen && (
+            <S.ExitModalOverlay>
+            <S.ExitModal
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="exit-modal-message"
+            >
+                <S.ExitModalMessage id="exit-modal-message">
+                <span>아직 뮤즈님을 잘 모르겠어요.</span>
+                <span>
+                    지금 나가시면 화보를 만들어 드릴 수 없어요.
+                </span>
+                </S.ExitModalMessage>
+
+                <S.ExitModalActions>
+                <S.ContinueButton
+                    type="button"
+                    onClick={() => setIsExitModalOpen(false)}
+                >
+                    조금 더 둘러볼게요.
+                </S.ContinueButton>
+
+                <S.ExitAnywayButton
+                    type="button"
+                    onClick={handleExitAnyway}
+                >
+                    그냥 나갈래요.
+                </S.ExitAnywayButton>
+                </S.ExitModalActions>
+            </S.ExitModal>
+            </S.ExitModalOverlay>
+        )}
+        </>
     );
     }
 

@@ -1,5 +1,5 @@
 // src/components/FloorMap/FloorMap.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
 import PlusButton from "./icons/PlusButton";
@@ -57,16 +57,15 @@ export default function FloorMap({ showGuideMessage = false, guideClickPath = nu
     navigate(`/shelf/${zoneId}`);
   };
 
-  const handleFirstGuideClick = (event) => {
+const handleFirstGuideClick = (event) => {
   event.stopPropagation();
 
-  // 현재 FloorMap에서 안내 메시지 제거
-  setIsGuideMessageVisible(false);
+  sessionStorage.setItem(
+    MAP_GUIDE_SEEN_KEY,
+    "true"
+  );
 
-  // 이동할 주소가 전달된 경우에만 페이지 이동
-  if (guideClickPath) {
-    navigate(guideClickPath);
-  }
+  setIsGuideMessageVisible(false);
 };
   return (
     <S.MapRoot>

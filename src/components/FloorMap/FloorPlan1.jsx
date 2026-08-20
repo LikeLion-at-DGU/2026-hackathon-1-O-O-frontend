@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Bear from "./icons/Bear";
-import PlusButton from "./icons/PlusButton";
 
 import {
     COLORS,
