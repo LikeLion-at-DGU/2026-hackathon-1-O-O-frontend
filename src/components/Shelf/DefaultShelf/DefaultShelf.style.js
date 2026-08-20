@@ -76,6 +76,9 @@ export const ProductImage = styled.img`
 
   filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.2));
 
+  @media (max-width: 600px) {
+    max-height: calc(min(82.645vw - 86.446px, 38dvh - 60px) / 3 + 6px);
+  }
 `;
 
 export const ProductName = styled.span`
