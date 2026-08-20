@@ -2,54 +2,23 @@ import { useEffect, useRef } from "react";
 import { sendEvent } from "../api/events";
 
 export default function useProductEvent(productId) {
-  const enterTimeRef = useRef(null);
+  // StrictMode 재마운트로 같은 상품에 product_view가 두 번 쌓이는 것을 막는다.
+  // 중복이 쌓이면 서버의 재조회 판정과 왕복(A→B→A) 트리거가 오작동한다.
+  const lastViewedRef = useRef(null);
 
-  // 1. 상품 상세 진입 시 조회(product_view) 전송 & 이탈 시 체류(product_dwell) 전송
+  // 상품 상세 진입 시 조회(product_view) 전송.
+  // 체류(product_dwell)는 useDwellTimer가 잰다 — 여기서도 보내면 같은 구간이
+  // 두 번 계상되어 리포트 체류시간이 2배로 부풀었다.
   useEffect(() => {
-    if (!productId) return;
+    if (!productId || lastViewedRef.current === productId) return;
+    lastViewedRef.current = productId;
 
-    // 진입 시각 기록
-    enterTimeRef.current = Date.now();
-
-    // (1) 상품 조회 이벤트 전송
-    const sendProductView = async () => {
-      try {
-        await sendEvent({
-          event_id: `e_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-          event_type: "product_view",
-          product_id: String(productId),
-          client_timestamp: new Date().toISOString(),
-          metadata: {},
-        });
-      } catch (error) {
-        console.error(
-          "상품 조회 이벤트 저장 실패:",
-          error.response?.data ?? error
-        );
-      }
-    };
-
-    sendProductView();
-
-    // (2) 모달/페이지 이탈 시 체류 시간(product_dwell) 계산 및 전송
-    return () => {
-      const dwellMs = Date.now() - enterTimeRef.current;
-
-      // 최소 500ms(0.5초) 이상 머문 경우에만 체류 이벤트 발송
-      if (dwellMs >= 500) {
-        sendEvent({
-          event_id: `e_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-          event_type: "product_dwell",
-          product_id: String(productId),
-          client_timestamp: new Date().toISOString(),
-          metadata: {
-            dwell_ms: dwellMs,
-          },
-        }).catch((err) => {
-          console.error("상품 체류 이벤트 저장 실패:", err.response?.data ?? err);
-        });
-      }
-    };
+    sendEvent({
+      event_type: "product_view",
+      product_id: String(productId),
+      client_timestamp: new Date().toISOString(),
+      metadata: {},
+    });
   }, [productId]);
 
   // 2. 챗봇/상품 질문 클릭 이벤트 전송
@@ -58,7 +27,6 @@ export default function useProductEvent(productId) {
 
     try {
       await sendEvent({
-        event_id: `e_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         event_type: "question_submit",
         product_id: String(productId),
         client_timestamp: new Date().toISOString(),

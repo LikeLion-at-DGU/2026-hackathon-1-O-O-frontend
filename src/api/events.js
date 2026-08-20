@@ -71,31 +71,33 @@ const sanitizeEvent = (event) => {
     .toLowerCase()
     .trim();
 
-  let sceneId =
+  const sceneId =
     event.scene_id ??
     event.metadata?.scene_id ??
     null;
 
-  if (
-    !sceneId &&
-    (eventType.startsWith("scene_") || eventType === "hotspot_click")
-  ) {
-    try {
-      const scenes = JSON.parse(
-        sessionStorage.getItem("scenes") ?? "[]"
-      );
-      sceneId = scenes[0]?.scene_id ?? null;
-    } catch {
-      sceneId = null;
-    }
+  // 진열대 이벤트인데 어느 진열대인지 모르면 버린다. 예전에는 scenes[0]으로
+  // 대체했는데, 그러면 엉뚱한 진열대에 체류가 집계되고, 서버 id가 아닌 값
+  // ("1")이 섞이면 그 이벤트가 rejected로 빠진다.
+  if (!sceneId && eventType.startsWith("scene_")) {
+    return null;
   }
 
+  // metadata는 원시값만 통과시켜 그대로 싣는다. 예전에는 dwell만 남기고
+  // 전부 버려서 preset_key·question 같은 분석 재료가 서버에 도달하지 못했다.
   const metadata = {};
+  for (const [key, value] of Object.entries(event.metadata ?? {})) {
+    if (["string", "number", "boolean"].includes(typeof value)) {
+      metadata[key] = value;
+    }
+  }
+  delete metadata.dwell_time_ms;
+  delete metadata.dwell_sec;
 
   if (dwellMs !== undefined && !Number.isNaN(Number(dwellMs))) {
-    const normalizedDwellMs = Math.round(Number(dwellMs));
-    metadata.dwell_ms = normalizedDwellMs;
-    metadata.dwell_time_ms = normalizedDwellMs;
+    metadata.dwell_ms = Math.round(Number(dwellMs));
+  } else {
+    delete metadata.dwell_ms;
   }
 
   return {
@@ -151,7 +153,12 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
 
   isFlushing = true;
 
-  const events = rawEvents.map(sanitizeEvent);
+  const events = rawEvents.map(sanitizeEvent).filter(Boolean);
+  if (!events.length) {
+    saveQueue([]);
+    isFlushing = false;
+    return;
+  }
 
   // ⭐️ 3. 백엔드 필수 헤더 명시적 주입
   const headers = {
@@ -230,6 +237,9 @@ export const sendEvent = async (eventData) => {
   }
 
   const cleanedEvent = sanitizeEvent(eventData);
+  if (!cleanedEvent) {
+    return;
+  }
 
   if (cleanedEvent.product_id) {
     sessionStorage.setItem(
@@ -257,12 +267,23 @@ export const drainEventBuffer = () => {
   const rawEvents = getQueue();
   saveQueue([]);
   clearTimeout(flushTimer);
-  return rawEvents.map(sanitizeEvent);
+  return rawEvents.map(sanitizeEvent).filter(Boolean);
 };
 
-// 페이지 이탈 시 잔여 이벤트 즉시 전송
+// 페이지 이탈·백그라운드 전환 시: 돌고 있는 체류 타이머부터 정산시킨 뒤
+// 잔여 이벤트를 keepalive로 즉시 전송한다. 타이머 정산 없이 flush만 하면
+// 마지막 상품의 체류가 유실되고, visibilitychange가 없으면 탭을 숨겨둔
+// 시간이 통째로 체류로 잡힌다.
 if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", () => {
+  const settleAndFlush = () => {
+    window.dispatchEvent(new Event("force_flush_dwell_timer"));
     flushEvents({ keepalive: true }).catch(() => {});
+  };
+
+  window.addEventListener("pagehide", settleAndFlush);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      settleAndFlush();
+    }
   });
 }

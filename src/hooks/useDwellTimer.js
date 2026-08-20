@@ -65,14 +65,26 @@ export function useDwellTimer({
       flushTimer();
     }
 
-    // 2. 새로운 타이널 시작
+    // 2. 새로운 타이머 시작
     enterTimeRef.current = Date.now();
     activeTargetRef.current = targetId;
 
+    // 탭이 숨겨지면 정산은 events.js의 force_flush 디스패치가 맡는다.
+    // 다시 보이면 여기서 타이머를 재시작한다 — 없으면 복귀 후 체류가 0이 되고,
+    // 예전처럼 아예 정산하지 않으면 숨겨둔 시간이 통째로 체류에 잡혔다.
+    const handleVisibility = () => {
+      if (!document.hidden && !activeTargetRef.current) {
+        enterTimeRef.current = Date.now();
+        activeTargetRef.current = targetId;
+      }
+    };
+
     window.addEventListener("force_flush_dwell_timer", flushTimer);
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       window.removeEventListener("force_flush_dwell_timer", flushTimer);
+      document.removeEventListener("visibilitychange", handleVisibility);
       // 컴포넌트가 언마운트되거나 targetId가 바뀔 때 딱 1번만 정산
       flushTimer();
     };
