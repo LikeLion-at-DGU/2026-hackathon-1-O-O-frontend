@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAnalytics } from "../api/analytics";
+import { getLookbookCandidates } from "../api/lookbooks";
 import * as S from "./AnalyticsPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import Header from "../components/Header/Header";
@@ -8,17 +9,11 @@ import Header from "../components/Header/Header";
 const defaultBagImg =
   "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23eee%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20alignment-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23aaa%22%20font-size%3D%2214%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E";
 
-// ⭐️ 상품 ID에 맞춰 public/images 경로 생성하는 공통 함수
-// ⭐️ 로컬 파일(/images/p_101-Photoroom.png)을 최우선으로 지정
 export const getProductImage = (product) => {
-  const prodId = product?.product_id ?? product?.id;
-  
-  if (prodId) {
-    return `/images/${prodId}-Photoroom.png`; // 1순위: 내 로컬 파일
-  }
-  
   return (
+    product?.cutout_url ??
     product?.thumbnail ??
+    product?.images?.[0] ??
     product?.images?.thumbnail ??
     product?.images?.main ??
     defaultBagImg
@@ -36,6 +31,9 @@ export default function AnalyticsPage() {
 
   const [report, setReport] = useState(null);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [candidateProducts, setCandidateProducts] = useState([]);
+  const [candidateMaxSelect, setCandidateMaxSelect] = useState(1);
+  const [candidateMinSelect, setCandidateMinSelect] = useState(1);
   const [isPending, setIsPending] = useState(true);
   const pollTimerRef = useRef(null);
 
@@ -65,12 +63,58 @@ export default function AnalyticsPage() {
           setReport(data);
           setIsPending(false);
 
+          const candidateSlug =
+            slug || sessionStorage.getItem("report_slug");
+          let candidateSelectionApplied = false;
+
+          if (candidateSlug) {
+            try {
+              const candidates =
+                await getLookbookCandidates(candidateSlug);
+
+              if (!isMounted) return;
+
+              setCandidateProducts(candidates?.items ?? []);
+              setCandidateMaxSelect(
+                Number(candidates?.max_select) || 1
+              );
+              setCandidateMinSelect(
+                Number(candidates?.min_select) || 1
+              );
+
+              const preselected = Array.isArray(
+                candidates?.preselected
+              )
+                ? candidates.preselected
+                : [];
+
+              if (preselected.length > 0) {
+                candidateSelectionApplied = true;
+                const initialSelection = preselected.slice(
+                  0,
+                  Number(candidates?.max_select) || 1
+                );
+
+                setSelectedProductIds(initialSelection);
+                sessionStorage.setItem(
+                  "selected_products",
+                  JSON.stringify(initialSelection)
+                );
+              }
+            } catch (candidateError) {
+              console.warn(
+                "화보 후보 상품 조회 실패. 기존 추천 상품을 사용합니다.",
+                candidateError.response?.data || candidateError
+              );
+            }
+          }
+
           const defaultSelectedId =
             data.hero?.product_id ||
             (data.recommendations && data.recommendations[0]?.product_id) ||
             null;
 
-          if (defaultSelectedId) {
+          if (defaultSelectedId && !candidateSelectionApplied) {
             setSelectedProductIds([defaultSelectedId]);
             sessionStorage.setItem(
               "selected_products",
@@ -188,12 +232,22 @@ export default function AnalyticsPage() {
   }, [report]);
 
   const handleToggleSelect = (productId) => {
-    setSelectedProductIds([productId]);
-    sessionStorage.setItem("selected_products", JSON.stringify([productId]));
+    setSelectedProductIds((current) => {
+      const next = current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId].slice(-candidateMaxSelect);
+
+      sessionStorage.setItem(
+        "selected_products",
+        JSON.stringify(next)
+      );
+
+      return next;
+    });
   };
 
   const handleGoToCamera = () => {
-    if (selectedProductIds.length === 0) {
+    if (selectedProductIds.length < candidateMinSelect) {
       alert("화보에 담을 아이템을 1개 이상 선택해 주세요.");
       return;
     }
@@ -205,6 +259,10 @@ export default function AnalyticsPage() {
   };
 
   const displayProducts = useMemo(() => {
+    if (candidateProducts.length > 0) {
+      return candidateProducts;
+    }
+
     if (!report) return [];
 
     const list = [];
@@ -333,11 +391,24 @@ if (isPending) {
 
                 <S.ItemInfo>
                   <S.ItemName>{item.name || `상품 ${index + 1}`}</S.ItemName>
+                  {item.reason && (
+                    <S.ReasonBadge data-reason-code={item.reason_code || undefined}>
+                      {item.reason}
+                    </S.ReasonBadge>
+                  )}
                 </S.ItemInfo>
               </S.ItemCard>
             );
           })}
         </S.ItemGrid>
+
+        <S.CameraButton
+          type="button"
+          onClick={handleGoToCamera}
+          disabled={selectedProductIds.length < candidateMinSelect}
+        >
+          선택한 상품으로 화보 만들기
+        </S.CameraButton>
       </S.Container>
     </MobileLayout>
   );

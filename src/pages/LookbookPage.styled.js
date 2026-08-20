@@ -88,13 +88,17 @@ export const MuseInfo = styled.div`
 
 export const ImageSection = styled.div`
   width: 100%;
+  aspect-ratio: ${({ $width, $height }) =>
+    $width > 0 && $height > 0
+      ? `${$width} / ${$height}`
+      : "4 / 5"};
 `;
 
 export const LookbookImage = styled.img`
   display: block;
 
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: 100%;
 
   object-fit: cover;
 

@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, publicApi } from "./api";
 
 /**
  * 화보 후보 상품 조회
@@ -60,7 +60,7 @@ export const getLookbookJob = async (jobId) => {
     throw new Error("화보 생성 job_id가 없습니다.");
   }
 
-  const response = await api.get(
+  const response = await publicApi.get(
     `/lookbooks/jobs/${jobId}`
   );
 
@@ -71,7 +71,7 @@ export const getLookbookJob = async (jobId) => {
  * 완성 화보 조회
  * GET /api/v1/lookbooks/{share_slug}
  *
- * 인증이 필요 없는 공개 API
+ * X-Visit-Token 인증 필요
  */
 export const getLookbook = async (
   shareSlug
@@ -86,28 +86,5 @@ export const getLookbook = async (
     `/lookbooks/${shareSlug}`
   );
 
-  const data = response.data;
-
-  /*
-   * 백엔드가 /media/... 형태의 상대경로를 주면
-   * 백엔드 origin을 붙여 전체 URL
-   */
-  if (
-    data?.image_url &&
-    !data.image_url.startsWith("http")
-  ) {
-    const apiBaseUrl =
-      import.meta.env.VITE_API_BASE_URL;
-
-    const apiOrigin = new URL(
-      apiBaseUrl
-    ).origin;
-
-    data.image_url = new URL(
-      data.image_url,
-      apiOrigin
-    ).href;
-  }
-
-  return data;
+  return response.data;
 };

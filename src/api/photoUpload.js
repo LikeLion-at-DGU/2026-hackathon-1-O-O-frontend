@@ -134,7 +134,7 @@ export const uploadPhotoAndMask =
     await uploadFileToStorage(
       photo_upload_url,
       photoBlob,
-      headers
+      headers.photo
     );
 
     let uploadedMaskKey = null;
@@ -149,15 +149,10 @@ export const uploadPhotoAndMask =
       mask_upload_url &&
       mask_key
     ) {
-      const maskHeaders = {
-        ...headers,
-        "Content-Type": "image/png",
-      };
-
       await uploadFileToStorage(
         mask_upload_url,
         maskBlob,
-        maskHeaders
+        headers.mask ?? { "Content-Type": "image/png" }
       );
 
       uploadedMaskKey = mask_key;

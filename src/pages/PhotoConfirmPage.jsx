@@ -9,6 +9,7 @@ import MobileLayout from "../components/MobileLayout/MobileLayout";
 
 import { uploadPhotoAndMask } from "../api/photoUpload";
 import { createLookbook } from "../api/lookbooks";
+import { getApiError } from "../api/errors";
 import { processPhotoWithMediaPipe } from "../utils/mediaPipeHelper";
 
 function dataURLtoBlob(dataUrl) {
@@ -272,9 +273,16 @@ export default function PhotoConfirmPage() {
         error.response?.data || error
       );
 
-      const status = error.response?.status;
+      const {
+        status,
+        message,
+        detail,
+      } = getApiError(error);
+
       const errorDetail =
-        error.response?.data?.detail;
+        typeof detail === "string"
+          ? detail
+          : message;
 
       if (status === 400) {
         setErrorMessage(

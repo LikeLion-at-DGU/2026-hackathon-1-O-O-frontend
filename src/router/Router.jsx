@@ -16,10 +16,21 @@ import AnalyticsPage from "../pages/AnalyticsPage";
 import CameraPage from "../pages/CameraPage";
 import PhotoConfirmPage from "../pages/PhotoConfirmPage";
 import LookbookPage from "../pages/LookbookPage";
+import LookbookLoadingPage from "../pages/LookbookLoadingPage";
 
 function Router() {
   return (
     <Routes>
+      {/* 로딩확인 페이지 */}
+      <Route
+      path="/lookbook-loading-preview"
+      element={
+      <LookbookLoadingPage
+      progress={58}
+      stage="상품 추가 중..."
+      />
+      }
+      />
       {/* 랜딩 페이지 */}
       <Route
         path="/"
