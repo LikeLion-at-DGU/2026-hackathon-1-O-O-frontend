@@ -1,3 +1,4 @@
+// src/components/Shelf/Shelf.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -19,8 +20,6 @@ import Shelf05 from "./Shelf05/Shelf05";
 const ZONES = [1, 2, 3, 4, 5, 6, 7];
 const clamp = (v) => Math.max(1, Math.min(7, Number(v) || 1));
 
-const SHELF_COUNTS = [9, 9, 9, 18, 6, 6, 3];
-
 export default function Shelf() {
   const { zoneId } = useParams();
   const navigate = useNavigate();
@@ -33,41 +32,36 @@ export default function Shelf() {
 
   const urlZone = clamp(zoneId);
 
-useEffect(() => {
-  try {
-    const parsedScenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
-    setServerScenes(parsedScenes);
-  } catch (error) {
-    console.error("선반 데이터 파싱 실패:", error);
-    setServerScenes([]);
-  }
-}, []);
+  useEffect(() => {
+    try {
+      const parsedScenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
+      setServerScenes(parsedScenes);
+    } catch (error) {
+      console.error("선반 데이터 파싱 실패:", error);
+      setServerScenes([]);
+    }
+  }, []);
 
-  // 이 컴포넌트가 "직접 URL에 써넣은" 구역. 이 값과 URL이 같으면 내가 만든 변경이므로 무시.
   const selfWroteZoneRef = useRef(urlZone);
-  // Swiper의 실제 현재 위치
   const swiperZoneRef = useRef(urlZone);
 
-  // URL → Swiper: 오직 "외부發" 변경만 반영 (지도 클릭 / 뒤로가기)
   useEffect(() => {
-    if (urlZone === selfWroteZoneRef.current) return; // 내가 쓴 URL → 되밀지 않음
-    if (urlZone === swiperZoneRef.current) return;    // 이미 그 위치 → 할 일 없음
+    if (urlZone === selfWroteZoneRef.current) return;
+    if (urlZone === swiperZoneRef.current) return;
 
     selfWroteZoneRef.current = urlZone;
     swiperZoneRef.current = urlZone;
-    // 3번째 인자 false = 콜백 미발생 → onSlideChange 계열이 아예 안 터짐
     swiperRef.current?.slideTo(urlZone - 1, 0, false);
   }, [urlZone]);
 
-  // 슬라이드가 "완전히 멈춘" 뒤 1회만
   const handleSettled = async (swiper) => {
     const zone = (swiper.realIndex ?? swiper.activeIndex) + 1;
     if (zone === swiperZoneRef.current) return;
 
     swiperZoneRef.current = zone;
-    selfWroteZoneRef.current = zone;   // ⚠️ navigate보다 먼저 기록해야 effect가 무시함
+    selfWroteZoneRef.current = zone;
 
-    selectShelf(zone);                 // 스토어 가드가 중복을 최종 차단
+    selectShelf(zone);
     navigate(`/shelf/${zone}`, { replace: true });
   };
 
@@ -76,7 +70,6 @@ useEffect(() => {
 
     const visitId = sessionStorage.getItem("visit_id");
 
-    // 상품 클릭 이벤트 저장
     if (visitId) {
       await sendEvent({
         visit_id: visitId,
@@ -106,115 +99,133 @@ useEffect(() => {
     <div
       style={{
         width: "100%",
-        height: "330px",
-        backgroundColor: "#FFFFFF",
+        height: "100%",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        position: "relative",
-        paddingBottom: "16px",
-        boxShadow: "0 6px 18px rgba(0, 0, 0, 0.08)",
-        zIndex: 10,
-        boxSizing: "border-box",
+        background: "transparent", /* ⭐️ 바깥 거대 배경 완전 제거 */
       }}
     >
-      <style>
-        {`
-          .swiper-pagination { pointer-events: none; }
-          .swiper-pagination-bullet { pointer-events: auto; }
-        `}
-      </style>
 
-      <BackButton onClick={() => navigate("/map")} />
+<style>
+  {`
+    /* 1. 점 전체 묶음 위치 */
+    .swiper-pagination {
+      bottom: 8px !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      gap: 4px !important; /* ⭐️ 점 사이 간격 4px */
+    }
 
-      <Swiper
-        modules={[Pagination]}
-        spaceBetween={20}
-        slidesPerView={1}
-        pagination={{ clickable: true }}
-        initialSlide={urlZone - 1}
-        threshold={15}
-        speed={250}
-        onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-          swiperZoneRef.current = swiper.activeIndex + 1;
-        }}
-        onSlideChangeTransitionEnd={handleSettled}
+    /* 2. 기본 비활성 점 (차분한 소프트 웜그레이) */
+    .swiper-pagination-bullet {
+      width: 4px !important;  /* ⭐️ 사이즈 4px */
+      height: 4px !important; /* ⭐️ 사이즈 4px */
+      background-color: #BDB9B4 !important;
+      opacity: 1 !important;
+      margin: 0 !important;
+      border-radius: 50% !important;
+      transition: all 0.2s ease;
+    }
+
+    /* 3. 활성화된 점 (단정하고 고급스러운 딥 차콜 그레이) */
+    .swiper-pagination-bullet-active {
+      width: 4px !important;
+      height: 4px !important;
+      background-color: #383533 !important; /* ⭐️ 어두운 웜 차콜 */
+      opacity: 1 !important;
+    }
+  `}
+</style>
+      {/* ⭐️ 선반 카드 영역 (363px 규격 안에 뒤로가기 버튼 + Swiper를 묶음) */}
+      <div
         style={{
-          width: "100%",
-          height: "100%",
-          "--swiper-pagination-color": "#222",
-          "--swiper-pagination-bullet-inactive-color": "#E5E3E0",
-          "--swiper-pagination-bullet-inactive-opacity": "1",
-          "--swiper-pagination-bullet-size": "5px",
-          "--swiper-pagination-bottom": "4px",
-          "--swiper-pagination-bullet-horizontal-gap": "2.5px",
+          position: "relative",
+          width: "363px",
+          height: "300px",
         }}
       >
-    {ZONES.map((zone) => {
-      const scene = serverScenes.find((item) => Number(item.no) === zone);
+        {/* 선반 내부 좌측 상단 뒤로가기 버튼 */}
+        <div style={{ position: "absolute", top: "9px", left: "8px", zIndex: 50 }}>
+          <BackButton onClick={() => navigate("/map")} />
+        </div>
 
-      const products = scene
-        ? (scene.products ?? [])
-            // 불필요한 상품(p_607 ~ p_609) 제외
-            .filter((product) => {
-              const prodId = product.product_id ?? product.id;
-              return !["p_607", "p_608", "p_609"].includes(prodId);
-            })
-            .map((product) => {
-              const prodId = product.product_id ?? product.id;
+        <Swiper
+          modules={[Pagination]}
+          spaceBetween={20}
+          slidesPerView={1}
+          pagination={{ clickable: true }}
+          initialSlide={urlZone - 1}
+          threshold={15}
+          speed={250}
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+          }}
+          onSlideChangeTransitionEnd={handleSettled}
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          {ZONES.map((zone) => {
+            const scene = serverScenes.find((item) => Number(item.no) === zone);
 
-              return {
-                id: prodId,
-                name: product.name,
-                price: product.price,
-                // ⭐️ product_id를 파일명에 직접 1:1 매칭
-                // (public 바로 아래면 `/${prodId}-Photoroom.png`, products 폴더 안이면 `/products/${prodId}-Photoroom.png`)
-                imageUrl: `/images/${prodId}-Photoroom.png`,
-                scene_id: scene.scene_id,
-              };
-            })
-        : shelfData[zone] || [];
+            const products = scene
+              ? (scene.products ?? [])
+                  .filter((product) => {
+                    const prodId = product.product_id ?? product.id;
+                    return !["p_607", "p_608", "p_609"].includes(prodId);
+                  })
+                  .map((product) => {
+                    const prodId = product.product_id ?? product.id;
+                    return {
+                      id: prodId,
+                      name: product.name,
+                      price: product.price,
+                      imageUrl: `/images/${prodId}-Photoroom.png`,
+                      scene_id: scene.scene_id,
+                    };
+                  })
+              : shelfData[zone] || [];
 
-          return (
-            <SwiperSlide key={zone}>
-              <div
+            return (
+              <SwiperSlide
+                key={zone}
                 style={{
+                  width: "100%",
+                  height: "100%",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  width: "100%",
-                  height: "100%",
                 }}
               >
-                <div style={{ width: "363px", height: "300px", position: "relative" }}>
-                  {zone === 4 ? (
-                    <Shelf04
-                      products={products}
-                      onProductClick={handleProductClick}
-                    />
-                  ) : zone === 5 || zone === 6 ? (
-                    <Shelf05
-                      products={products}
-                      onProductClick={handleProductClick}
-                    />
-                  ) : zone === 7 ? (
-                    <Shelf07
-                      products={products}
-                      onProductClick={handleProductClick}
-                    />
-                  ) : (
-                    <DefaultShelf
-                      products={products}
-                      onProductClick={handleProductClick}
-                    />
-                  )}
-                </div>
-              </div>
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
+                {zone === 4 ? (
+                  <Shelf04
+                    products={products}
+                    onProductClick={handleProductClick}
+                  />
+                ) : zone === 5 || zone === 6 ? (
+                  <Shelf05
+                    products={products}
+                    onProductClick={handleProductClick}
+                  />
+                ) : zone === 7 ? (
+                  <Shelf07
+                    products={products}
+                    onProductClick={handleProductClick}
+                  />
+                ) : (
+                  <DefaultShelf
+                    products={products}
+                    onProductClick={handleProductClick}
+                  />
+                )}
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      </div>
     </div>
   );
 }

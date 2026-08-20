@@ -1,38 +1,32 @@
 import styled from "styled-components";
 import { COLORS } from "../FloorMap/FloorMap.style";
 
+// src/components/Shelf/Shelf.style.js
+
+// src/components/Shelf/Shelf.style.js
 export const shelfStyles = {
-  // 📌 1. 진열장 전체 외곽 프레임
   container: {
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between", 
-    gap: "10px",
+    justifyContent: "space-between",
+    gap: "8px",
     width: "100%",
-    width: "363px",
-    height: "300px",
-    backgroundColor: COLORS.zoneDefault,
-    borderRadius: "20px",
-    // padding: "12px",
+    height: "100%",
+    backgroundColor: "transparent",
+    padding: "16px 14px 20px",
     boxSizing: "border-box",
-    margin: "0 auto",
   },
-
-  // 📌 2. 각 층별 선반 박스
   tier: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     alignItems: "center",
     justifyItems: "center",
-    backgroundColor: COLORS.background,
-    borderRadius: "10px",
-    height: "80px",
-    width: "323px",
-    // padding: "4px 8px",
+    backgroundColor: "#ECE9E5", /* 선반 밝은 그레이 */
+    borderRadius: "16px",
+    width: "100%",
+    flex: "1",
     boxSizing: "border-box",
   },
-
-  // 📌 3. 상품 슬롯
   productSlot: {
     width: "100%",
     height: "100%",
@@ -44,10 +38,16 @@ export const shelfStyles = {
 
 export const PageContainer = styled.div`
   width: 100%;
-  min-height: 100%;
-  background-color: #F4F2EE;
+  height: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background-color: transparent; /* ⭐️ 이중 여백을 없애기 위해 투명화 */
 `;
-
 export const ShelfArea = styled.div`
 display: flex;
   justify-content: center;

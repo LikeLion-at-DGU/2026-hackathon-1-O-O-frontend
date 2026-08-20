@@ -121,7 +121,6 @@ function ProductInfo({
   return (
     <S.ProductArea>
       {/* ⭐️ 4. 좌측 상단 뒤로가기 버튼 배치 */}
-      <BackButton onClick={() => navigate(-1)} />
 
       <S.ProductWrapper>
         <S.ProductImageBox>
