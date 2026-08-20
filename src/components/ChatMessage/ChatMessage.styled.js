@@ -38,6 +38,8 @@ export const MessageBubble = styled.div`
   font-weight: 300;
   line-height: 140%; /* 19.6px */
 
+  white-space: pre-line; 
+  word-break: break-word;
   border-radius: ${({ $isAssistant }) =>
     $isAssistant
       ? "0 20px 20px 20px"

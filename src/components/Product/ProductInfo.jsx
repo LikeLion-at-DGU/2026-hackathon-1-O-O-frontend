@@ -23,15 +23,12 @@ const normalizeColorValues = (color) => {
   ).values()];
 };
 
-// 상세 응답의 표시용 색상은 attributes.color가 기준이다. 최상위 color와
-// 같은 값이 중복되어도 한 번만 노출하고, 구형 응답에서 attributes.color가
-// 비어 있을 때만 최상위 color를 보조값으로 사용한다.
+// 표시용 색상은 attributes.color만 사용한다. 최상위 color는 값이 달라
+// 화면이 두 번 바뀌는 원인이 되므로 읽지 않는다.
 const formatProductColor = (product) => {
   const attributeColors = normalizeColorValues(product?.attributes?.color);
-  const fallbackColors = normalizeColorValues(product?.color);
-  const colors = attributeColors.length ? attributeColors : fallbackColors;
 
-  return colors.join(", ") || "색상 정보 없음";
+  return attributeColors.join(", ") || "색상 정보 없음";
 };
 
 function ProductInfo({
@@ -85,8 +82,10 @@ function ProductInfo({
 
         <S.TextWrapper>
           <S.ProductTitle>{productName}</S.ProductTitle>
+          {/* 로딩 중에는 문구를 바꿔치기하지 않고 줄만 비워 두어,
+              색상 텍스트가 "확인 중..." → 색상으로 두 번 바뀌어 보이는 것을 막는다 */}
           <S.ProductColor>
-            색상 : {loading ? "확인 중..." : formatProductColor(product)}
+            {loading ? " " : `색상 : ${formatProductColor(product)}`}
           </S.ProductColor>
         </S.TextWrapper>
       </S.ProductWrapper>
