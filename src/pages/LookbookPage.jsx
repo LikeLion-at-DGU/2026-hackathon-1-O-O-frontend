@@ -895,80 +895,27 @@ function LookbookPage() {
                     />
                 </S.ImageSection>
 
-                {lookbook.mood?.name && (
-                    <S.MoodSection>
-                        <S.MoodName>
-                            {lookbook.mood.name}
-                        </S.MoodName>
-
-                        <S.MoodReason>
-                            {lookbook.mood.reason}
-                        </S.MoodReason>
-
-                        <S.Palette>
-                            {lookbook.mood.palette?.map(
-                                (color) => (
-                                    <S.PaletteColor
-                                        key={color}
-                                        $color={color}
-                                        aria-label={color}
-                                    />
-                                )
-                            )}
-                        </S.Palette>
-                    </S.MoodSection>
-                )}
-
-                {Array.isArray(
-                    lookbook.stats
-                ) &&
-                    lookbook.stats.length > 0 && (
-                        <S.StatsRow>
-                            {lookbook.stats.map(
-                                (stat) => (
-                                    <S.StatItem
-                                        key={stat.key}
-                                    >
-                                        <S.StatValue>
-                                            {stat.value}
-                                        </S.StatValue>
-
-                                        <S.StatLabel>
-                                            {stat.label}
-                                        </S.StatLabel>
-                                    </S.StatItem>
-                                )
-                            )}
-                        </S.StatsRow>
-                    )}
-
                 <S.BottomSection>
                     <S.ActionRow>
-                        <S.ShareFileButton
-                            type="button"
-                            onClick={handleShare}
-                        >
-                            인스타그램 스토리로 공유
-                        </S.ShareFileButton>
-
                         <S.DownloadButton
                             type="button"
                             onClick={handleDownload}
                         >
                             이미지 저장
                         </S.DownloadButton>
-                    </S.ActionRow>
 
-                    <S.HomeButton
-                        type="button"
-                        onClick={() =>
-                            navigate("/", {
-                                replace: true,
-                            })
-                        }
-                    >
-                        처음 화면으로
-                    </S.HomeButton>
+                        <S.ShareButton
+                            type="button"
+                            onClick={handleShare}
+                            aria-label="화보 공유하기"
+                        >
+                            <S.ShareIcon
+                                src="/images/lookbook-share.svg"
+                                alt=""
+                                aria-hidden="true"
+                            />
+                        </S.ShareButton>
+                    </S.ActionRow>
 
                     <S.RetryDescription>
                         혹시 화보가 마음에 안 든다면,
