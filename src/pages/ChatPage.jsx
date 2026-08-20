@@ -14,8 +14,6 @@ import {
   streamChat,
 } from "../api/chat";
 
-import { useDwellTimer } from "../hooks/useDwellTimer";
-
 function ChatPage() {
   const navigate = useNavigate();
 
@@ -29,11 +27,11 @@ function ChatPage() {
     appendAssistantDelta,
   } = useChatStore();
 
-  useDwellTimer({
-    eventType: "chat_dwell",
-    targetId: "chat_room",
-    minDwellMs: 1000, // 1초 이상 머물렀을 때 전송
-  });
+  // useDwellTimer({
+  //   eventType: "chat_dwell",
+  //   targetId: "chat_room",
+  //   minDwellMs: 1000, // 1초 이상 머물렀을 때 전송
+  // });
 
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] =  useState(false);
