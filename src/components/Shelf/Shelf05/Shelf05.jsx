@@ -37,14 +37,6 @@ function Shelf05({
     </S.ProductSlot>
   );
 
-  // console.log(
-  // products.map((product) => ({
-  //   id: product?.id,
-  //   name: product?.name,
-  //   imageUrl: product?.imageUrl,
-  // }))
-// );
-
   return (
     <S.Container>
             <Swiper

@@ -28,3 +28,6 @@ dist-ssr
 # 압축·산출물 잔해
 *.zip
 output/
+
+# Claude Code 로컬 설정
+.claude/

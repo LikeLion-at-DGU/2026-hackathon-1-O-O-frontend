@@ -27,8 +27,8 @@ export function useChatSync({ paused = false, onAnswered } = {}) {
       if (seq === requestSeqRef.current) {
         syncChatState(response.data);
       }
-    } catch (error) {
-      console.error("채팅 상태 조회 실패:", error.response?.data ?? error);
+    } catch {
+      // 다음 폴링 주기에 다시 동기화한다.
     }
   }, [syncChatState]);
 
@@ -61,8 +61,7 @@ export function useChatSync({ paused = false, onAnswered } = {}) {
         requestSeqRef.current += 1;
         applyActionResponse(response.data.messages ?? []);
         onAnswered?.(option);
-      } catch (error) {
-        console.error("트리거 응답 실패:", error.response?.data ?? error);
+      } catch {
         // 중복 클릭이나 만료된 가설이면 서버 상태로 다시 맞춘다
         await refresh();
       } finally {

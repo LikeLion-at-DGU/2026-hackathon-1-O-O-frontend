@@ -5,7 +5,6 @@ import {
   getVisitToken,
   isVisitFinished,
 } from "../utils/storage";
-import { logger } from "../utils/logger";
 
 const QUEUE_KEY = "pending_events";
 const PRODUCT_INTERACTION_KEY =
@@ -178,9 +177,6 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
   };
 
   try {
-    // 전체 payload를 찍지 않는다 — 행동 로그 자체가 개인 데이터다
-    logger.debug("[Events] 전송", { count: events.length });
-
     if (keepalive) {
       const response = await fetch(
         `${
@@ -203,17 +199,12 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
     }
 
     const response = await api.post("/events", payload, { headers });
-    logger.debug("✅ [Events] 전송 성공:", response.data);
 
     // ⭐️ 전송 성공 확인 후 안전하게 큐 비우기
     removeSentEvents(events);
     return response.data;
   } catch (error) {
     const status = error.response?.status;
-    const errorData = error.response?.data;
-
-    console.warn("⚠️ [Events] 전송 실패:", errorData ?? error.message);
-
     // 400(검증 실패), 401(인증 실패)인 잘못된 요청은 큐에서 제거하여 무한 에러 방지
     if (status === 400 || status === 401) {
       saveQueue([]);

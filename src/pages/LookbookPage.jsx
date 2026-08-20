@@ -157,11 +157,6 @@ function LookbookPage() {
                 }
             );
         } catch (error) {
-            console.error(
-                "화보 재생성 실패:",
-                error.response?.data || error
-            );
-
             const { status, message } =
                 getApiError(error);
 
@@ -279,25 +274,6 @@ function LookbookPage() {
                     <S.LookbookImage
                         src={lookbook.image_url}
                         alt="AI로 생성된 나의 O&O 화보"
-                        onLoad={() =>
-                            console.info(
-                                "[Lookbook] 이미지 로드 완료",
-                                {
-                                    imageUrl:
-                                        lookbook.image_url,
-                                }
-                            )
-                        }
-                        onError={(event) =>
-                            console.error(
-                                "[Lookbook] 이미지 로드 실패",
-                                {
-                                    imageUrl:
-                                        lookbook.image_url,
-                                    event,
-                                }
-                            )
-                        }
                     />
                 </S.ImageSection>
 

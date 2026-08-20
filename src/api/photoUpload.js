@@ -1,6 +1,5 @@
 import axios from "axios";
 import { requestUploadUrls } from "./lookbooks";
-import { logger } from "../utils/logger";
 
 const PHOTO_MAX_BYTES =
   5 * 1024 * 1024;
@@ -35,11 +34,6 @@ export const uploadFileToStorage =
         "dev-unsigned"
       )
     ) {
-      console.warn(
-        "[개발 모드] 가짜 업로드 URL이므로 PUT 요청을 생략합니다.",
-        uploadUrl
-      );
-
       return {
         status: 200,
         statusText: "OK (Mocked)",
@@ -120,12 +114,6 @@ export const uploadPhotoAndMask =
       headers = {},
     } = presignData;
 
-    // presigned URL은 일정 시간 유효한 자격 증명이라 로그에 남기지 않는다
-    logger.debug("[Lookbook Upload] Presign 발급", {
-      hasPhotoUrl: Boolean(photo_upload_url),
-      hasMaskUrl: Boolean(mask_upload_url),
-    });
-
     if (
       !photo_key ||
       !photo_upload_url
@@ -138,21 +126,11 @@ export const uploadPhotoAndMask =
     /*
      * 원본 사진 업로드
      */
-    logger.debug("[Lookbook Upload] 사진 PUT 시작", {
-      contentType: photoBlob.type,
-      byteSize: photoBlob.size,
-    });
-
-    const photoUploadResponse =
-      await uploadFileToStorage(
+    await uploadFileToStorage(
       photo_upload_url,
       photoBlob,
       headers.photo
     );
-
-    logger.debug("[Lookbook Upload] 사진 PUT 완료", {
-      status: photoUploadResponse?.status,
-    });
 
     let uploadedMaskKey = null;
 
@@ -166,35 +144,13 @@ export const uploadPhotoAndMask =
       mask_upload_url &&
       mask_key
     ) {
-      logger.debug("[Lookbook Upload] 마스크 PUT 시작", {
-        contentType: maskBlob.type,
-        byteSize: maskBlob.size,
-      });
-
-      const maskUploadResponse =
-        await uploadFileToStorage(
+      await uploadFileToStorage(
         mask_upload_url,
         maskBlob,
         headers.mask ?? { "Content-Type": "image/png" }
       );
 
       uploadedMaskKey = mask_key;
-
-      logger.debug("[Lookbook Upload] 마스크 PUT 완료", {
-        status: maskUploadResponse?.status,
-      });
-    } else {
-      logger.info(
-        "[Lookbook Upload] 마스크 PUT 생략",
-        {
-          hasMaskBlob: Boolean(maskBlob),
-          maskByteSize: maskBlob?.size ?? 0,
-          hasMaskUploadUrl: Boolean(
-            mask_upload_url
-          ),
-          hasMaskKey: Boolean(mask_key),
-        }
-      );
     }
 
     return {

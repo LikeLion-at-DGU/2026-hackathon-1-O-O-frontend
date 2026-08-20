@@ -128,20 +128,11 @@ export function useLookbookImageActions({
     } catch (error) {
       if (error?.name === "AbortError") return;
 
-      console.warn(
-        "이미지 파일 공유 실패, 링크 공유로 전환:",
-        error,
-      );
-
       try {
         await shareLookbookLink();
       } catch (shareError) {
         if (shareError?.name === "AbortError") return;
 
-        console.error(
-          "화보 링크 공유 실패:",
-          shareError,
-        );
         showToast("화보를 공유하지 못했습니다.");
       }
     }
@@ -185,7 +176,6 @@ export function useLookbookImageActions({
     } catch (error) {
       if (error?.name === "AbortError") return;
 
-      console.error("이미지 저장 실패:", error);
       showToast(
         error?.message ||
           "이미지를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",

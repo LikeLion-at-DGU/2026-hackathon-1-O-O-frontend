@@ -18,6 +18,11 @@ export const ProductArea = styled.div`
   box-sizing: border-box;
   overflow: hidden;
   flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: 100%;
+  }
 `;
 
 // ⭐️ 좌측 영역 (이미지 152px + 텍스트)
@@ -30,6 +35,13 @@ export const ProductWrapper = styled.div`
   flex-shrink: 0;
   padding-top: 0px;
   box-sizing: border-box;
+
+  /* 363px 기준 156px ≈ 47% 비율 유지 */
+  @media (max-width: 600px) {
+    width: 47%;
+    min-width: 0;
+    flex-shrink: 1;
+  }
 `;
 
 // ⭐️ 피그마 이미지 박스
@@ -48,6 +60,12 @@ export const ProductImageBox = styled.div`
   box-sizing: border-box;
   overflow: hidden;
   /* margin-top: -30px; */
+
+  @media (max-width: 600px) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 166 / 179.78;
+  }
 `;
 
 export const ProductImage = styled.img`
@@ -97,6 +115,14 @@ export const DetailButtonWrapper = styled.div`
   border-left: 1px dashed #BEB9B2;
   box-sizing: border-box;
   flex-shrink: 0;
+
+  /* 363px 기준 152px ≈ 46% 비율 유지 */
+  @media (max-width: 600px) {
+    width: 46%;
+    min-width: 0;
+    flex-shrink: 1;
+    padding-left: 12px;
+  }
 `;
 
 export const DetailButtonGroup = styled.div`

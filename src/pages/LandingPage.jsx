@@ -118,7 +118,6 @@ export default function LandingPage() {
             img.src = src;
         });
 
-        console.log(`${imageUrls.length}개 상품 이미지 preload 시작`);
     }, []);
 
 
@@ -436,9 +435,7 @@ export default function LandingPage() {
         setIsEntering(true);
         setDoorClosing(true);
 
-        BgmManager.play().catch((err) => {
-            console.log("음악 재생 실패:", err);
-        });
+        BgmManager.play().catch(() => {});
 
         try {
             // API와 950ms 문 애니메이션을 동시에 실행
@@ -447,13 +444,7 @@ export default function LandingPage() {
                 delay(950),
             ]);
 
-            console.log("매장 입장 API 성공");
-        } catch (error) {
-            console.error(
-                "백엔드 미연결 - 강제 통과합니다:",
-                error
-            );
-
+        } catch {
             // 실패하더라도 문 애니메이션 최소 시간은 확보
             await delay(950);
         }

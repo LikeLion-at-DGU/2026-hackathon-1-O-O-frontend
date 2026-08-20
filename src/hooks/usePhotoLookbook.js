@@ -108,11 +108,8 @@ function dataURLtoBlob(dataUrl) {
                 face_center: detectedMeta.face_center,
             };
             }
-        } catch (mediaPipeError) {
-            console.warn(
-            "MediaPipe 검출에 실패하여 일반 생성으로 진행합니다.",
-            mediaPipeError
-            );
+        } catch {
+            // 마스크 없이 원본 사진만으로 화보 생성을 계속한다.
         }
 
         // 3. 사진 및 마스크 업로드
@@ -159,8 +156,6 @@ function dataURLtoBlob(dataUrl) {
             state: { jobId },
         });
         } catch (error) {
-        console.error("화보 생성 요청 실패:", error.response?.data || error);
-
         const { status, message, detail } = getApiError(error);
         const errorDetail = typeof detail === "string" ? detail : message;
 

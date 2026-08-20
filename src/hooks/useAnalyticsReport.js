@@ -24,7 +24,6 @@ export default function useAnalyticsReport() {
 
     useEffect(() => {
         if (!reportSlug) {
-        console.warn("⚠️ [AnalyticsPage] reportSlug 없음");
         return;
         }
 
@@ -41,12 +40,6 @@ export default function useAnalyticsReport() {
             if (!shouldRetry) {
             throw error;
             }
-
-            console.info("[Lookbook] 후보 분석 대기 후 재조회", {
-            reportSlug,
-            retryCount: retryCount + 1,
-            retryAfterMs: CANDIDATE_RETRY_DELAY,
-            });
 
             await new Promise((resolve) => {
             pollTimerRef.current = window.setTimeout(
@@ -65,8 +58,6 @@ export default function useAnalyticsReport() {
         try {
             const data = await getAnalytics(reportSlug);
             if (!isMounted) return;
-
-            console.log("📊 [AnalyticsPage] 서버 리포트 원본 데이터:", data);
 
             if (data?.status === "pending") {
             navigate(`/analytics-loading?slug=${reportSlug}`, { replace: true });
@@ -127,12 +118,7 @@ export default function useAnalyticsReport() {
                 "selected_products",
                 JSON.stringify([initialProductId])
                 );
-            } catch (candidateRequestError) {
-                console.error(
-                "화보 후보 상품 조회 실패:",
-                candidateRequestError.response?.data || candidateRequestError
-                );
-
+            } catch {
                 if (!isMounted) return;
 
                 setCandidateProducts([]);
@@ -148,8 +134,7 @@ export default function useAnalyticsReport() {
 
             setIsPending(false);
             }
-        } catch (err) {
-            console.error("🚨 리포트 조회 실패:", err);
+        } catch {
             if (isMounted) setIsPending(false);
         }
         };

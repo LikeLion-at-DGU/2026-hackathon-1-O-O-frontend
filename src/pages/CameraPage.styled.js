@@ -50,6 +50,13 @@ export const PersonGuide = styled.div`
   width: 260px;
   height: 479px;
   aspect-ratio: 19 / 35;
+
+  /* 작은 기종에서 촬영 버튼과 겹치지 않도록 화면 크기에 맞춰 축소
+     (background-size: contain이라 비율은 유지된다) */
+  @media (max-width: 600px) {
+    width: min(260px, 64vw);
+    height: min(479px, calc(100dvh - 330px));
+  }
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;

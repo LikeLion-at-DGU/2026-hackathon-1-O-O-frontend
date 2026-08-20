@@ -44,11 +44,7 @@ export default function useCamera() {
                     },
                 audio: false,
             });
-            } catch (firstError) {
-            console.warn(
-                "선호 카메라 요청에 실패하여 기본 카메라로 다시 시도합니다.",
-                firstError
-            );
+            } catch {
 
             stream = await navigator.mediaDevices.getUserMedia({
                 video: true,
@@ -60,8 +56,7 @@ export default function useCamera() {
             videoElement.srcObject = stream;
             await videoElement.play();
             }
-        } catch (error) {
-            console.error("카메라 실행 실패:", error);
+        } catch {
             if (isMounted) {
             setCameraError(true);
             }
@@ -128,18 +123,14 @@ export default function useCamera() {
 
         try {
             sessionStorage.setItem("temp_captured_photo", image);
-        } catch (storageError) {
-            console.warn(
-            "촬영 사진을 sessionStorage에 저장하지 못했습니다.",
-            storageError
-            );
+        } catch {
+            // 라우트 state로도 사진을 전달하므로 촬영 흐름은 계속 진행한다.
         }
 
         navigate("/camera/confirm", {
             state: { photo: image },
         });
-        } catch (error) {
-        console.error("사진 촬영 실패:", error);
+        } catch {
         showToast("사진을 촬영하지 못했습니다. 다시 시도해 주세요.");
         setIsCapturing(false);
         }

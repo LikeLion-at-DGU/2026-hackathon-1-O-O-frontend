@@ -14,12 +14,15 @@ function ProductPage() {
 
     return (
         <S.PageContainer>
-        {/* 선반과 100% 동일한 363x300 기준 박스 */}
+        {/* 선반과 100% 동일한 기준 박스 — 부모(Layout Content)가 데스크톱에선 363x300,
+            모바일에선 화면 폭에 맞춰 줄어들므로 100%로 따라간다 */}
         <div
             style={{
             position: "relative",
-            width: "363px",
-            height: "300px",
+            width: "100%",
+            maxWidth: "363px",
+            height: "100%",
+            maxHeight: "300px",
             }}
         >
             {/* 선반 레이아웃과 일치하는 좌측 상단 백버튼 */}

@@ -58,8 +58,6 @@ import { showToast } from "../../utils/toast";
 
         // ⭐️ 마지막 머문 시간까지 포함된 잔여 이벤트 전량 회수
         const remainingEvents = drainEventBuffer();
-        console.log("📦 [관람 종료] 최종 동봉 이벤트 (현재 보고있던 시간 포함):", remainingEvents);
-
         const response = await api.post(
             `/visits/${visitId}/finish`,
             { events: remainingEvents },
@@ -70,8 +68,6 @@ import { showToast } from "../../utils/toast";
             }
         );
 
-        console.log("🏁 [관람 종료 성공]:", response.data);
-
         const slug = response.data?.slug;
         if (slug) {
             sessionStorage.setItem("report_slug", slug);
@@ -80,7 +76,6 @@ import { showToast } from "../../utils/toast";
             navigate("/analytics-loading");
         }
         } catch (error) {
-        console.error("🚨 관람 종료 요청 실패:", error.response?.data || error);
         // 서버 에러 포맷은 {"error":{code,message}}다. data.message를 읽어
         // 모든 실패가 "서버 응답 오류"로만 보였다.
         showToast(`관람 종료 실패: ${error.response?.data?.error?.message || "서버 응답 오류"}`);

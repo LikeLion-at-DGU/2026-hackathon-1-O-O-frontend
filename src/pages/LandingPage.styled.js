@@ -1,20 +1,41 @@
 import styled, { css } from "styled-components";
 
+const absoluteFill = css`
+  position: absolute;
+  inset: 0;
+`;
+
+const invitationNightBackground = css`
+  background:
+    radial-gradient(
+      circle at 15% 18%,
+      rgba(243, 238, 227, 0.06),
+      transparent 19%
+    ),
+    radial-gradient(
+      circle at 82% 16%,
+      rgba(140, 98, 57, 0.16),
+      transparent 25%
+    ),
+    linear-gradient(
+      180deg,
+      #222222,
+      #292623 67%,
+      #302820
+    );
+`;
+
 /* =========================================================
    전체 모바일 컨테이너
 ========================================================= */
 
 export const MobileContainer = styled.div`
-
   --font-pretendard: "Pretendard", sans-serif;
---font-logo: "Prentendard";
-// 색상 팔레트
+  --font-logo: "Pretendard", sans-serif;
   --night: #222222;
-  --paper: #F4F2EE;
   --gallery-cream: #F3EEE3;
   --surface: #FFFFFF;
   --ink: #222222;
-  --muted: #8C6239;
   --brown: #8C6239;
   --neutral: #E5E3E0;
   --shelve: #D1CCC7;
@@ -27,9 +48,6 @@ export const MobileContainer = styled.div`
 
   min-height: 100vh;
   min-height: 100dvh;
-
-
-
   margin: 0 auto;
 
   font-family: var(--font-pretendard);
@@ -38,8 +56,10 @@ export const MobileContainer = styled.div`
   color: var(--surface);
 
   overflow-x: clip;
-    @media (max-width: 600px) {
-    width: 100%; }
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
 `;
 
 /* =========================================================
@@ -158,49 +178,15 @@ export const HeroChapter = styled.section`
   width: 100%;
   height: 330svh;
 
-  background:
-    radial-gradient(
-      circle at 15% 18%,
-      rgba(243, 238, 227, 0.06),
-      transparent 19%
-    ),
-    radial-gradient(
-      circle at 82% 16%,
-      rgba(140, 98, 57, 0.16),
-      transparent 25%
-    ),
-    linear-gradient(
-      180deg,
-      #222222,
-      #292623 67%,
-      #302820
-    );
+  ${invitationNightBackground}
 `;
 
 export const StickyNight = styled(StickyBase)`
-  background:
-    radial-gradient(
-      circle at 15% 18%,
-      rgba(243, 238, 227, 0.06),
-      transparent 19%
-    ),
-    radial-gradient(
-      circle at 82% 16%,
-      rgba(140, 98, 57, 0.16),
-      transparent 25%
-    ),
-    linear-gradient(
-      180deg,
-      #222222,
-      #292623 67%,
-      #302820
-    );
+  ${invitationNightBackground}
 `;
 
 export const Stars = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 `;
 
 export const Star = styled.span`
@@ -545,7 +531,6 @@ export const InvitationLabel = styled.div`
   font-family: "Unkempt", cursive;
   font-size: 13px;
   font-weight: 400;
-  letter-spacing: 0.52px;
   letter-spacing: 0.02em;
 `;
 
@@ -568,7 +553,6 @@ export const InvitationCopy = styled.p`
   color: var(--night);
 
   font-size: 12px;
-  line-height: 1.6;
   font-style: normal;
   font-weight: 300;
   line-height: normal;
@@ -611,9 +595,7 @@ export const PaddySignature = styled.div`
 `;
 
 export const PaperWhiteout = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 
   z-index: 10;
 
@@ -700,9 +682,7 @@ export const EraSticky = styled(StickyBase)`
 `;
 
 export const PaperFiber = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 
   z-index: 1;
 
@@ -724,9 +704,7 @@ export const PaperFiber = styled.div`
 `;
 
 export const FilmGrain = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 
   z-index: 2;
 
@@ -738,9 +716,7 @@ export const FilmGrain = styled.div`
 `;
 
 export const CognacWash = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 
   z-index: 0;
 
@@ -857,9 +833,7 @@ export const EraIntro = styled.div`
 ========================= */
 
 export const EraPhotos = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 
   z-index: 5;
 `;
@@ -949,9 +923,7 @@ export const EraCode = styled.div`
 ========================= */
 
 export const FinalMoment = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 
   z-index: 15;
 
@@ -1392,9 +1364,7 @@ export const EnterButton = styled.button`
 ========================================================= */
 
 export const Door = styled.div`
-  position: absolute;
-
-  inset: 0;
+  ${absoluteFill}
 
   z-index: 20;
 
@@ -1434,10 +1404,6 @@ export const Door = styled.div`
     &:first-child {
       transform-origin: left;
     }
-
-    &:disabled {
-  cursor: default;
-}
 
     &:last-child {
       transform-origin: right;
