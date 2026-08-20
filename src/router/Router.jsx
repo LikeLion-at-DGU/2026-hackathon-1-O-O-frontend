@@ -1,8 +1,9 @@
 import {
   Route,
   Routes,
+  useNavigate, useLocation
 } from "react-router-dom";
-
+import { useEffect } from "react";
 import Layout from "../components/Layout/Layout";
 
 import LandingPage from "../pages/LandingPage";
@@ -20,6 +21,31 @@ import LookbookLoadingPage from "../pages/LookbookLoadingPage";
 import AnalyticsLoadingPage from "../pages/AnalyticsLoadingPage";
 
 function Router() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // ⭐️ visit_id 검사 및 리다이렉트 로직
+  useEffect(() => {
+    // 1. 검사를 건너뛸 '공개 페이지' 경로 설정 (랜딩 페이지, 로딩, 공유된 화보 주소 등)
+    const isPublicPage =
+      location.pathname === "/" ||
+      location.pathname === "/lookbook-loading-preview" ||
+      location.pathname.startsWith("/l/");
+
+    // 2. 공개 페이지가 아닌데(즉, 매장이나 챗봇 화면인데)
+    if (!isPublicPage) {
+      const visitId =
+        localStorage.getItem("visitId") || localStorage.getItem("visit_id");
+
+      // 3. visitId가 없으면 랜딩 페이지로 쫓아냄
+      if (!visitId) {
+        console.warn("⚠️ visit_id가 존재하지 않아 랜딩 페이지로 이동합니다.");
+        // replace: true를 넣으면 뒤로가기 버튼을 눌러도 다시 튕기지 않아 깔끔합니다.
+        navigate("/", { replace: true });
+      }
+    }
+  }, [location.pathname, navigate]);
+
   return (
     <Routes>
       {/* 로딩확인 페이지 */}
