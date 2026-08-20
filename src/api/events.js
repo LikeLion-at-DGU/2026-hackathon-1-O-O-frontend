@@ -1,6 +1,9 @@
 import { api } from "./api";
 
 const QUEUE_KEY = "pending_events";
+const PRODUCT_INTERACTION_KEY =
+  "has_product_interaction";
+
 const FLUSH_INTERVAL = 1_000;
 
 let flushTimer;
@@ -209,6 +212,17 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
   }
 };
 
+export const hasProductInteraction = () =>
+  sessionStorage.getItem(
+    PRODUCT_INTERACTION_KEY
+  ) === "true";
+
+export const resetProductInteraction = () => {
+  sessionStorage.removeItem(
+    PRODUCT_INTERACTION_KEY
+  );
+};
+
 // 개별 이벤트 큐 등록 함수
 export const sendEvent = async (eventData) => {
   if (!eventData || !eventData.event_type) {
@@ -216,7 +230,18 @@ export const sendEvent = async (eventData) => {
   }
 
   const cleanedEvent = sanitizeEvent(eventData);
-  saveQueue([...getQueue(), cleanedEvent]);
+
+  if (cleanedEvent.product_id) {
+    sessionStorage.setItem(
+      PRODUCT_INTERACTION_KEY,
+      "true"
+    );
+  }
+
+  saveQueue([
+    ...getQueue(),
+    cleanedEvent,
+  ]);
 
   clearTimeout(flushTimer);
   flushTimer = setTimeout(() => {
