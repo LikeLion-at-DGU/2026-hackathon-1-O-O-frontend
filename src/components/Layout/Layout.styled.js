@@ -1,168 +1,110 @@
+// src/components/Layout/Layout.styled.js
 import styled from "styled-components";
 
+// ⭐️ 1. 상단 카드 영역 (최대 600px까지 비율 유지하며 확장)
 export const Content = styled.div`
-  /* 컴퓨터에서는 기존 크기 유지 */
-  width: 363px;
-  height: 300px;
-  flex: 0 0 auto;
+  width: calc(100% - 32px);
+  max-width: 568px; /* 600px 컨테이너 기준 좌우 16px 패딩 제외 */
+  aspect-ratio: 363 / 300;
+  max-height: 38dvh;
+  margin: 14px auto 20px;
+
+  border-radius: 24px;
+  background-color: transparent;
+  box-shadow: none;
+
+  position: relative;
   flex-shrink: 0;
-  border-radius: 20px;
-  /* background: #e5e3e0; */
-  margin: 24px auto;
-  background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
+  z-index: 2;
+  overflow: visible;
 
-  /* 휴대폰에서만 반응형 적용 */
-  @media (max-width: 600px) {
-    width: calc(100% - 32px);
-    height: auto;
-
-    /* 기존 363:300 비율 유지 */
-    aspect-ratio: 363 / 300;
-
-    margin: 16px auto;
-    border-radius: 16px;
+  /* ⭐️ 600px 초과 PC 화면에서는 기본 363x300 고정 */
+  @media (min-width: 601px) {
+    width: 363px;
+    height: 300px;
+    max-height: none;
+    aspect-ratio: auto;
+    margin: 16px auto 24px;
   }
 `;
 
+// ⭐️ 2. 하단 회색 컨테이너 영역 (600px까지 너비 100% 꽉 채움)
+// src/components/Layout/Layout.styled.js
+
+// ⭐️ 1. 하단 회색 영역: 600px 폭 전체를 꽉 채우도록 수정 (양옆 흰 여백 제거)
 export const Containerbottom = styled.div`
   position: relative;
-
-  /* 기존 코드 유지 */
   width: 100%;
-  height: calc(100vh - 430px);
-  background-color: #F4F2EE;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  /* 추가 */
+  margin: 0 auto;
+
+  flex: 1 1 0%;
+  min-height: 0;
+
   display: flex;
   flex-direction: column;
-  max-height: 844px;
-/* 좌우는 완전히 제외하고 오직 상단 -> 하단으로만 떨어지는 그림자 */
-  box-shadow: inset 0 12px 14px -10px rgba(0, 0, 0, 0.14),
-              inset 0 4px 6px -3px rgba(0, 0, 0, 0.08);
-  /* 나머지 기존 코드 유지 */
+  background-color: #f4f2ee;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 
-  @media (max-width: 600px) {
-    /* 기존 반응형 코드 유지 */
-    height: calc(100dvh - 103px);
-    min-height: 500px;
-
-    /* 추가 */
-    max-height: 844px;
-
-    
-  }
+  box-shadow: inset 0 12px 14px -10px rgba(0, 0, 0, 0.12);
+  z-index: 1;
 `;
 
+// ⭐️ 2. 채팅 메시지 영역: 늘어난 너비에 맞춰 양옆 16px 여백을 두고 꽉 차게 확장
 export const Chat = styled.div`
-  
+  width: calc(100% - 32px);
+  margin: 0 auto;
+
+  flex: 1 1 0%;
+  min-height: 0;
+
   display: flex;
-    flex: 1 1 auto;
-  min-height: 0;
-
-  overflow-y: auto;
-
-  /* 추가 */
-  min-height: 0;
-  flex-shrink: 1;
-
-  /* 기존 코드 유지 */
-  width: 364px;
-  height: 366px;
-
-  /* 기존 코드 그대로 */
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
 
-  margin: 0 auto 16px;
-  padding: 16px 0 16px;
+  padding: 16px 0 8px;
+  box-sizing: border-box;
 
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 
-  /* ⭐️ [핵심] 스크롤바 배경 투명화 및 슬림 바 디자인 */
   &::-webkit-scrollbar {
-    width: 4px; /* 얇은 너비 */
-    background-color: transparent; /* 트랙 배경 완전 투명 */
-  }
-
-  &::-webkit-scrollbar-track {
+    width: 4px;
     background-color: transparent;
   }
-
   &::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.15); /* 반투명한 얇은 막대 */
+    background-color: rgba(0, 0, 0, 0.15);
     border-radius: 4px;
   }
-
-  /* Firefox 대응 */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
-
-  @media (max-width: 600px) {
-    width: calc(100% - 32px);
-    height: clamp(240px, 42dvh, 366px);
-
-    margin: 0 auto 12px;
-    padding: 20px 4px 16px 0;
-    gap: 10px;
-  }
-
-  /* 기존 미디어쿼리도 그대로 유지 */
-  @media (max-width: 600px) {
-    width: calc(100% - 32px);
-    height: clamp(240px, 42dvh, 366px);
-
-    margin: 0 auto 12px;
-    padding: 16px 4px 16px 0;
-    gap: 8px;
-  }
 `;
 
 export const Line = styled.svg`
-  position: absolute;
-  right: 14px;
-  top: 500px;
-
-  @media (max-width: 600px) {
-    right: 12px;
-    top: 58dvh;
-  }
+  display: none;
 `;
 
+// ⭐️ 3. 하단 '채팅으로 대화하기' 링크: 늘어난 너비의 오른쪽 끝에 정확히 위치
 export const GoChat = styled.div`
-  color: #71717a;
-  text-align: center;
+  flex-shrink: 0;
+  width: calc(100% - 32px);
+  margin: 0 auto 8px;
+  padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
 
-  font-family: Pretendard;
+  color: #71717a;
+  font-family: Pretendard, sans-serif;
   font-size: 12px;
   font-weight: 300;
   line-height: 140%;
 
-  padding-bottom: 16px;
-
   display: flex;
   justify-content: flex-end;
   align-items: center;
-
-  margin-right: 20px;
-  margin-bottom: 24px;
-
   gap: 8px;
-
   cursor: pointer;
 
-  @media (max-width: 600px) {
-    margin-right: 16px;
-    margin-bottom: 16px;
-  }
-
   &:hover {
-    color: #222;
+    color: #222222;
   }
-
-  flex-shrink: 0;
 `;
