@@ -5,21 +5,27 @@ export const LookbookContainer = styled.div`
   flex-direction: column;
 
   width: 100%;
-  min-height: 100dvh;
-  padding: 42px 20px 26px;
+  height: 100%;
+  min-height: 0;
+  padding: 50px 20px 34px 19px;
 
   box-sizing: border-box;
+  overflow-y: auto;
 
   color: #f3eee3;
 
-  background:
-    linear-gradient(
-      180deg,
-      #202020 0%,
-      #202020 48%,
-      #4a4845 74%,
-      #c9c5bf 100%
-    );
+  background: linear-gradient(
+    180deg,
+    #222 0%,
+    #222 58.173%,
+    #d1ccc7 100%
+  );
+
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export const TopSection = styled.div`
@@ -27,8 +33,9 @@ export const TopSection = styled.div`
 `;
 
 export const Logo = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  width: fit-content;
 
   padding: 0;
 
@@ -41,30 +48,30 @@ export const Logo = styled.button`
 export const LogoMain = styled.span`
   font-family: Georgia, "Times New Roman",
     serif;
-  font-size: 31px;
+  font-size: 32px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.2;
 `;
 
 export const Ampersand = styled.span`
   margin: 0 2px;
-  padding-top: 10px;
+  padding-top: 9px;
 
   color: #8c6239;
   font-family: Georgia, "Times New Roman",
     serif;
   font-size: 16px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.2;
 `;
 
 export const Message = styled.p`
-  margin: 42px 0 10px;
+  margin: 74.6px 0 0;
 
   color: #e5e3e0;
   font-family: Pretendard, sans-serif;
   font-size: 20px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 140%;
   text-align: center;
 `;
@@ -74,10 +81,12 @@ export const MuseInfo = styled.div`
   justify-content: center;
   gap: 8px;
 
-  margin-bottom: 16px;
+  min-height: 14px;
+  margin: 3px 0 7px;
 
   color: #a8a29d;
   font-size: 10px;
+  line-height: 14px;
   letter-spacing: 0.04em;
 
   span:not(:last-child)::after {
@@ -87,6 +96,7 @@ export const MuseInfo = styled.div`
 `;
 
 export const ImageSection = styled.div`
+  flex-shrink: 0;
   width: 100%;
   aspect-ratio: ${({ $width, $height }) =>
     $width > 0 && $height > 0
@@ -102,132 +112,35 @@ export const LookbookImage = styled.img`
 
   object-fit: cover;
 
-  background-color: #e6e6e8;
+  background-color: #e4e4e7;
   border-radius: 10px;
-`;
-
-export const MoodSection = styled.section`
-  padding: 18px 4px 4px;
-
-  text-align: center;
-`;
-
-export const MoodName = styled.h2`
-  margin: 0;
-
-  color: #f3eee3;
-  font-family: Georgia, "Times New Roman",
-    serif;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-`;
-
-export const MoodReason = styled.p`
-  margin: 7px 0 0;
-
-  color: rgb(255 255 255 / 68%);
-  font-size: 11px;
-  line-height: 150%;
-`;
-
-export const Palette = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 7px;
-
-  margin-top: 10px;
-`;
-
-export const PaletteColor = styled.span`
-  display: block;
-
-  width: 18px;
-  height: 18px;
-
-  background-color: ${({ $color }) =>
-    $color};
-  border: 1px solid rgb(255 255 255 / 30%);
-  border-radius: 50%;
-`;
-
-export const StatsRow = styled.div`
-  display: grid;
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-
-  margin-top: 16px;
-  padding: 15px 8px;
-
-  background-color: rgb(0 0 0 / 12%);
-  border-radius: 12px;
-`;
-
-export const StatItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  &:not(:last-child) {
-    border-right: 1px solid
-      rgb(255 255 255 / 14%);
-  }
-`;
-
-export const StatValue = styled.strong`
-  color: #f3eee3;
-  font-size: 17px;
-`;
-
-export const StatLabel = styled.span`
-  margin-top: 4px;
-
-  color: rgb(255 255 255 / 62%);
-  font-size: 10px;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 25%);
 `;
 
 export const BottomSection = styled.div`
   flex-shrink: 0;
-  padding-top: 16px;
+  padding-top: 20px;
 `;
 
 export const ActionRow = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-`;
-
-export const ShareFileButton = styled.button`
-  min-height: 54px;
-  padding: 0 12px;
-
-  color: #e5e3e0;
-  font-family: Pretendard, sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-
-  background-color: #202020;
-  border: none;
-  border-radius: 17px;
-  cursor: pointer;
-
-  &:active {
-    background-color: #353535;
-  }
+  grid-template-columns: minmax(0, 1fr) 60px;
+  gap: 12px;
 `;
 
 export const DownloadButton = styled.button`
-  min-height: 54px;
-  padding: 0 12px;
+  height: 60px;
+  padding: 16px;
 
   color: #e5e3e0;
   font-family: Pretendard, sans-serif;
-  font-size: 13px;
+  font-size: 20px;
   font-weight: 600;
+  line-height: 140%;
 
-  background-color: #202020;
+  background-color: #222;
   border: none;
-  border-radius: 17px;
+  border-radius: 20px;
   cursor: pointer;
 
   &:active {
@@ -235,42 +148,55 @@ export const DownloadButton = styled.button`
   }
 `;
 
-export const HomeButton = styled.button`
-  width: 100%;
-  height: 50px;
-  margin-top: 10px;
+export const ShareButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  color: #333;
-  font-size: 14px;
-  font-weight: 600;
+  width: 60px;
+  height: 60px;
+  padding: 10px;
 
-  background-color: rgb(250 249 247 / 90%);
+  background-color: #222;
   border: none;
-  border-radius: 17px;
+  border-radius: 999px;
   cursor: pointer;
+
+  &:active {
+    background-color: #353535;
+  }
+`;
+
+export const ShareIcon = styled.img`
+  display: block;
+  width: 22px;
+  height: 24px;
 `;
 
 export const RetryDescription = styled.p`
-  margin: 16px 2px 7px;
+  margin: 10px 0 4px;
 
-  color: rgb(255 255 255 / 65%);
+  color: #e5e3e0;
   font-family: Pretendard, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 300;
   line-height: 140%;
 `;
 
 export const RetryButton = styled.button`
   width: 100%;
-  height: 50px;
+  height: 60px;
+  padding: 16px;
 
-  color: #333;
+  color: #222;
   font-family: Pretendard, sans-serif;
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 600;
+  line-height: 140%;
 
-  background-color: rgb(250 249 247 / 90%);
+  background-color: #e5e3e0;
   border: none;
-  border-radius: 17px;
+  border-radius: 20px;
   cursor: pointer;
 
   &:disabled {
