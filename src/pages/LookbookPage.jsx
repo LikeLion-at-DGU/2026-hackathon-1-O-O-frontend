@@ -132,44 +132,47 @@ function LookbookPage() {
      * 사용할 수 있습니다.
      */
     const pollByShareSlug = useCallback(
-        async (targetShareSlug) => {
-            if (!mountedRef.current) return;
-
-            try {
-                await loadCompletedLookbook(
-                    targetShareSlug
-                );
-            } catch (error) {
+        (targetShareSlug) => {
+            // useCallback 값은 초기화 중 자기 자신을 참조할 수 없어(TDZ)
+            // 내부 함수로 재귀한다.
+            const run = async () => {
                 if (!mountedRef.current) return;
 
-                const status =
-                    error.response?.status;
+                try {
+                    await loadCompletedLookbook(
+                        targetShareSlug
+                    );
+                } catch (error) {
+                    if (!mountedRef.current) return;
 
-                if (status === 409) {
-                    timerRef.current =
-                        window.setTimeout(
-                            () =>
-                                pollByShareSlug(
-                                    targetShareSlug
-                                ),
-                            DEFAULT_POLL_INTERVAL
+                    const status =
+                        error.response?.status;
+
+                    if (status === 409) {
+                        timerRef.current =
+                            window.setTimeout(
+                                run,
+                                DEFAULT_POLL_INTERVAL
+                            );
+
+                        return;
+                    }
+
+                    if (status === 404) {
+                        setErrorMessage(
+                            "존재하지 않는 화보이거나 삭제된 화보입니다."
                         );
 
-                    return;
-                }
+                        return;
+                    }
 
-                if (status === 404) {
                     setErrorMessage(
-                        "존재하지 않는 화보이거나 삭제된 화보입니다."
+                        "화보를 불러오지 못했습니다."
                     );
-
-                    return;
                 }
+            };
 
-                setErrorMessage(
-                    "화보를 불러오지 못했습니다."
-                );
-            }
+            return run();
         },
         [loadCompletedLookbook]
     );
@@ -178,23 +181,16 @@ function LookbookPage() {
      * job_id로 Redis 진행 상태를 조회합니다.
      */
     const pollJob = useCallback(
-        async (
-            jobId,
-            targetShareSlug,
-            initialDelay = 0
-        ) => {
+        (jobId, initialShareSlug, initialDelay = 0) => {
+            // pollByShareSlug와 같은 이유로 내부 함수로 재귀한다.
+            const run = async (targetShareSlug, delay) => {
             if (!mountedRef.current) return;
 
-            if (initialDelay > 0) {
+            if (delay > 0) {
                 timerRef.current =
                     window.setTimeout(
-                        () =>
-                            pollJob(
-                                jobId,
-                                targetShareSlug,
-                                0
-                            ),
-                        initialDelay
+                        () => run(targetShareSlug, 0),
+                        delay
                     );
 
                 return;
@@ -310,8 +306,7 @@ function LookbookPage() {
                 timerRef.current =
                     window.setTimeout(
                         () =>
-                            pollJob(
-                                jobId,
+                            run(
                                 job.share_slug ||
                                 targetShareSlug,
                                 0
@@ -355,15 +350,13 @@ function LookbookPage() {
                 // 일시적인 네트워크 오류는 다시 조회합니다.
                 timerRef.current =
                     window.setTimeout(
-                        () =>
-                            pollJob(
-                                jobId,
-                                targetShareSlug,
-                                0
-                            ),
+                        () => run(targetShareSlug, 0),
                         DEFAULT_POLL_INTERVAL
                     );
             }
+            };
+
+            return run(initialShareSlug, initialDelay);
         },
         [
             clearPollTimer,
@@ -482,10 +475,13 @@ function LookbookPage() {
 
     useEffect(() => {
         mountedRef.current = true;
-        startLoading();
+        // startLoading은 시작하며 에러 상태를 동기 setState로 초기화한다.
+        // effect 본문에서 바로 부르면 연쇄 렌더 경고라 한 틱 미룬다.
+        const kickoff = window.setTimeout(startLoading, 0);
 
         return () => {
             mountedRef.current = false;
+            window.clearTimeout(kickoff);
             clearPollTimer();
         };
     }, [clearPollTimer, startLoading]);

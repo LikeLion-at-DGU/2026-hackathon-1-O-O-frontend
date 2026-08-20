@@ -13,7 +13,8 @@ const defaultBagImg =
 const CANDIDATE_RETRY_DELAY = 2000;
 const CANDIDATE_MAX_RETRIES = 5;
 
-export const getProductImage = (product) => {
+// 이 파일 안에서만 쓴다. export하면 컴포넌트 파일 규칙(react-refresh)에 걸린다.
+const getProductImage = (product) => {
   return (
     product?.cutout_url ??
     product?.thumbnail ??
@@ -38,13 +39,14 @@ export default function AnalyticsPage() {
   const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [candidateProducts, setCandidateProducts] = useState([]);
   const [candidateError, setCandidateError] = useState("");
-  const [isPending, setIsPending] = useState(true);
+  // slug가 없으면 처음부터 pending이 아니다 — effect 안에서 동기 setState로
+  // 내리던 것을 초기값 계산으로 옮긴다 (연쇄 렌더 방지)
+  const [isPending, setIsPending] = useState(() => Boolean(reportSlug));
   const pollTimerRef = useRef(null);
 
   useEffect(() => {
     if (!reportSlug) {
       console.warn("⚠️ [AnalyticsPage] reportSlug 없음");
-      setIsPending(false);
       return;
     }
 
