@@ -3,24 +3,27 @@ import {
   Routes,
   useNavigate, useLocation
 } from "react-router-dom";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import Layout from "../components/Layout/Layout";
 import { getVisitId } from "../utils/storage";
 import { PATHS } from "./paths";
 
-import LandingPage from "../pages/LandingPage";
+// 매장 핵심 동선(지도·진열대·상품)은 즉시 로드하고, 크고 늦게 열리는
+// 화면은 라우트 단위로 분할한다 — 초기 번들이 550KB를 넘고 있었다.
 import HomePage from "../pages/HomePage";
 import MapPage from "../pages/MapPage";
 import ShelfPage from "../pages/ShelfPage";
 import ProductPage from "../pages/ProductPage";
 import GuidePage from "../pages/GuidePage";
-import ChatPage from "../pages/ChatPage";
-import AnalyticsPage from "../pages/AnalyticsPage";
-import CameraPage from "../pages/CameraPage";
-import PhotoConfirmPage from "../pages/PhotoConfirmPage";
-import LookbookPage from "../pages/LookbookPage";
-import LookbookLoadingPage from "../pages/LookbookLoadingPage";
-import AnalyticsLoadingPage from "../pages/AnalyticsLoadingPage";
+
+const LandingPage = lazy(() => import("../pages/LandingPage"));
+const ChatPage = lazy(() => import("../pages/ChatPage"));
+const AnalyticsPage = lazy(() => import("../pages/AnalyticsPage"));
+const CameraPage = lazy(() => import("../pages/CameraPage"));
+const PhotoConfirmPage = lazy(() => import("../pages/PhotoConfirmPage"));
+const LookbookPage = lazy(() => import("../pages/LookbookPage"));
+const LookbookLoadingPage = lazy(() => import("../pages/LookbookLoadingPage"));
+const AnalyticsLoadingPage = lazy(() => import("../pages/AnalyticsLoadingPage"));
 
 function Router() {
   const navigate = useNavigate();
@@ -51,6 +54,7 @@ function Router() {
   }, [location.pathname, navigate]);
 
   return (
+    <Suspense fallback={null}>
     <Routes>
       {/* 로딩 디자인 확인용 — 개발 환경에서만 연다 */}
       {import.meta.env.DEV && (
@@ -157,6 +161,7 @@ function Router() {
         />
       </Route>
     </Routes>
+    </Suspense>
   );
 }
 
