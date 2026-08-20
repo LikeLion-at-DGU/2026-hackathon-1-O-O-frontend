@@ -18,8 +18,7 @@ export const MobileContainer = styled.div`
 
   position: relative;
 
-  width: 100%;
-  max-width: 402px;
+  width: 402px;
   min-height: 100dvh;
 
   margin: 0 auto;
@@ -30,6 +29,8 @@ export const MobileContainer = styled.div`
   color: #ffffff;
 
   overflow-x: clip;
+    @media (max-width: 600px) {
+    width: 100%; }
 `;
 
 /* =========================================================
@@ -57,7 +58,7 @@ export const Progress = styled.div`
 
   z-index: 210;
 
-  width: min(100vw, 402px);
+  width: 402px;
   height: 2px;
 
   transform: translateX(-50%);
@@ -73,6 +74,11 @@ export const Progress = styled.div`
   mix-blend-mode: difference;
 
   pointer-events: none;
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+
 `;
 
 export const Index = styled.div`
@@ -84,10 +90,7 @@ export const Index = styled.div`
     브라우저 중앙에 있는 402px 모바일 컨테이너의
     오른쪽 끝을 기준으로 위치하도록 설정
   */
-  right: max(
-    10px,
-    calc((100vw - 402px) / 2 + 10px)
-  );
+  right: calc((100vw - 402px) / 2 + 10px);
 
   z-index: 130;
 
@@ -103,6 +106,10 @@ export const Index = styled.div`
   mix-blend-mode: difference;
 
   pointer-events: none;
+
+  @media (max-width: 600px) {
+    right: 10px;
+  }
 `;
 
 export const StickyBase = styled.div`
@@ -111,7 +118,9 @@ export const StickyBase = styled.div`
   top: 0;
 
   width: 100%;
-  height: 100svh;
+
+  height: 100vh;
+  height: 100dvh;
 
   overflow: hidden;
 `;
