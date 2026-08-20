@@ -228,13 +228,7 @@ function LookbookPage() {
         <MobileLayout showHeader={false}>
             <S.LookbookContainer>
                 <S.TopSection>
-                    <S.Logo
-                        type="button"
-                        onClick={() =>
-                            navigate("/home")
-                        }
-                        aria-label="처음 화면으로 이동"
-                    >
+                    <S.Logo>
                         <S.LogoMain>O</S.LogoMain>
                         <S.Ampersand>&</S.Ampersand>
                         <S.LogoMain>O</S.LogoMain>

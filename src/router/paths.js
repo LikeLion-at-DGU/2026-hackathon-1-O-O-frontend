@@ -2,7 +2,6 @@
 // /analtytics 같은 오타 라우팅이 컴파일 타임에 드러나도록 한다.
 export const PATHS = {
   LANDING: "/",
-  HOME: "/home",
   MAP: "/map",
   GUIDE: "/guide",
   CHAT: "/chat",
