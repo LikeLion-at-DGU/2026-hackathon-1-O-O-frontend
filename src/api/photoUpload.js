@@ -119,6 +119,17 @@ export const uploadPhotoAndMask =
       headers = {},
     } = presignData;
 
+    console.info(
+      "[Lookbook Upload] Presign 응답 값",
+      {
+        photo_upload_url,
+        mask_upload_url,
+        headers,
+        photo_key,
+        mask_key,
+      }
+    );
+
     if (
       !photo_key ||
       !photo_upload_url
@@ -131,10 +142,29 @@ export const uploadPhotoAndMask =
     /*
      * 원본 사진 업로드
      */
-    await uploadFileToStorage(
+    console.info(
+      "[Lookbook Upload] 사진 PUT 시작",
+      {
+        uploadUrl: photo_upload_url,
+        headers: headers.photo,
+        contentType: photoBlob.type,
+        byteSize: photoBlob.size,
+      }
+    );
+
+    const photoUploadResponse =
+      await uploadFileToStorage(
       photo_upload_url,
       photoBlob,
       headers.photo
+    );
+
+    console.info(
+      "[Lookbook Upload] 사진 PUT 완료",
+      {
+        status: photoUploadResponse?.status,
+        photo_key,
+      }
     );
 
     let uploadedMaskKey = null;
@@ -149,13 +179,44 @@ export const uploadPhotoAndMask =
       mask_upload_url &&
       mask_key
     ) {
-      await uploadFileToStorage(
+      console.info(
+        "[Lookbook Upload] 마스크 PUT 시작",
+        {
+          uploadUrl: mask_upload_url,
+          headers: headers.mask,
+          contentType: maskBlob.type,
+          byteSize: maskBlob.size,
+        }
+      );
+
+      const maskUploadResponse =
+        await uploadFileToStorage(
         mask_upload_url,
         maskBlob,
         headers.mask ?? { "Content-Type": "image/png" }
       );
 
       uploadedMaskKey = mask_key;
+
+      console.info(
+        "[Lookbook Upload] 마스크 PUT 완료",
+        {
+          status: maskUploadResponse?.status,
+          mask_key,
+        }
+      );
+    } else {
+      console.info(
+        "[Lookbook Upload] 마스크 PUT 생략",
+        {
+          hasMaskBlob: Boolean(maskBlob),
+          maskByteSize: maskBlob?.size ?? 0,
+          hasMaskUploadUrl: Boolean(
+            mask_upload_url
+          ),
+          hasMaskKey: Boolean(mask_key),
+        }
+      );
     }
 
     return {

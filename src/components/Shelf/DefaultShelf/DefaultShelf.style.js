@@ -65,6 +65,11 @@ export const ProductImage = styled.img`
   object-fit: contain;
 
   user-select: none;
+
+  transform: translateY(-5px);
+
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.2));
+
 `;
 
 export const ProductName = styled.span`
