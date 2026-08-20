@@ -97,8 +97,10 @@ import { showToast } from "../../utils/toast";
     };
 
     const handleExitAnyway = () => {
-        setIsExitModalOpen(false);
-        finishVisit();
+        sessionStorage.removeItem("local_zone_sec_map");
+        sessionStorage.removeItem("selected_candidate");
+        sessionStorage.removeItem("selected_products");
+        navigate("/", { replace: true });
     };
 
     const handlePhotoShoot = () => {
