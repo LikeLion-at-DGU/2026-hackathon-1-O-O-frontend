@@ -1,6 +1,6 @@
 import * as S from "../LandingPage.styled";
 
-import paddyhead from "../../../assets/paddy-head.png";
+import paddyhead from "../../assets/paddy-head.png";
 
 export default function HeroSection({ refs, stars }) {
     const {

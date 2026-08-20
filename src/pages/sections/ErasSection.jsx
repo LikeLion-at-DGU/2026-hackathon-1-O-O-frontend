@@ -1,8 +1,8 @@
 import * as S from "../LandingPage.styled";
 
-import munich1 from "../../../assets/munich-1.png";
-import munich2 from "../../../assets/munich-2.png";
-import munich3 from "../../../assets/munich-3.png";
+import munich1 from "../../assets/munich-1.png";
+import munich2 from "../../assets/munich-2.png";
+import munich3 from "../../assets/munich-3.png";
 
 export default function ErasSection({ refs }) {
     const {

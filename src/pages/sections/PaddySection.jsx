@@ -1,7 +1,7 @@
 import * as S from "../LandingPage.styled";
 
-import hellopaddy from "../../../assets/hellopaddy.png";
-import worrypaddy from "../../../assets/worrypaddy.png";
+import hellopaddy from "../../assets/hellopaddy.png";
+import worrypaddy from "../../assets/worrypaddy.png";
 
 const SPEECHES = [
     <>
