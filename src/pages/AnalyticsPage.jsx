@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAnalytics } from "../api/analytics";
+import { getLookbookCandidates } from "../api/lookbooks";
 import * as S from "./AnalyticsPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import Header from "../components/Header/Header";
@@ -16,7 +17,9 @@ export const getProductImage = (product) => {
     return `/images/${prodId}-Photoroom.png`;
   }
   return (
+    product?.cutout_url ??
     product?.thumbnail ??
+    product?.images?.[0] ??
     product?.images?.thumbnail ??
     product?.images?.main ??
     defaultBagImg
@@ -34,6 +37,9 @@ export default function AnalyticsPage() {
 
   const [report, setReport] = useState(null);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [candidateProducts, setCandidateProducts] = useState([]);
+  const [candidateMaxSelect, setCandidateMaxSelect] = useState(1);
+  const [candidateMinSelect, setCandidateMinSelect] = useState(1);
   const [isPending, setIsPending] = useState(true);
   const pollTimerRef = useRef(null);
 
@@ -210,11 +216,37 @@ export default function AnalyticsPage() {
   }, [report]);
 
   const handleToggleSelect = (productId) => {
-    setSelectedProductIds([productId]);
-    sessionStorage.setItem("selected_products", JSON.stringify([productId]));
+    setSelectedProductIds((current) => {
+      const next = current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId].slice(-candidateMaxSelect);
+
+      sessionStorage.setItem(
+        "selected_products",
+        JSON.stringify(next)
+      );
+
+      return next;
+    });
+  };
+
+  const handleGoToCamera = () => {
+    if (selectedProductIds.length < candidateMinSelect) {
+      alert("화보에 담을 아이템을 1개 이상 선택해 주세요.");
+      return;
+    }
+    sessionStorage.setItem(
+      "selected_products",
+      JSON.stringify(selectedProductIds)
+    );
+    navigate("/camera");
   };
 
   const displayProducts = useMemo(() => {
+    if (candidateProducts.length > 0) {
+      return candidateProducts;
+    }
+
     if (!report) return [];
 
     const list = [];
@@ -319,11 +351,24 @@ export default function AnalyticsPage() {
 
                 <S.ItemInfo>
                   <S.ItemName>{item.name || `상품 ${index + 1}`}</S.ItemName>
+                  {item.reason && (
+                    <S.ReasonBadge data-reason-code={item.reason_code || undefined}>
+                      {item.reason}
+                    </S.ReasonBadge>
+                  )}
                 </S.ItemInfo>
               </S.ItemCard>
             );
           })}
         </S.ItemGrid>
+
+        <S.CameraButton
+          type="button"
+          onClick={handleGoToCamera}
+          disabled={selectedProductIds.length < candidateMinSelect}
+        >
+          선택한 상품으로 화보 만들기
+        </S.CameraButton>
       </S.Container>
     </MobileLayout>
   );

@@ -1,8 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
@@ -11,11 +7,10 @@ import ChatMessage from "../components/ChatMessage/ChatMessage";
 import bearImage from "../assets/bear.png";
 import useChatStore from "../stores/useChatStore";
 
-import {
-  answerPendingAction,
-  getChatMessages,
-  streamChat,
-} from "../api/chat";
+
+import { answerPendingAction, getChatMessages, streamChat } from "../api/chat";
+import { getChatMessages, streamChat } from "../api/chat";
+import { useDwellTimer } from "../hooks/useDwellTimer";
 
 function ChatPage() {
   const navigate = useNavigate();
@@ -30,16 +25,16 @@ function ChatPage() {
     appendAssistantDelta,
   } = useChatStore();
 
-  const [inputValue, setInputValue] =
-    useState("");
+  useDwellTimer({
+    eventType: "chat_dwell",
+    targetId: "chat_room",
+    minDwellMs: 1000, // 1초 이상 머물렀을 때 전송
+  });
 
-  const [isSending, setIsSending] =
-    useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [isSending, setIsSending] =  useState(false);
+  const [ isActionLoading, setIsActionLoading,] = useState(false);
 
-  const [
-    isActionLoading,
-    setIsActionLoading,
-  ] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -53,8 +48,7 @@ function ChatPage() {
 
   // 채팅 메시지와 pending_action 조회
   useEffect(() => {
-    // SSE 답변 생성 중에는 서버 조회를 멈춘다.
-    // 그렇지 않으면 임시 답변이 사라질 수 있다.
+    // SSE 답변 생성 중에는 서버 조회 멈춤 / (안그러면 임시 답변 사라질수도 잇대서...)
     if (isSending) {
       return undefined;
     }
@@ -301,7 +295,7 @@ const ChatPageContainer = styled.div`
   height: calc(100dvh - 72px);
   min-height: 0;
 
-  background: #ffffff;
+  background: #F4F2EE;
 `;
 
 const MessageArea = styled.div`
@@ -318,6 +312,30 @@ const MessageArea = styled.div`
   box-sizing: border-box;
 
   -webkit-overflow-scrolling: touch;
+/* ⭐️ 1. 스크롤바 너비 및 배경 투명화 */
+  &::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent; /* 스크롤바 전체 배경 투명 */
+  }
+
+  /* ⭐️ 2. 스크롤 트랙(레일) 투명화 */
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  /* ⭐️ 3. 움직이는 스크롤 바(Thumb) 디자인 */
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15); /* 은은한 반투명 막대 */
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  /* Firefox 전용 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 `;
 
 const BottomArea = styled.div`
@@ -330,7 +348,7 @@ const BottomArea = styled.div`
         env(safe-area-inset-bottom)
     );
 
-  background: #ffffff;
+  background: #F4F2EE;
   border-top: 1px solid #f1f1f3;
 `;
 
@@ -366,7 +384,7 @@ const ChatForm = styled.form`
 
   border: 1px solid #e4e4e7;
   border-radius: 24px;
-  background: #ffffff;
+  background: #F4F2EE;
 
   &:focus-within {
     border-color: #18181b;

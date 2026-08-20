@@ -1,6 +1,18 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+
+const popIn = keyframes`
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+`;
 
 export const ProductArea = styled.div`
+  position: relative; /* ⭐️ 모달 오버레이 기준점 */
   display: flex;
 
   width: 363px;
@@ -155,8 +167,8 @@ export const DetailButton = styled.button`
   line-height: 1.4;
 
   cursor: pointer;
-  
-  &:hover{
+
+  &:hover {
     background: var(--shelve, #D1CCC7);
   }
 
@@ -202,4 +214,52 @@ export const PresetAnswer = styled.div`
     width: 100%;
     font-size: 11px;
   }
+`;
+
+/* ⭐️ 2번 사진 스타일: 중앙 팝업 모달 + 어두운 딤 배경 */
+export const ModalOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: 20px;
+  cursor: pointer;
+`;
+
+// src/components/Product/ProductInfo.styled.js 내 모달 스타일 교체
+
+export const ModalBox = styled.div`
+  background-color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* ⭐️ 가로 폭 축소 설정 */
+  width: auto;
+  max-width: 280px; 
+  box-sizing: border-box;
+  
+  cursor: default;
+  animation: ${popIn} 0.18s ease-out forwards;
+`;
+
+export const ModalText = styled.p`
+  margin: 0;
+  color: var(--Deep-Slate, #222);
+  font-family: Pretendard;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 140%; /* 19.6px */
+
+  word-break: keep-all;
 `;

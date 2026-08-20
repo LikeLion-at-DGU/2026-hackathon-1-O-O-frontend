@@ -31,11 +31,12 @@ export const MessageBubble = styled.div`
       ? "#1f1f1f"
       : "#8c6239"};
 
-  font-size: 13px;
-  font-family: "Pretendard";
-  font-weight: 400;
-  line-height: 1.5;
-  word-break: keep-all;
+  color: var(--neutral, #E5E3E0);
+  font-family: Pretendard;
+  font-size: var(--Font-size-SM, 14px);
+  font-style: normal;
+  font-weight: 300;
+  line-height: 140%; /* 19.6px */
 
   border-radius: ${({ $isAssistant }) =>
     $isAssistant

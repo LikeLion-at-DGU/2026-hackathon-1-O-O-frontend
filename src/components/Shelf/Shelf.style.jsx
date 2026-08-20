@@ -45,16 +45,23 @@ export const shelfStyles = {
 export const PageContainer = styled.div`
   width: 100%;
   min-height: 100%;
-  background-color: #ffffff;
+  background-color: #F4F2EE;
 `;
 
 export const ShelfArea = styled.div`
-  display: flex;
+display: flex;
   justify-content: center;
+  align-items: center;
 
   width: 100%;
-  padding: 16px 12px 12px;
+  padding: 16px 12px 24px;
   box-sizing: border-box;
+
+  /* 사진처럼 상단만 흰색으로 쪼개주는 핵심 스타일 */
+  background-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); /* 상단과 하단을 갈라주는 그림자 */
+  z-index: 10;
+  
 `;
 
 export const ProductArea = styled.div`
@@ -90,7 +97,7 @@ export const ChatArea = styled.div`
   padding: 8px 16px 28px;
   box-sizing: border-box;
 
-  background-color: #ffffff;
+  background-color: #F4F2EE;
 `;
 
 export const QuestionButtons = styled.div`

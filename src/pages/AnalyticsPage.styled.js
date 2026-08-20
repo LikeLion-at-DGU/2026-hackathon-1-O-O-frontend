@@ -212,7 +212,8 @@ export const ItemImage = styled.img`
 export const ItemInfo = styled.div`
   width: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   text-align: center;
   box-sizing: border-box;
@@ -227,6 +228,39 @@ export const ItemName = styled.p`
     font-style: normal;
     font-weight: var(--Font-weight-Light, 300);
     line-height: 140%; /* 16.8px */
-    position: relative;
-    top: -8px;
+    margin: 6px 0 0;
+`;
+
+export const ReasonBadge = styled.span`
+  max-width: 92px;
+  margin-top: 2px;
+  overflow: hidden;
+
+  color: #746f6a;
+  font-family: Pretendard, sans-serif;
+  font-size: 9px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const CameraButton = styled.button`
+  width: 100%;
+  height: 52px;
+  margin-top: 24px;
+
+  color: #fff;
+  font-family: Pretendard, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+
+  background: #8c6239;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 `;
