@@ -41,6 +41,14 @@ export const createLookbook = async (slug, payload) => {
     throw new Error("리포트 slug가 없습니다.");
   }
 
+  console.info(
+    "[Lookbook] 생성 요청 상품 ID",
+    {
+      reportSlug: slug,
+      productIds: payload?.product_ids ?? [],
+    }
+  );
+
   const response = await api.post(
     `/reports/${slug}/lookbook`,
     payload

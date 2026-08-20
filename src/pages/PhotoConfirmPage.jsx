@@ -101,6 +101,13 @@ export default function PhotoConfirmPage() {
 
       const productIds = savedProducts
         ? JSON.parse(savedProducts)
+            .map((item) =>
+              typeof item === "string"
+                ? item
+                : item?.product_id || item?.id
+            )
+            .filter(Boolean)
+            .map(String)
         : [];
 
       if (
@@ -184,7 +191,7 @@ export default function PhotoConfirmPage() {
        * 필수 필드부터 생성합니다.
        */
       const payload = {
-        product_ids: productIds.map(String),
+        product_ids: productIds,
         photo_key,
         consent: true,
       };

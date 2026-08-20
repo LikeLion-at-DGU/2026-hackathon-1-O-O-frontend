@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { keyframes } from "styled-components";
 
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import loadingBear from "../assets/LoadingBear.png";
 import loadingBear2 from "../assets/LoadingBear2.png";
 import * as S from "./LookbookLoadingPage.styled";
 
-const floatAnimation = keyframes`
-  0%, 100% {
-    transform: translateY(0);
-  }
+const FILL_RANGES = [
+  [72, 138],
+  [92, 158],
+  [42, 112],
+];
 
-  50% {
-    transform: translateY(-6px);
-  }
-`;
+const getRandomFillHeight = ([minimum, maximum]) =>
+  Math.round(
+    minimum + Math.random() * (maximum - minimum)
+  );
 
 function LookbookLoadingPage({
   progress = 0,
@@ -30,11 +30,31 @@ function LookbookLoadingPage({
   );
 
   const [bearIndex, setBearIndex] = useState(0);
+  const [fillLevels, setFillLevels] = useState([
+    102,
+    124,
+    56,
+  ]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       setBearIndex((current) => (current === 0 ? 1 : 0));
     }, 800);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const updateFillLevels = () => {
+      setFillLevels(
+        FILL_RANGES.map(getRandomFillHeight)
+      );
+    };
+
+    const timer = window.setInterval(
+      updateFillLevels,
+      1400
+    );
 
     return () => window.clearInterval(timer);
   }, []);
@@ -86,15 +106,75 @@ function LookbookLoadingPage({
             <S.CardSection>
               <S.CardRow>
                 <S.Card>
-                  <S.CardFill $height="102px" />
+                  <S.CardBorder
+                    viewBox="0 0 105 200"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="0"
+                      y="0"
+                      width="105"
+                      height="200"
+                      rx="10"
+                      ry="10"
+                      strokeWidth="2"
+                      strokeDasharray="10 7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </S.CardBorder>
+                  <S.CardFill
+                    $height={`${fillLevels[0]}px`}
+                  />
                 </S.Card>
 
                 <S.Card>
-                  <S.CardFill $height="124px" />
+                  <S.CardBorder
+                    viewBox="0 0 105 200"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="0"
+                      y="0"
+                      width="105"
+                      height="200"
+                      rx="10"
+                      ry="10"
+                      strokeWidth="2"
+                      strokeDasharray="10 7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </S.CardBorder>
+                  <S.CardFill
+                    $height={`${fillLevels[1]}px`}
+                  />
                 </S.Card>
 
                 <S.Card>
-                  <S.CardFill $height="56px" />
+                  <S.CardBorder
+                    viewBox="0 0 105 200"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="0"
+                      y="0"
+                      width="105"
+                      height="200"
+                      rx="10"
+                      ry="10"
+                      strokeWidth="2"
+                      strokeDasharray="10 7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </S.CardBorder>
+                  <S.CardFill
+                    $height={`${fillLevels[2]}px`}
+                  />
                 </S.Card>
               </S.CardRow>
 
@@ -109,7 +189,6 @@ function LookbookLoadingPage({
               <S.Character
                 src={loadingBears[bearIndex]}
                 alt=""
-                $animation={floatAnimation}
               />
 
               <S.ProgressContent>

@@ -114,7 +114,7 @@ export const Card = styled.div`
 
   overflow: hidden;
 
-  border: 1px dashed #a8a29d;
+  border: none;
   border-radius: 10px;
   background: #ffffff;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
@@ -135,6 +135,9 @@ export const CardFill = styled.div`
   border-radius: 10px 10px 0 0;
   background: #8c6239;
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.25);
+
+  transition: height 1.3s ease-in-out;
+  will-change: height;
 `;
 
 export const CardLabels = styled.div`
@@ -148,6 +151,8 @@ export const CardLabels = styled.div`
   font-family: Pretendard, sans-serif;
   font-size: 12px;
   font-weight: 300;
+
+  gap: 30px;
 `;
 
 export const ProgressSection = styled.div`
@@ -166,8 +171,28 @@ export const Character = styled.img`
 
   object-fit: contain;
   filter: drop-shadow(0 8px 4px rgba(0, 0, 0, 0.28));
-  animation: ${({ $animation }) => $animation} 2.3s
-    ease-in-out infinite;
+`;
+
+export const CardBorder = styled.svg`
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: visible;
+  pointer-events: none;
+
+  rect {
+    fill: none;
+    stroke: var(--Neutral-N30, #a8a29d);
+    stroke-width: 2;
+    stroke-dasharray: 10 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
 `;
 
 export const ProgressContent = styled.div`

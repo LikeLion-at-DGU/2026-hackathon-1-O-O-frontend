@@ -76,18 +76,15 @@ export default function AnalyticsPage() {
           if (defaultProduct) {
             const defaultId = defaultProduct.product_id || defaultProduct.id;
             if (defaultId) {
-              setSelectedProductIds([defaultId]);
-            }
+              const normalizedId = String(defaultId);
 
-            sessionStorage.setItem(
-              "selected_products",
-              JSON.stringify([
-                {
-                  ...defaultProduct,
-                  imageUrl: getProductImage(defaultProduct),
-                },
-              ])
-            );
+              setSelectedProductIds([normalizedId]);
+
+              sessionStorage.setItem(
+                "selected_products",
+                JSON.stringify([normalizedId])
+              );
+            }
           }
         }
       } catch (err) {
