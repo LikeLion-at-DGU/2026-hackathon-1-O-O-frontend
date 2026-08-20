@@ -223,7 +223,7 @@ export default function AnalyticsPage() {
 
 
 // ⭐️ 2. 체류 시간 정밀 계산 및 집계 (서버 신규 필드 기반)
-  const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
+  const { topZoneName, totalMinutes, totalRawSec, top1, top2, etcMinutes, etcRawSec } = useMemo(() => {
     if (!report) {
       return {
         topZoneName: "진열대",
@@ -237,12 +237,15 @@ export default function AnalyticsPage() {
     // 1. 서버에서 이미 체류시간 긴 순으로 정렬되어 내려오는 scenes 사용
     const rawScenes = report.scenes || [];
 
+    // 하한 1분 보정을 하지 않는다. 5초 체류가 "1분"으로 표시되고, 항목별
+    // 올림 합이 총 관람시간보다 커지는 문제가 있었다. 1분 미만은 표시 단계에서
+    // "1분 미만"으로 처리한다.
     const sortedZones = rawScenes.map((s) => {
       const sec = Math.round((s.dwell_ms ?? 0) / 1000);
       return {
         zone_name: s.scene_name || `${s.scene_no}번 진열대`,
         raw_sec: sec,
-        duration_min: Math.max(1, Math.round(sec / 60) || 1), // 최소 1분 단위 보정
+        duration_min: Math.round(sec / 60),
       };
     });
 
@@ -262,16 +265,17 @@ export default function AnalyticsPage() {
     const etcRawSec = sortedZones
       .slice(2)
       .reduce((sum, zone) => sum + (zone.raw_sec || 0), 0);
-    const etcMin = etcRawSec > 0 ? Math.max(1, Math.round(etcRawSec / 60)) : 0;
+    const etcMin = Math.round(etcRawSec / 60);
 
     // 4. 총 관람시간 (서버 total_dwell_ms가 있으면 분 변환, 없으면 알약 합산)
     const serverTotalSec = Math.round(
       (report.visit_summary?.total_dwell_ms ?? 0) / 1000
     );
-    const calcTotalMin =
+    const totalRawSec =
       serverTotalSec > 0
-        ? Math.max(1, Math.round(serverTotalSec / 60))
-        : top1Zone.duration_min + top2Zone.duration_min + etcMin;
+        ? serverTotalSec
+        : (top1Zone.raw_sec || 0) + (top2Zone.raw_sec || 0) + etcRawSec;
+    const calcTotalMin = Math.round(totalRawSec / 60);
 
     console.log("⏱️ [체류시간 서버 데이터 파싱 완료]:", {
       sortedZones,
@@ -281,11 +285,17 @@ export default function AnalyticsPage() {
     return {
       topZoneName: top1Zone.zone_name,
       totalMinutes: calcTotalMin,
+      totalRawSec,
       top1: top1Zone,
       top2: top2Zone,
       etcMinutes: etcMin,
+      etcRawSec,
     };
   }, [report]);
+
+  // 60초 미만은 "1분"으로 부풀리지 않고 그대로 말한다
+  const minuteLabel = (rawSec, minutes) =>
+    rawSec > 0 && rawSec < 60 ? "1분 미만" : `${minutes}분`;
 
   const handleToggleSelect = (candidate) => {
     const productId = candidate?.product_id;
@@ -374,23 +384,24 @@ export default function AnalyticsPage() {
 
         <S.SummaryCard>
           <S.SummaryLabel>총 관람시간</S.SummaryLabel>
-          <S.TotalTimePill>{totalMinutes}분</S.TotalTimePill>
+          <S.TotalTimePill>{minuteLabel(totalRawSec, totalMinutes)}</S.TotalTimePill>
 
           <S.TimeBreakdownContainer>
             <S.BreakdownRow>
-              <S.BreakdownItem $flex={top1.duration_min}>
-                <S.BreakdownPill $isHighlight>{top1.duration_min}분</S.BreakdownPill>
+              {/* 막대 비율은 분(올림값)이 아니라 실제 초로 잰다 */}
+              <S.BreakdownItem $flex={top1.raw_sec || 1}>
+                <S.BreakdownPill $isHighlight>{minuteLabel(top1.raw_sec, top1.duration_min)}</S.BreakdownPill>
                 <S.BreakdownLabel>{top1.zone_name}</S.BreakdownLabel>
               </S.BreakdownItem>
 
-              <S.BreakdownItem $flex={top2.duration_min}>
+              <S.BreakdownItem $flex={top2.raw_sec || 1}>
                 <S.BreakdownLabel>{top2.zone_name}</S.BreakdownLabel>
-                <S.BreakdownPill>{top2.duration_min}분</S.BreakdownPill>
+                <S.BreakdownPill>{minuteLabel(top2.raw_sec, top2.duration_min)}</S.BreakdownPill>
               </S.BreakdownItem>
 
-              <S.BreakdownItem $flex={etcMinutes}>
+              <S.BreakdownItem $flex={etcRawSec || 1}>
                 <S.BreakdownLabel>기타</S.BreakdownLabel>
-                <S.BreakdownPill>{etcMinutes}분</S.BreakdownPill>
+                <S.BreakdownPill>{minuteLabel(etcRawSec, etcMinutes)}</S.BreakdownPill>
               </S.BreakdownItem>
             </S.BreakdownRow>
           </S.TimeBreakdownContainer>
