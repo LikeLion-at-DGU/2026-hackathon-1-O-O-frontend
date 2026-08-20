@@ -1,34 +1,13 @@
 // src/components/Product/ProductInfo.jsx
 import { useState } from "react";
 import * as S from "./ProductInfo.styled";
+import { formatProductColor } from "./productColor";
 
 const PRESET_BUTTONS = [
   { key: "price", label: "가격" },
   { key: "material", label: "재질" },
   { key: "design_intent", label: "디자인 의도" },
 ];
-
-const normalizeColorValues = (color) => {
-  const values = Array.isArray(color) ? color : [color];
-
-  return [...new Map(
-    values
-      .filter((value) => typeof value === "string" && value.trim())
-      // "블랙, 블랙"처럼 한 문자열 안에 구분자로 중복이 들어오는 응답도 분리한다
-      .flatMap((value) => value.split(/[,/·]/))
-      .map((value) => value.trim().replace(/^(?:색상|color)\s*:\s*/i, ""))
-      .filter(Boolean)
-      .map((value) => [value.toLocaleLowerCase(), value])
-  ).values()];
-};
-
-// 표시용 색상은 attributes.color만 사용한다. 최상위 color는 값이 달라
-// 화면이 두 번 바뀌는 원인이 되므로 읽지 않고, 대표 색상 한 가지만 노출한다.
-const formatProductColor = (product) => {
-  const attributeColors = normalizeColorValues(product?.attributes?.color);
-
-  return attributeColors[0] || "색상 정보 없음";
-};
 
 function ProductInfo({
   product,

@@ -1,5 +1,7 @@
 // src/hooks/useProductDetail.js
+import { useEffect } from "react";
 import useChatStore from "../stores/useChatStore";
+import { showToast } from "../utils/toast";
 import { shelfData } from "../components/Shelf/ShelfData";
 import useProduct from "./useProduct";
 import useProductEvent from "./useProductEvent";
@@ -10,7 +12,15 @@ export function useProductDetail(productId) {
     const imageId = productId?.replace("p-", "");
 
     // 1. 상품 상세 정보 조회
-    const { product, loading } = useProduct(productId);
+    const { product, loading, error } = useProduct(productId);
+
+    // 서버 조회에 실패해도 로컬 정적 데이터(이름·이미지)로 화면은 유지하되,
+    // 가격·재질 등 서버 정보가 빠졌다는 사실은 토스트로 알린다.
+    useEffect(() => {
+        if (error) {
+            showToast("상품 정보를 일부 불러오지 못했어요. 네트워크를 확인해 주세요.");
+        }
+    }, [error]);
 
     // 2. 상품 이미지 결정 (서버 첫 번째 이미지 -> 로컬 정적 에셋 폴백)
     const productImage =
