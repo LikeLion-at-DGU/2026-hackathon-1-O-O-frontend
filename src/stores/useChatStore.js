@@ -1,46 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import {
+    newLocalId,
+    prepareServerMessages,
+    keepPendingLocalMessages,
+} from "./chatMessages";
 
 // 진열대 연속 클릭 방지용 타임스탬프
 let lastShelfLogAt = 0;
-
-/**
- * 로컬 임시 메시지 ID 생성기
- */
-const newLocalId = () =>
-    typeof crypto !== "undefined" && crypto.randomUUID
-    ? `local-${crypto.randomUUID()}`
-    : `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-/**
- * UI에 노출되지 않아야 하는 시스템/사용자 인터랙션 로그 패턴 목록
- */
-const HIDDEN_CLICK_PATTERNS = [
-    /^\d+번 진열대 클릭$/,
-    /상품 클릭$/,
-    /^(가격|재질|디자인 의도)$/,
-];
-
-/**
- * 숨김 대상 클릭 로그 여부 검증
- */
-const isHiddenClickLog = (message) =>
-    message.role === "user_action" &&
-    HIDDEN_CLICK_PATTERNS.some((pattern) => pattern.test(message.content));
-
-/**
- * 백엔드 메시지 스펙 정규화
- */
-const normalizeServerMessage = (message) => ({
-    id: message.message_id,
-    type:
-    message.role === "assistant" || message.role === "preset"
-        ? "assistant"
-        : "user",
-    role: message.role || (message.type === "assistant" ? "assistant" : "user"),
-    text: message.content,
-    createdAt: message.created_at,
-});
 
 /**
  * 초기 진입 시 기본 환영 메시지 (type과 role 모두 지정)
@@ -161,20 +128,13 @@ const useChatStore = create(
          */
         syncChatState: ({ messages = [], pending_action = null } = {}) =>
             set((state) => {
-            const filteredServer = (messages || [])
-                .filter((message) => !isHiddenClickLog(message))
-                .map(normalizeServerMessage);
+            const filteredServer = prepareServerMessages(messages);
 
-            // 현재 상태에 있는 로컬 임시 메시지 추출 (id가 local- 또는 stream- 으로 시작하는 것)
-            const localMessages = state.messages.filter(
-                (msg) =>
-                msg.id?.startsWith("local-") || msg.id?.startsWith("stream-")
-            );
-
-            // 서버 메시지와 로컬 메시지 병합 (중복 방지)
+            // 서버 메시지와 로컬 임시 메시지 병합 (중복 방지)
             const existingIds = new Set(filteredServer.map((m) => m.id));
-            const safeLocalMessages = localMessages.filter(
-                (m) => !existingIds.has(m.id)
+            const safeLocalMessages = keepPendingLocalMessages(
+                state.messages,
+                existingIds
             );
 
             return {
@@ -192,18 +152,12 @@ const useChatStore = create(
          */
         setServerMessages: (serverMessages = []) =>
             set((state) => {
-            const filteredServer = (serverMessages || [])
-                .filter((message) => !isHiddenClickLog(message))
-                .map(normalizeServerMessage);
-
-            const localMessages = state.messages.filter(
-                (msg) =>
-                msg.id?.startsWith("local-") || msg.id?.startsWith("stream-")
-            );
+            const filteredServer = prepareServerMessages(serverMessages);
 
             const existingIds = new Set(filteredServer.map((m) => m.id));
-            const safeLocalMessages = localMessages.filter(
-                (m) => !existingIds.has(m.id)
+            const safeLocalMessages = keepPendingLocalMessages(
+                state.messages,
+                existingIds
             );
 
             return {
@@ -221,10 +175,9 @@ const useChatStore = create(
                 state.messages.map((message) => message.id)
             );
 
-            const newMessages = (serverMessages || [])
-                .filter((message) => !isHiddenClickLog(message))
-                .map(normalizeServerMessage)
-                .filter((message) => !existingIds.has(message.id));
+            const newMessages = prepareServerMessages(serverMessages).filter(
+                (message) => !existingIds.has(message.id)
+            );
 
             if (!newMessages.length) {
                 return {};
@@ -241,10 +194,9 @@ const useChatStore = create(
                 state.messages.map((message) => message.id)
             );
 
-            const newMessages = (serverMessages || [])
-                .filter((message) => !isHiddenClickLog(message))
-                .map(normalizeServerMessage)
-                .filter((message) => !existingIds.has(message.id));
+            const newMessages = prepareServerMessages(serverMessages).filter(
+                (message) => !existingIds.has(message.id)
+            );
 
             return {
                 messages: newMessages.length

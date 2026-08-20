@@ -9,15 +9,12 @@ import {
   getLookbook,
   getLookbookJob,
 } from "../api/lookbooks";
-
-const COMPLETE_STATUSES = [
-  "ready",
-  "completed",
-  "succeeded",
-  "success",
-];
-
-const FAILED_STATUSES = ["failed", "error"];
+import {
+  isCompleteStatus,
+  isFailedStatus,
+  normalizeJobProgress,
+  getJobFailureMessage,
+} from "./lookbookJobRules";
 
 export const DEFAULT_LOOKBOOK_POLL_INTERVAL = 3000;
 
@@ -138,21 +135,13 @@ export function useLookbookPolling(shareSlug) {
 
           if (!mountedRef.current) return;
 
-          const status = String(
-            job?.status || "",
-          ).toLowerCase();
+          const status = job?.status;
 
-          const rawProgress = Number(job?.progress) || 0;
-
-          setProgress(
-            rawProgress <= 1
-              ? Math.round(rawProgress * 100)
-              : Math.round(rawProgress),
-          );
+          setProgress(normalizeJobProgress(job?.progress));
           setStage(job?.stage || "");
           setStep(job?.step || "");
 
-          if (COMPLETE_STATUSES.includes(status)) {
+          if (isCompleteStatus(status)) {
             clearPollTimer();
             await loadCompletedLookbook(
               job.share_slug || targetShareSlug,
@@ -160,20 +149,16 @@ export function useLookbookPolling(shareSlug) {
             return;
           }
 
-          if (FAILED_STATUSES.includes(status)) {
+          if (isFailedStatus(status)) {
             clearPollTimer();
 
-            const errorCode = job?.error_code || "";
-            const retryable = Boolean(job?.retryable);
+            const failure = {
+              errorCode: job?.error_code || "",
+              retryable: Boolean(job?.retryable),
+            };
 
-            setJobFailure({ errorCode, retryable });
-            setErrorMessage(
-              errorCode === "GEN_CONTENT_BLOCKED"
-                ? "사진을 처리할 수 없습니다. 다른 사진으로 다시 촬영해 주세요."
-                : retryable
-                  ? "화보 생성이 잠시 지연됐습니다. 다시 시도해 주세요."
-                  : "화보 생성에 실패했습니다.",
-            );
+            setJobFailure(failure);
+            setErrorMessage(getJobFailureMessage(failure));
             return;
           }
 
