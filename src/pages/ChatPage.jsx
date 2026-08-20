@@ -8,8 +8,12 @@ import bearImage from "../assets/bear.png";
 import useChatStore from "../stores/useChatStore";
 
 
-import { answerPendingAction, getChatMessages, streamChat } from "../api/chat";
-import { getChatMessages, streamChat } from "../api/chat";
+import {
+  answerPendingAction,
+  getChatMessages,
+  streamChat,
+} from "../api/chat";
+
 import { useDwellTimer } from "../hooks/useDwellTimer";
 
 function ChatPage() {
