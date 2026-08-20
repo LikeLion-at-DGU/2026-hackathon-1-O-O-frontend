@@ -36,7 +36,7 @@ function ProductPage() {
   const localProduct = Object.values(shelfData)
     .flat()
     .find((item) => String(item.id) === String(productId));
-
+// 데이터가 들어오는 곳에 추가해 보세요
   const productName =
     product?.name ??
     selectedProduct?.name ??
