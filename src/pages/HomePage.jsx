@@ -22,15 +22,11 @@ function HomePage() {
       }
 
       try {
-        const response = await enterStore({
-          age_band: "20s",
-          gender: "M",
-        });
+        // 연령대·성별을 지어내지 않는다. "20s"/"M" 하드코딩이 리포트 개인화에
+        // 그대로 들어갔고, "M"은 서버 choices(male/female/...)에 없어 400이었다.
+        const entered = await enterStore({});
 
-        const visitId = response.visit_id;
-
-        console.log("방문 시작:", response.data);
-        console.log("visit_id 저장:", visitId);
+        console.log("방문 시작:", entered?.visit_id);
       } catch (error) {
         console.error("방문 시작 실패:", error);
       }

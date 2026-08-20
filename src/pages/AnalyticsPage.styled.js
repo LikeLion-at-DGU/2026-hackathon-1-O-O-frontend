@@ -229,6 +229,11 @@ export const ItemName = styled.p`
     font-weight: var(--Font-weight-Light, 300);
     line-height: 140%; /* 16.8px */
     margin: 6px 0 0;
+    display: -webkit-box;          /* Flexbox 모델 사용 */
+  -webkit-line-clamp: 2;         /* 2줄까지만 표시 */
+  -webkit-box-orient: vertical;  /* 세로 방향 정렬 */
+  overflow: hidden;              /* 넘치는 부분 숨김 */
+  text-overflow: ellipsis;
 `;
 
 export const ReasonBadge = styled.span`

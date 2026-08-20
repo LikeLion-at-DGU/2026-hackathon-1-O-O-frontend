@@ -363,11 +363,11 @@ export default function PhotoConfirmPage() {
       <Container>
         <TitleArea>
           <Title>
-            사진을 확인해 주세요
+            사진을 확인해 주세요.
           </Title>
 
           <SubTitle>
-            이 모습 그대로 룩북 화보가
+            이 모습 그대로 화보가
             제작됩니다.
           </SubTitle>
         </TitleArea>
@@ -422,22 +422,32 @@ const Container = styled.div`
 `;
 
 const TitleArea = styled.div`
-  margin-bottom: 16px;
+display: flex;
+flex-direction: column;
+
+  gap: 16px;
+  margin-bottom: 8px;
 `;
 
 const Title = styled.h2`
-  margin: 0 0 6px;
-
-  color: #111;
-  font-size: 20px;
-  font-weight: 700;
+  margin: 50px 0 6px;
+color: var(--Deep-Slate, #222);
+text-align: center;
+font-family: Pretendard;
+font-size: var(--Font-size-XL, 20px);
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 28px */
 `;
 
 const SubTitle = styled.p`
   margin: 0;
-
-  color: #777;
-  font-size: 14px;
+color: var(--Neutral-N30, #A8A29D);
+font-family: Pretendard;
+font-size: 12px;
+font-style: normal;
+font-weight: var(--Font-weight-Light, 300);
+line-height: 140%; /* 16.8px */
 `;
 
 const ImageWrapper = styled.div`
@@ -479,16 +489,26 @@ const ButtonGroup = styled.div`
 `;
 
 const RetakeButton = styled.button`
-  flex: 1;
-  height: 52px;
+  height: 60px;
+  width: 106px;
+  margin: 0;
+color: var(--Deep-Slate, #222);
+font-family: Pretendard;
+font-size: var(--Font-size-XL, 20px);
+font-style: normal;
+font-weight: 600;
+line-height: 140%;
 
-  color: #333;
-  font-size: 15px;
-  font-weight: 600;
+  background: var(--neutral, #E5E3E0);
 
-  background-color: #fff;
+display: flex;
+padding: 10px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+
   border: 1px solid #ddd;
-  border-radius: 12px;
+  border-radius: 20px;
   cursor: pointer;
 
   &:disabled {
@@ -498,17 +518,29 @@ const RetakeButton = styled.button`
 `;
 
 const ConfirmButton = styled.button`
-  flex: 2;
-  height: 52px;
+  margin: 0;
 
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
+  height: 60px;
+    width: 245px;
 
-  background-color: #111;
+
+color: var(--neutral, #E5E3E0);
+font-family: Pretendard;
+font-size: var(--Font-size-XL, 20px);
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 28px */
+
+  background-color: #222;
   border: none;
-  border-radius: 12px;
+  border-radius: 20px;
   cursor: pointer;
+  display: flex;
+padding: 16px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+align-self: stretch;
 
   &:disabled {
     opacity: 0.6;

@@ -1,6 +1,6 @@
 // src/components/Product/ProductInfo.jsx
-import { useState, useEffect, useRef } from "react";
-import { sendEvent } from "../../api/events";
+import { useState } from "react";
+import { createChatMessage } from "../../api/chat";
 import * as S from "./ProductInfo.styled";
 
 const PRESET_BUTTONS = [
@@ -9,90 +9,54 @@ const PRESET_BUTTONS = [
   { key: "design_intent", label: "디자인 의도" },
 ];
 
+const isVisitFinished = () => Boolean(sessionStorage.getItem("report_slug"));
+
 function ProductInfo({
   product,
   productName,
   productImage,
   productId,
+  loading,
   onQuestionClick,
 }) {
   const [selectedPreset, setSelectedPreset] = useState(null);
 
-  // 프리셋 모달 체류시간 측정을 위한 Ref
-  const presetStartTimeRef = useRef(null);
-  const currentPresetRef = useRef(null);
-
   const targetProductId = productId || product?.product_id || product?.id;
 
-  // 모달 체류 정산 함수
-  const flushPresetDwell = (presetKey) => {
-    if (!presetStartTimeRef.current || !presetKey) return;
-
-    const dwellMs = Date.now() - presetStartTimeRef.current;
-    presetStartTimeRef.current = null;
-
-    if (dwellMs >= 500) {
-      console.log(
-        `⏱️ [항목 체류 정산] ${productName} - ${presetKey}: ${Math.round(dwellMs / 1000)}초 (${dwellMs}ms)`
-      );
-
-      sendEvent({
-        event_type: "product_dwell",
-        product_id: String(targetProductId),
-        metadata: {
-          preset_key: presetKey,
-          question_type: presetKey,
-          dwell_ms: dwellMs,
-          dwell_time_ms: dwellMs,
-          dwell_sec: Math.round(dwellMs / 1000),
-          product_name: productName,
-        },
-      });
-    }
+  // 서버 타임라인에 프리셋 열람을 남긴다. 이걸 안 보내서 패디의 프리셋 답변
+  // 말풍선이 한 번도 생성되지 않았다. 관람 종료 후에는 403이라 보내지 않는다.
+  const sendPresetView = (key) => {
+    if (isVisitFinished() || !targetProductId) return;
+    createChatMessage({
+      type: "preset_view",
+      product_id: String(targetProductId),
+      preset_key: key,
+    }).catch((error) => {
+      console.warn("프리셋 열람 기록 실패:", error.response?.data ?? error);
+    });
   };
 
-  // 버튼 클릭 시 이벤트 전송 및 타이머 시작
+  // 프리셋 모달 체류는 더 이상 product_dwell로 보내지 않는다 — 페이지 체류와
+  // 같은 타입이라 같은 구간이 중복 계상됐다. 클릭 자체는 question_submit
+  // (onQuestionClick)과 preset_view(위)로 남는다.
   const handlePresetClick = (key, label) => {
     setSelectedPreset((current) => {
       if (current === key) {
-        flushPresetDwell(current);
-        currentPresetRef.current = null;
         return null;
-      }
-
-      if (current) {
-        flushPresetDwell(current);
       }
 
       if (typeof onQuestionClick === "function") {
         onQuestionClick(label);
       }
-
-      currentPresetRef.current = key;
-      presetStartTimeRef.current = Date.now();
-      console.log(`⏱️ [항목 확인 시작] ${label} (${key})`);
+      sendPresetView(key);
 
       return key;
     });
   };
 
-  // 모달 딤 배경 클릭해서 닫을 때 정산
   const handleCloseModal = () => {
-    if (currentPresetRef.current) {
-      flushPresetDwell(currentPresetRef.current);
-      currentPresetRef.current = null;
-    }
     setSelectedPreset(null);
   };
-
-  // 모달 열린 채로 페이지 뒤로가기 시 정산
-  useEffect(() => {
-    return () => {
-      if (currentPresetRef.current) {
-        flushPresetDwell(currentPresetRef.current);
-      }
-    };
-  }, []);
 
   const selectedAnswer = selectedPreset
     ? product?.preset_answers?.[selectedPreset]
@@ -127,7 +91,7 @@ function ProductInfo({
         <S.TextWrapper>
           <S.ProductTitle>{productName}</S.ProductTitle>
           <S.ProductColor>
-            색상 : {product?.attributes?.color ?? "정보 없음"}
+            색상 : {loading ? "확인 중..." : product?.attributes?.color ?? "정보 없음"}
           </S.ProductColor>
         </S.TextWrapper>
       </S.ProductWrapper>

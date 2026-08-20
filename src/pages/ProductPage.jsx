@@ -20,11 +20,12 @@ function ProductPage() {
 
   const { product, loading } = useProduct(productId);
 
+  // 서버 images는 리스트다. 이전 코드는 images.thumbnail/main을 읽어 항상
+  // undefined였고, 서버 이미지가 한 번도 표시되지 않았다. 로컬 파일명은
+  // 서버 id 형식(p_101-Photoroom.png)과 같아 productId를 그대로 쓴다.
   const productImage =
-    product?.thumbnail ??
-    product?.images?.thumbnail ??
-    product?.images?.main ??
-    `/images/${imageId}-Photoroom.png`;
+    product?.images?.[0] ??
+    `/images/${productId}-Photoroom.png`;
 
   const { sendQuestionClick } = useProductEvent(productId);
 
