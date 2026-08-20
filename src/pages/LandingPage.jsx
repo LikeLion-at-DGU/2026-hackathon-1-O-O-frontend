@@ -87,8 +87,13 @@ export default function LandingPage() {
     const collectionCopyRef = useRef(null);
     const collectionLineRef = useRef(null);
 
-    const photoRefs = [useRef(null), useRef(null), useRef(null)];
-    const imageRefs = [useRef(null), useRef(null), useRef(null)];
+    const photoRef1 = useRef(null);
+    const photoRef2 = useRef(null);
+    const photoRef3 = useRef(null);
+
+    const imageRef1 = useRef(null);
+    const imageRef2 = useRef(null);
+    const imageRef3 = useRef(null);
 
     const paddyImgRef = useRef(null);
     const speechHintRef = useRef(null);
@@ -250,7 +255,7 @@ export default function LandingPage() {
                     brightness(${brightness})
                     blur(${blur}px)
                     `;
-                });
+            });
 
             const transforms = [
                 [-3, -0.2, -20, -23, 1.08],
@@ -799,7 +804,7 @@ export default function LandingPage() {
                     </S.Slot>
 
                     <S.RegisterPaddy
-                        src={registerDone ? heartpaddy : hellopaddy }
+                        src={registerDone ? heartpaddy : hellopaddy}
                         alt="패디"
                     />
 
