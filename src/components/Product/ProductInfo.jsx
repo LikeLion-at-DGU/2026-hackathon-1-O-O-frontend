@@ -56,7 +56,6 @@ function ProductInfo({
     if (typeof onQuestionClick === "function") {
       onQuestionClick(label);
     }
-    sendPresetView(key);
   };
 
   const handleCloseModal = () => {
