@@ -3,175 +3,314 @@ import { persist } from "zustand/middleware";
 import styled from "styled-components";
 
 let lastShelfLogAt = 0;
-let lastShelfLogZone = null;
 
 const normalizeServerMessage = (message) => ({
     id: message.message_id,
-    type: message.role === "assistant" ? "assistant" : "user",
+    type:
+        message.role === "assistant"
+            ? "assistant"
+            : "user",
     role: message.role,
     text: message.content,
     createdAt: message.created_at,
 });
 
 export const MessageText = styled.p`
-    white-space: pre-line;
-    color: var(--neutral, #E5E3E0);
-    font-family: Pretendard;
-    font-size: var(--Font-size-SM, 14px);
-    font-style: normal;
-    font-weight: 300;
-    line-height: 140%; /* 19.6px */
+  white-space: pre-line;
+  color: var(--neutral, #e5e3e0);
+  font-family: Pretendard;
+  font-size: var(--Font-size-SM, 14px);
+  font-style: normal;
+  font-weight: 300;
+  line-height: 140%;
 `;
 
 const INITIAL_MESSAGES = [
     {
         id: "init",
         type: "assistant",
-        text: "뮤즈님, 안녕하세요! 저는 패디에요.\n저와 함께 MCM을 경험해 보아요.\n각 진열대를 눌러 상품에 대해 알아보세요.",
+        text:
+            "뮤즈님, 안녕하세요! 저는 패디에요.\n" +
+            "저와 함께 MCM을 경험해 보아요.\n" +
+            "각 진열대를 눌러 상품에 대해 알아보세요.",
     },
-    ];
+];
 
-    const useChatStore = create(
+const useChatStore = create(
     persist(
         (set) => ({
-        selectedZoneId: null,
-        selectedProduct: null,
-        selectedQuestion: null,
-        selectedAnswer: null,
-
-        // 🚀 누적 대화 기록 배열 (초기 곰돌이 안내 메시지 포함)
-        messages: INITIAL_MESSAGES,
-
-        // 1. 진열대 클릭 시        
-
-        // ...create((set, get) => ({
-        selectShelf: (zoneId) =>
-        set((state) => {
-            const zone = Number(zoneId);
-            const now = Date.now();
-
-            // ✅ 1) 현재 보고 있는 구역과 같으면 로그 없이 상태만 유지
-            if (state.selectedZoneId === zone) {
-            return { selectedZoneId: zone };
-            }
-
-            // ✅ 2) 400ms 안에 들어온 왕복 이벤트는 잔여 이벤트로 보고 폐기
-            //    (5→4 스와이프가 4,5,4 로 세 번 들어와도 첫 번째만 통과)
-            if (now - lastShelfLogAt < 400) {
-            return { selectedZoneId: zone };
-            }
-
-            lastShelfLogAt = now;
-            lastShelfLogZone = zone;
-
-            console.log(`[Shelf Selected] ${zone}번 진열대 클릭 (timestamp: ${now})`);
-
-            return {
-            selectedZoneId: zone,
-            };
-        }),
-
-
-        // 2. 상품 클릭 시
-        selectProduct: (product) => set({ selectedProduct: product }),
-
-        // 3. 질문 버튼 클릭 시 (유저 질문 + 봇 답변을 동시에 누적)
-        selectQuestion: (question, answer) =>
-            set((state) => {
-                const lastMsg = state.messages[state.messages.length - 1];
-                if (lastMsg?.text === answer) return {};
-
-                return {
-                selectedQuestion: question,
-                selectedAnswer: answer,
-                messages: [
-                    ...state.messages,
-                    { id: Date.now(), type: "user", text: question },
-                    { id: Date.now() + 1, type: "assistant", text: answer },
-                ],
-                };
-            }),
-
-        // 4. /chat 페이지에서 유저가 직접 입력창으로 메시지 보낼 때 사용
-        addCustomMessage: (type, text) =>
-            set((state) => ({
-            messages: [...state.messages, { id: Date.now(), type, text }],
-            })),
-
-        setMessages: (messages) => set({ messages }),
-
-        // 서버 타임라인 전체로 현재 대화를 동기화
-        setServerMessages: (serverMessages = []) =>
-            set({
-                messages: serverMessages.length
-                    ? serverMessages.map(normalizeServerMessage)
-                    : INITIAL_MESSAGES,
-            }),
-
-        // 클릭 API 응답으로 받은 메시지만 기존 대화에 중복 없이 추가
-        addServerMessages: (serverMessages = []) =>
-            set((state) => {
-                const existingIds = new Set(state.messages.map((message) => message.id));
-                const newMessages = serverMessages
-                    .map(normalizeServerMessage)
-                    .filter((message) => !existingIds.has(message.id));
-
-                return newMessages.length
-                    ? { messages: [...state.messages, ...newMessages] }
-                    : {};
-            }),
-
-        startAssistantMessage: () =>
-            set((state) => ({
-                messages: [
-                    ...state.messages,
-                    {
-                        id: `stream-${Date.now()}`,
-                        type: "assistant",
-                        role: "assistant",
-                        text: "",
-                    },
-                ],
-            })),
-
-        appendAssistantDelta: (delta) =>
-            set((state) => {
-                const lastIndex = state.messages.length - 1;
-                const lastMessage = state.messages[lastIndex];
-                if (lastMessage?.type !== "assistant") return {};
-                return {
-                    messages: state.messages.map((message, index) =>
-                        index === lastIndex ? { ...message, text: `${message.text}${delta}` } : message
-                    ),
-                };
-            }),
-
-        // 5. 대화 내역 완전 초기화 (초기 안내 메시지로 복구)
-        resetChat: () =>
-            set({
             selectedZoneId: null,
             selectedProduct: null,
             selectedQuestion: null,
             selectedAnswer: null,
+
+            // 서버에서 받은 현재 트리거
+            pendingAction: null,
+
+            // 누적 대화
             messages: INITIAL_MESSAGES,
-            }),
+
+            // 진열대 선택
+            selectShelf: (zoneId) =>
+                set((state) => {
+                    const zone = Number(zoneId);
+                    const now = Date.now();
+
+                    // 같은 진열대를 다시 선택한 경우
+                    if (state.selectedZoneId === zone) {
+                        return {
+                            selectedZoneId: zone,
+                        };
+                    }
+
+                    // 400ms 안에 연속으로 발생한 이벤트 방지
+                    if (now - lastShelfLogAt < 400) {
+                        return {
+                            selectedZoneId: zone,
+                        };
+                    }
+
+                    lastShelfLogAt = now;
+
+                    console.log(
+                        `[Shelf Selected] ${zone}번 진열대 클릭`,
+                    );
+
+                    return {
+                        selectedZoneId: zone,
+                    };
+                }),
+
+            // 상품 선택
+            selectProduct: (product) =>
+                set({
+                    selectedProduct: product,
+                }),
+
+            // 미리 정의된 질문 선택
+            selectQuestion: (question, answer) =>
+                set((state) => {
+                    const lastMessage =
+                        state.messages[
+                        state.messages.length - 1
+                        ];
+
+                    if (lastMessage?.text === answer) {
+                        return {};
+                    }
+
+                    return {
+                        selectedQuestion: question,
+                        selectedAnswer: answer,
+                        messages: [
+                            ...state.messages,
+                            {
+                                id: Date.now(),
+                                type: "user",
+                                text: question,
+                            },
+                            {
+                                id: Date.now() + 1,
+                                type: "assistant",
+                                text: answer,
+                            },
+                        ],
+                    };
+                }),
+
+            // 직접 입력한 메시지 추가
+            addCustomMessage: (type, text) =>
+                set((state) => ({
+                    messages: [
+                        ...state.messages,
+                        {
+                            id: Date.now(),
+                            type,
+                            text,
+                        },
+                    ],
+                })),
+
+            setMessages: (messages) =>
+                set({
+                    messages,
+                }),
+
+            setPendingAction: (pendingAction) =>
+                set({
+                    pendingAction,
+                }),
+
+            // GET /chat/messages 응답 전체 동기화
+            syncChatState: ({
+                messages = [],
+                pending_action = null,
+            } = {}) =>
+                set({
+                    messages: messages.length
+                        ? messages.map(
+                            normalizeServerMessage,
+                        )
+                        : INITIAL_MESSAGES,
+
+                    pendingAction: pending_action,
+                }),
+
+            // 기존 함수 호환용
+            setServerMessages: (
+                serverMessages = [],
+            ) =>
+                set({
+                    messages: serverMessages.length
+                        ? serverMessages.map(
+                            normalizeServerMessage,
+                        )
+                        : INITIAL_MESSAGES,
+                }),
+
+            // 서버 메시지를 중복 없이 추가
+            addServerMessages: (
+                serverMessages = [],
+            ) =>
+                set((state) => {
+                    const existingIds = new Set(
+                        state.messages.map(
+                            (message) => message.id,
+                        ),
+                    );
+
+                    const newMessages = serverMessages
+                        .map(normalizeServerMessage)
+                        .filter(
+                            (message) =>
+                                !existingIds.has(message.id),
+                        );
+
+                    if (!newMessages.length) {
+                        return {};
+                    }
+
+                    return {
+                        messages: [
+                            ...state.messages,
+                            ...newMessages,
+                        ],
+                    };
+                }),
+
+            // 트리거 응답 결과 반영
+            applyActionResponse: (
+                serverMessages = [],
+            ) =>
+                set((state) => {
+                    const existingIds = new Set(
+                        state.messages.map(
+                            (message) => message.id,
+                        ),
+                    );
+
+                    const newMessages = serverMessages
+                        .map(normalizeServerMessage)
+                        .filter(
+                            (message) =>
+                                !existingIds.has(message.id),
+                        );
+
+                    return {
+                        messages: newMessages.length
+                            ? [
+                                ...state.messages,
+                                ...newMessages,
+                            ]
+                            : state.messages,
+
+                        // 답변했으므로 선택지 제거
+                        pendingAction: null,
+                    };
+                }),
+
+            // SSE 답변용 빈 말풍선 생성
+            startAssistantMessage: () =>
+                set((state) => ({
+                    messages: [
+                        ...state.messages,
+                        {
+                            id: `stream-${Date.now()}`,
+                            type: "assistant",
+                            role: "assistant",
+                            text: "",
+                        },
+                    ],
+                })),
+
+            // SSE로 받은 답변 조각 연결
+            appendAssistantDelta: (delta) =>
+                set((state) => {
+                    const lastIndex =
+                        state.messages.length - 1;
+
+                    const lastMessage =
+                        state.messages[lastIndex];
+
+                    if (
+                        lastMessage?.type !== "assistant"
+                    ) {
+                        return {};
+                    }
+
+                    return {
+                        messages: state.messages.map(
+                            (message, index) =>
+                                index === lastIndex
+                                    ? {
+                                        ...message,
+                                        text:
+                                            message.text +
+                                            delta,
+                                    }
+                                    : message,
+                        ),
+                    };
+                }),
+
+            // 채팅 초기화
+            resetChat: () =>
+                set({
+                    selectedZoneId: null,
+                    selectedProduct: null,
+                    selectedQuestion: null,
+                    selectedAnswer: null,
+                    pendingAction: null,
+                    messages: INITIAL_MESSAGES,
+                }),
         }),
+
         {
-        name: "ono-chat-storage",
-        storage: {
-            getItem: (name) => {
-            const value = sessionStorage.getItem(name);
-            return value ? JSON.parse(value) : null;
-            },
-            setItem: (name, value) => {
-            sessionStorage.setItem(name, JSON.stringify(value));
-            },
-            removeItem: (name) => {
-            sessionStorage.removeItem(name);
+            name: "ono-chat-storage",
+
+            storage: {
+                getItem: (name) => {
+                    const value =
+                        sessionStorage.getItem(name);
+
+                    return value
+                        ? JSON.parse(value)
+                        : null;
+                },
+
+                setItem: (name, value) => {
+                    sessionStorage.setItem(
+                        name,
+                        JSON.stringify(value),
+                    );
+                },
+
+                removeItem: (name) => {
+                    sessionStorage.removeItem(name);
+                },
             },
         },
-        }
-    )
+    ),
 );
 
 export default useChatStore;

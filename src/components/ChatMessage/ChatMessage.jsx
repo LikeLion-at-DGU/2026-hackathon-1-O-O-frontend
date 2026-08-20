@@ -5,6 +5,11 @@ const ChatMessage = ({
     type = "assistant",
     profileImage,
     onClick,
+
+    // 트리거 관련 props
+    pendingAction,
+    onAction,
+    isActionLoading = false,
 }) => {
     const isAssistant = type === "assistant";
 
@@ -12,7 +17,10 @@ const ChatMessage = ({
         <>
             <S.MessageRow $isAssistant={isAssistant}>
                 {isAssistant && profileImage && (
-                    <S.ProfileImage src={profileImage} alt="챗봇 프로필" />
+                    <S.ProfileImage
+                        src={profileImage}
+                        alt="챗봇 프로필"
+                    />
                 )}
 
                 <S.MessageBubble
@@ -23,6 +31,33 @@ const ChatMessage = ({
                     {children}
                 </S.MessageBubble>
             </S.MessageRow>
+
+            {isAssistant &&
+                pendingAction?.options?.length > 0 && (
+                    <S.ActionList>
+                        {pendingAction.options.map(
+                            (option, index) => (
+                                <S.ActionButton
+                                    key={`${pendingAction.reply_to}-${option.type
+                                        }-${option.product_id ??
+                                        option.option ??
+                                        index
+                                        }`}
+                                    type="button"
+                                    disabled={isActionLoading}
+                                    onClick={() =>
+                                        onAction?.(
+                                            pendingAction,
+                                            option,
+                                        )
+                                    }
+                                >
+                                    {option.label}
+                                </S.ActionButton>
+                            ),
+                        )}
+                    </S.ActionList>
+                )}
         </>
     );
 };

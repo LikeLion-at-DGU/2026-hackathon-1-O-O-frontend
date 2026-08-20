@@ -1,23 +1,135 @@
 import * as S from "./Layout.styled";
 import MobileLayout from "../MobileLayout/MobileLayout";
-import { Outlet, useNavigate } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+} from "react-router-dom";
 import ChatMessage from "../ChatMessage/ChatMessage";
 import bearImage from "../../assets/bear.png";
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import useChatStore from "../../stores/useChatStore";
+
+import {
+  answerPendingAction,
+  getChatMessages,
+} from "../../api/chat";
 
 function Layout() {
   const navigate = useNavigate();
-  const { messages } = useChatStore();
+
+  const {
+    messages,
+    pendingAction,
+    syncChatState,
+    applyActionResponse,
+  } = useChatStore();
+
+  const [isActionLoading, setIsActionLoading] =
+    useState(false);
 
   const chatRef = useRef(null);
 
+  // 메시지가 추가되면 아래로 스크롤
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop =
         chatRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // 서버 채팅 및 pending_action 조회
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadChatMessages = async () => {
+      const visitId =
+        localStorage.getItem("visitId") ??
+        sessionStorage.getItem(
+          "visit_id",
+        );
+
+      if (!visitId) {
+        return;
+      }
+
+      try {
+        const response =
+          await getChatMessages();
+
+        if (isMounted) {
+          syncChatState(response.data);
+        }
+      } catch (error) {
+        console.error(
+          "채팅 트리거 조회 실패:",
+          error.response?.data ?? error,
+        );
+      }
+    };
+
+    // 처음 화면 진입 시 즉시 조회
+    loadChatMessages();
+
+    // 이후 3초마다 트리거 확인
+    const pollingId = window.setInterval(
+      loadChatMessages,
+      3000,
+    );
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(pollingId);
+    };
+  }, [syncChatState]);
+
+  // 트리거 선택지 클릭
+  const handleAction = async (
+    action,
+    option,
+  ) => {
+    if (isActionLoading) {
+      return;
+    }
+
+    try {
+      setIsActionLoading(true);
+
+      const response =
+        await answerPendingAction({
+          pendingAction: action,
+          option,
+        });
+
+      applyActionResponse(
+        response.data.messages ?? [],
+      );
+    } catch (error) {
+      console.error(
+        "트리거 응답 실패:",
+        error.response?.data ?? error,
+      );
+
+      // 중복 클릭 또는 만료된 가설이면
+      // 서버 상태로 다시 맞춘다.
+      try {
+        const response =
+          await getChatMessages();
+
+        syncChatState(response.data);
+      } catch (reloadError) {
+        console.error(
+          "채팅 상태 복구 실패:",
+          reloadError,
+        );
+      }
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
 
   return (
     <MobileLayout>
@@ -27,23 +139,36 @@ function Layout() {
 
       <S.Containerbottom>
         <S.Chat ref={chatRef}>
-          {messages.map((msg) => (
+          {messages.map((message) => (
             <ChatMessage
-              key={msg.id}
-              type={msg.type}
+              key={message.id}
+              type={message.type}
               profileImage={
-                msg.type === "assistant"
+                message.type ===
+                "assistant"
                   ? bearImage
                   : undefined
               }
+              pendingAction={
+                pendingAction?.reply_to ===
+                message.id
+                  ? pendingAction
+                  : null
+              }
+              onAction={handleAction}
+              isActionLoading={
+                isActionLoading
+              }
             >
-              {msg.text}
+              {message.text}
             </ChatMessage>
           ))}
 
           <div
             id="chat-bottom-slot"
-            style={{ width: "100%" }}
+            style={{
+              width: "100%",
+            }}
           />
         </S.Chat>
 
@@ -55,7 +180,11 @@ function Layout() {
           xmlns="http://www.w3.org/2000/svg"
         />
 
-        <S.GoChat onClick={() => navigate("/chat")}>
+        <S.GoChat
+          onClick={() =>
+            navigate("/chat")
+          }
+        >
           채팅으로 대화하기
 
           <svg

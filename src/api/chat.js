@@ -22,6 +22,37 @@ export const createChatMessage = (payload) =>
     ...payload,
   });
 
+// pending_action의 선택지를 서버에 응답하는 함수
+export const answerPendingAction = ({
+  pendingAction,
+  option,
+}) => {
+  if (!pendingAction?.reply_to) {
+    throw new Error(
+      "답변할 트리거의 reply_to가 없습니다.",
+    );
+  }
+
+  if (!option?.type) {
+    throw new Error("선택지의 type이 없습니다.");
+  }
+
+  return createChatMessage({
+    type: option.type,
+    reply_to: pendingAction.reply_to,
+
+    // contrast 상품 선택
+    ...(option.product_id && {
+      product_id: option.product_id,
+    }),
+
+    // quick_browse 선택
+    ...(option.option && {
+      option: option.option,
+    }),
+  });
+};
+
 export const streamChat = async ({
   message,
   context,
@@ -53,7 +84,9 @@ export const streamChat = async ({
   }
 
   if (!response.body) {
-    throw new Error("채팅 응답 본문이 없습니다.");
+    throw new Error(
+      "채팅 응답 본문이 없습니다.",
+    );
   }
 
   const reader = response.body.getReader();
