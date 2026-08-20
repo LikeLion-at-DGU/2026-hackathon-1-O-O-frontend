@@ -9,6 +9,7 @@
     } from "../../api/events";
     import { getVisitId, getVisitToken } from "../../utils/storage";
     import { Link, useLocation, useNavigate } from "react-router-dom";
+import { showToast } from "../../utils/toast";
 
     function Header({ hideShoot = false, showActions = true }) {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@
         const visitToken = getVisitToken();
 
         if (!visitId || !visitToken) {
-        alert("방문 정보가 없습니다.");
+        showToast("방문 정보가 없습니다.");
         return;
         }
 
@@ -65,7 +66,7 @@
         console.error("🚨 관람 종료 요청 실패:", error.response?.data || error);
         // 서버 에러 포맷은 {"error":{code,message}}다. data.message를 읽어
         // 모든 실패가 "서버 응답 오류"로만 보였다.
-        alert(`관람 종료 실패: ${error.response?.data?.error?.message || "서버 응답 오류"}`);
+        showToast(`관람 종료 실패: ${error.response?.data?.error?.message || "서버 응답 오류"}`);
         }
     };
 
@@ -98,7 +99,7 @@
         }
 
         if (!selectedCandidate?.product_id) {
-        alert("화보에 담을 아이템을 먼저 선택해 주세요.");
+        showToast("화보에 담을 아이템을 먼저 선택해 주세요.");
         return;
         }
 

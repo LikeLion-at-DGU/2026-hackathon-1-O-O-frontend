@@ -19,6 +19,7 @@ import {
     getLookbookJob,
 } from "../api/lookbooks";
 import { getApiError } from "../api/errors";
+import { showToast } from "../utils/toast";
 
 const COMPLETE_STATUSES = [
     "ready",
@@ -546,7 +547,7 @@ function LookbookPage() {
                 return;
             }
 
-            alert(
+            showToast(
                 "이 브라우저에서는 이미지 파일 공유를 지원하지 않습니다. 이미지 저장을 이용해 주세요."
             );
         } catch (error) {
@@ -563,7 +564,7 @@ function LookbookPage() {
                 error
             );
 
-            alert(
+            showToast(
                 "이미지를 공유하지 못했습니다."
             );
         }
@@ -631,7 +632,7 @@ function LookbookPage() {
                 error
             );
 
-            alert(
+            showToast(
                 "이미지를 저장하지 못했습니다. 이미지를 길게 눌러 저장해 주세요."
             );
         }
@@ -656,7 +657,7 @@ function LookbookPage() {
             );
 
         if (!reportSlug || !savedRequest) {
-            alert(
+            showToast(
                 "재생성에 필요한 원본 정보를 찾지 못했습니다."
             );
 
@@ -676,7 +677,7 @@ function LookbookPage() {
             !skipLimitCheck &&
             Number(remaining) <= 0
         ) {
-            alert(
+            showToast(
                 "화보 재생성 가능 횟수를 모두 사용했습니다."
             );
 
@@ -756,17 +757,17 @@ function LookbookPage() {
                 getApiError(error);
 
             if (status === 429) {
-                alert(
+                showToast(
                     "화보 재생성 가능 횟수를 모두 사용했습니다."
                 );
             } else if (
                 status === 409
             ) {
-                alert(
+                showToast(
                     "이미 화보 생성 요청을 처리하고 있습니다."
                 );
             } else {
-                alert(
+                showToast(
                     message ||
                     "화보를 다시 만들지 못했습니다."
                 );

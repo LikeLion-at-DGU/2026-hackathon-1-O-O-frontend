@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import Header from "../components/Header/Header";
 import * as S from "./CameraPage.styled";
+import { showToast } from "../utils/toast";
 
 function CameraPage() {
   const videoRef = useRef(null);
@@ -132,7 +133,7 @@ function CameraPage() {
     const canvas = canvasRef.current;
 
     if (!video || !canvas) {
-      alert(
+      showToast(
         "카메라 화면을 불러오지 못했습니다."
       );
       return;
@@ -142,7 +143,7 @@ function CameraPage() {
       video.readyState <
       HTMLMediaElement.HAVE_CURRENT_DATA
     ) {
-      alert(
+      showToast(
         "카메라를 준비하고 있습니다. 잠시 후 다시 촬영해 주세요."
       );
       return;
@@ -159,7 +160,7 @@ function CameraPage() {
       480;
 
     if (!width || !height) {
-      alert(
+      showToast(
         "카메라 해상도를 확인하지 못했습니다."
       );
       return;
@@ -237,7 +238,7 @@ function CameraPage() {
         error
       );
 
-      alert(
+      showToast(
         "사진을 촬영하지 못했습니다. 다시 시도해 주세요."
       );
 
