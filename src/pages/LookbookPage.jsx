@@ -101,6 +101,20 @@ function LookbookPage() {
                     }
                 );
 
+                // 완성 화면으로 전환하기 전에 이미지 디코드까지 끝낸다 —
+                // 100% 직후 빈 화면이 잠깐 보이던 전환 공백을 없앤다
+                if (data?.image_url) {
+                    try {
+                        const image = new Image();
+                        image.src = data.image_url;
+                        await (image.decode
+                            ? image.decode()
+                            : Promise.resolve());
+                    } catch {
+                        // 디코드 실패해도 표시는 진행한다
+                    }
+                }
+
                 if (!mountedRef.current) {
                     return null;
                 }

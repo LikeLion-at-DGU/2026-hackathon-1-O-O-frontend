@@ -1,6 +1,6 @@
     // src/components/Header/Header.jsx
     import * as S from "./Header.styled";
-    import { useState } from "react";
+    import { useEffect, useRef, useState } from "react";
     import SoundButton from "../SoundButton";
     import { api } from "../../api/api";
     import {
@@ -15,6 +15,23 @@ import { showToast } from "../../utils/toast";
     const navigate = useNavigate();
     const location = useLocation();
     const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+    const continueButtonRef = useRef(null);
+
+    // 모달 접근성: 열리면 안전한 선택지에 포커스를 주고, Escape로 닫는다
+    useEffect(() => {
+        if (!isExitModalOpen) return undefined;
+
+        continueButtonRef.current?.focus();
+
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                setIsExitModalOpen(false);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isExitModalOpen]);
 
     const isLoadingPage =
         location.pathname.includes("loading") ||
@@ -150,6 +167,7 @@ import { showToast } from "../../utils/toast";
                 <S.ExitModalActions>
                 <S.ContinueButton
                     type="button"
+                    ref={continueButtonRef}
                     onClick={() => setIsExitModalOpen(false)}
                 >
                     조금 더 둘러볼게요.
