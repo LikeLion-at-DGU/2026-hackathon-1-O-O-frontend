@@ -1,32 +1,33 @@
 import { useEffect, useRef } from "react";
+import styled from "styled-components";
+
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import FloorMap from "../components/FloorMap/FloorMap";
 import HomeContent from "../components/HomeContent/HomeContent";
-import styled from "styled-components";
+
 import { enterStore } from "../api/visits";
 import { getVisitId } from "../utils/storage";
 
 function HomePage() {
   const visitStarted = useRef(false);
 
+  // 1. 매장 방문 세션 초기화 및 검증
   useEffect(() => {
     if (visitStarted.current) return;
-
     visitStarted.current = true;
 
     const startVisit = async () => {
       const existingVisitId = getVisitId();
 
+      // 기존 발급된 방문 ID가 존재하면 유지
       if (existingVisitId) {
         console.log("기존 방문 유지:", existingVisitId);
         return;
       }
 
       try {
-        // 연령대·성별을 지어내지 않는다. "20s"/"M" 하드코딩이 리포트 개인화에
-        // 그대로 들어갔고, "M"은 서버 choices(male/female/...)에 없어 400이었다.
+        // 서버 유효성 검증을 준수하여 빈 객체로 기본 방문 등록 요청
         const entered = await enterStore({});
-
         console.log("방문 시작:", entered?.visit_id);
       } catch (error) {
         console.error("방문 시작 실패:", error);

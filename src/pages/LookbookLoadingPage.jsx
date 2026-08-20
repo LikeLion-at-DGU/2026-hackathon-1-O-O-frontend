@@ -1,19 +1,7 @@
-import { useEffect, useState } from "react";
-
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import loadingBear from "../assets/LoadingBear.png";
 import * as S from "./LookbookLoadingPage.styled";
-
-const FILL_RANGES = [
-  [72, 138],
-  [92, 158],
-  [42, 112],
-];
-
-const getRandomFillHeight = ([minimum, maximum]) =>
-  Math.round(
-    minimum + Math.random() * (maximum - minimum)
-  );
+import useCardFillAnimation from "../hooks/useCardFillAnimation";
 
 function LookbookLoadingPage({
   progress = 0,
@@ -28,26 +16,7 @@ function LookbookLoadingPage({
     Math.max(0, Number(progress) || 0)
   );
 
-  const [fillLevels, setFillLevels] = useState([
-    102,
-    124,
-    56,
-  ]);
-
-  useEffect(() => {
-    const updateFillLevels = () => {
-      setFillLevels(
-        FILL_RANGES.map(getRandomFillHeight)
-      );
-    };
-
-    const timer = window.setInterval(
-      updateFillLevels,
-      1400
-    );
-
-    return () => window.clearInterval(timer);
-  }, []);
+  const fillLevels = useCardFillAnimation();
 
   const stageLabel =
     step ||
@@ -68,28 +37,17 @@ function LookbookLoadingPage({
 
         {errorMessage ? (
           <S.ErrorContent>
-            <S.Title>
-              화보를 만들지 못했어요.
-            </S.Title>
-
-            <S.Description>
-              {errorMessage}
-            </S.Description>
-
+            <S.Title>화보를 만들지 못했어요.</S.Title>
+            <S.Description>{errorMessage}</S.Description>
             {onRetry && (
-              <S.RetryButton
-                type="button"
-                onClick={onRetry}
-              >
+              <S.RetryButton type="button" onClick={onRetry}>
                 {retryLabel}
               </S.RetryButton>
             )}
           </S.ErrorContent>
         ) : (
           <S.LoadingContent>
-            <S.Title>
-              패디가 뮤즈님의 화보를 만들고 있어요.
-            </S.Title>
+            <S.Title>패디가 뮤즈님의 화보를 만들고 있어요.</S.Title>
 
             <S.CardSection>
               <S.CardRow>
@@ -112,9 +70,7 @@ function LookbookLoadingPage({
                       strokeLinejoin="round"
                     />
                   </S.CardBorder>
-                  <S.CardFill
-                    $height={`${fillLevels[0]}px`}
-                  />
+                  <S.CardFill $height={`${fillLevels[0]}px`} />
                 </S.Card>
 
                 <S.Card>
@@ -136,9 +92,7 @@ function LookbookLoadingPage({
                       strokeLinejoin="round"
                     />
                   </S.CardBorder>
-                  <S.CardFill
-                    $height={`${fillLevels[1]}px`}
-                  />
+                  <S.CardFill $height={`${fillLevels[1]}px`} />
                 </S.Card>
 
                 <S.Card>
@@ -160,9 +114,7 @@ function LookbookLoadingPage({
                       strokeLinejoin="round"
                     />
                   </S.CardBorder>
-                  <S.CardFill
-                    $height={`${fillLevels[2]}px`}
-                  />
+                  <S.CardFill $height={`${fillLevels[2]}px`} />
                 </S.Card>
               </S.CardRow>
 
@@ -174,20 +126,11 @@ function LookbookLoadingPage({
             </S.CardSection>
 
             <S.ProgressSection>
-              <S.Character
-                src={loadingBear}
-                alt=""
-              />
-
+              <S.Character src={loadingBear} alt="" />
               <S.ProgressContent>
-                <S.ProgressLabel>
-                  {stageLabel}
-                </S.ProgressLabel>
-
+                <S.ProgressLabel>{stageLabel}</S.ProgressLabel>
                 <S.ProgressTrack>
-                  <S.ProgressBar
-                    $progress={normalizedProgress}
-                  />
+                  <S.ProgressBar $progress={normalizedProgress} />
                 </S.ProgressTrack>
               </S.ProgressContent>
             </S.ProgressSection>
