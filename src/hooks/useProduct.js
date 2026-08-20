@@ -11,8 +11,8 @@ export default function useProduct(productId) {
                 const response = await getProduct(productId);
 
                 setProduct(response?.data ?? response);
-            } catch (error) {
-                console.error("상품 조회 실패:", error);
+            } catch {
+                // 조회 실패 시 빈 상품 상태를 유지한다.
             } finally {
                 setLoading(false);
             }

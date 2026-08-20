@@ -48,14 +48,6 @@ export function useLookbookPolling(shareSlug) {
     async (targetShareSlug) => {
       const data = await getLookbook(targetShareSlug);
 
-      console.info("[Lookbook] 완성 화보 응답", {
-        shareSlug: targetShareSlug,
-        imageUrl: data?.image_url,
-        width: data?.width,
-        height: data?.height,
-        attempt: data?.attempt,
-      });
-
       // 완료 화면으로 전환하기 전에 이미지 디코드를 기다려
       // 100% 직후 빈 화면이 보이는 전환 공백을 줄인다.
       if (data?.image_url) {
@@ -150,18 +142,6 @@ export function useLookbookPolling(shareSlug) {
             job?.status || "",
           ).toLowerCase();
 
-          console.info("[Lookbook] 생성 작업 상태", {
-            jobId,
-            status,
-            progress: job?.progress,
-            stage: job?.stage,
-            step: job?.step,
-            shareSlug:
-              job?.share_slug || targetShareSlug,
-            errorCode: job?.error_code,
-            retryable: job?.retryable,
-          });
-
           const rawProgress = Number(job?.progress) || 0;
 
           setProgress(
@@ -185,24 +165,6 @@ export function useLookbookPolling(shareSlug) {
 
             const errorCode = job?.error_code || "";
             const retryable = Boolean(job?.retryable);
-
-            console.error(
-              "[Lookbook] 화보 이미지 생성 실패",
-              {
-                jobId,
-                shareSlug:
-                  job?.share_slug || targetShareSlug,
-                status,
-                errorCode: errorCode || null,
-                retryable,
-                progress: job?.progress,
-                stage: job?.stage,
-                step: job?.step,
-                pollAfterMs: job?.poll_after_ms,
-                attempt: job?.attempt,
-                response: job,
-              },
-            );
 
             setJobFailure({ errorCode, retryable });
             setErrorMessage(
@@ -229,11 +191,6 @@ export function useLookbookPolling(shareSlug) {
           );
         } catch (error) {
           if (!mountedRef.current) return;
-
-          console.error(
-            "화보 상태 조회 실패:",
-            error.response?.data || error,
-          );
 
           if (error.response?.status === 404) {
             try {

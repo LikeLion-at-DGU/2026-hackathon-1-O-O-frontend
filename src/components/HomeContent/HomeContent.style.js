@@ -12,6 +12,11 @@ export const Greeting = styled.div`
   align-items: center;
   justify-content: center;
   gap: 12px;
+
+  /* 402px 기준 좌 28 / 우 10 여백을 유지하며 화면 폭에 맞춘다 */
+  @media (max-width: 600px) {
+    width: calc(100% - 38px);
+  }
 `;
 
 export const Title = styled.h1`
@@ -69,11 +74,19 @@ export const Description = styled.p`
 
   width: 363px;
   margin: 16px auto 24px;
+
+  @media (max-width: 600px) {
+    width: calc(100% - 39px);
+  }
 `;
 
 export const Section = styled.section`
   width: 363px;
   margin: 23px auto;
+
+  @media (max-width: 600px) {
+    width: calc(100% - 39px);
+  }
 `;
 
 export const SectionTitle = styled.h2`

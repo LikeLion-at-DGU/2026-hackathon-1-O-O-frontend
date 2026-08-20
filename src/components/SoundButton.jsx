@@ -26,7 +26,7 @@ export default function SoundButton() {
         e.stopPropagation();
 
         if (BgmManager.audio.paused) {
-            BgmManager.play().catch((err) => console.log("재생 실패:", err));
+            BgmManager.play().catch(() => {});
         } else {
             BgmManager.pause();
         }

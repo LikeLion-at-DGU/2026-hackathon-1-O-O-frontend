@@ -134,8 +134,7 @@ export const processPhotoWithMediaPipe = async (imageSrc) => {
 
       img.onerror = (err) => reject(err);
     });
-  } catch (error) {
-    console.error("🚨 [MediaPipe] 처리 중 에러 발생:", error);
+  } catch {
     return {
       maskBlob: null,
       photoMeta: {

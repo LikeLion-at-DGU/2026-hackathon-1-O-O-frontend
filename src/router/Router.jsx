@@ -45,7 +45,6 @@ function Router() {
 
       // 3. visitId가 없으면 랜딩 페이지로 쫓아냄
       if (!visitId) {
-        console.warn("⚠️ visit_id가 존재하지 않아 랜딩 페이지로 이동합니다.");
         // replace: true를 넣으면 뒤로가기 버튼을 눌러도 다시 튕기지 않아 깔끔합니다.
         navigate("/", { replace: true });
       }

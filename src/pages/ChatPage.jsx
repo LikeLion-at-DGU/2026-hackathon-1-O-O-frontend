@@ -80,8 +80,6 @@ function ChatPage() {
         return;
       }
 
-      console.error("AI 채팅 전송 실패:", error);
-
       appendAssistantDelta(
         error?.message ||
           "죄송해요. 답변을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."

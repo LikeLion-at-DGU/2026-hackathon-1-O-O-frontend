@@ -40,8 +40,7 @@ export default function useAnalyticsPolling() {
             }
 
             pollTimerRef.current = setTimeout(checkReportStatus, 2000);
-        } catch (err) {
-            console.error("🚨 리포트 분석 대기 중 오류:", err);
+        } catch {
             navigate(`/analytics/${reportSlug}`, { replace: true });
         }
         };

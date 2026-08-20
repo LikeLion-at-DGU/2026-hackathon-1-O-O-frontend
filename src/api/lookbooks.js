@@ -1,4 +1,3 @@
-import { logger } from "../utils/logger";
 import { api, publicApi } from "./api";
 
 /**
@@ -44,39 +43,12 @@ export const createLookbook = async (slug, payload) => {
 
   const endpoint = `/reports/${slug}/lookbook`;
 
-  // photo_key·마스크 키가 든 payload 전체는 남기지 않는다
-  logger.debug("[Lookbook] 화보 생성 POST 요청", {
+  const response = await api.post(
     endpoint,
-    productCount: payload?.product_ids?.length ?? 0,
-    hasMask: Boolean(payload?.mask_key),
-  });
+    payload
+  );
 
-  try {
-    const response = await api.post(
-      endpoint,
-      payload
-    );
-
-    logger.debug("[Lookbook] 화보 생성 POST 응답", {
-      endpoint,
-      status: response.status,
-      shareSlug: response.data?.share_slug,
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error(
-      "[Lookbook] 화보 생성 POST 실패",
-      {
-        endpoint,
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      }
-    );
-
-    throw error;
-  }
+  return response.data;
 };
 
 /**

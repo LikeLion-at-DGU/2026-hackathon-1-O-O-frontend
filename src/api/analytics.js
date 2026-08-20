@@ -15,23 +15,9 @@ export const getAnalytics = async (identifier) => {
     );
   }
 
-  try {
-    const response = await api.get(
-      `/reports/${targetSlug}`
-    );
+  const response = await api.get(
+    `/reports/${targetSlug}`
+  );
 
-    console.log(
-      "[Analytics] 리포트 조회 성공:",
-      response.data
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error(
-      "[Analytics] 리포트 조회 실패:",
-      error.response?.data || error
-    );
-
-    throw error;
-  }
+  return response.data;
 };

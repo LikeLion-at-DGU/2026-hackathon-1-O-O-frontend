@@ -139,14 +139,8 @@ export const streamChat = async ({
       data = JSON.parse(rawData);
     } catch {
       // 조각난 프레임 하나 때문에 스트림 전체를 끊지 않는다
-      console.warn("SSE 프레임 파싱 실패, 건너뜀:", rawData);
       return;
     }
-
-    console.log(
-      "SSE 채팅 응답:",
-      JSON.stringify(data, null, 2),
-    );
 
     if (data.error) {
       const errorMessage =

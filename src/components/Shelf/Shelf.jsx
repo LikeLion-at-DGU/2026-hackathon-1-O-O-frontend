@@ -32,8 +32,7 @@ export default function Shelf() {
       return JSON.parse(
         sessionStorage.getItem("scenes") ?? "[]"
       );
-    } catch (error) {
-      console.error("선반 데이터 파싱 실패:", error);
+    } catch {
       return [];
     }
   });
@@ -112,8 +111,8 @@ export default function Shelf() {
           product_id: product.id,
         });
         addServerMessages(response.data.messages ?? []);
-      } catch (error) {
-        console.error("Product click recording failed:", error);
+      } catch {
+        // 클릭 기록 실패와 관계없이 상품 상세 화면은 계속 연다.
       }
     }
 

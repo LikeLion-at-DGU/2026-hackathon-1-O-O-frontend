@@ -81,8 +81,6 @@ const useChatStore = create(
             }
 
             lastShelfLogAt = now;
-            console.log(`[Shelf Selected] ${zone}번 진열대 클릭`);
-
             return { selectedZoneId: zone };
             }),
 
