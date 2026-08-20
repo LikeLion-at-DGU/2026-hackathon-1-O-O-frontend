@@ -5,11 +5,17 @@ import { getLookbookCandidates } from "../api/lookbooks";
 import * as S from "./AnalyticsPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import Header from "../components/Header/Header";
+import checkActiveImg from "../assets/check.svg";
+import checkInactiveImg from "../assets/check.png";
 
 const defaultBagImg =
   "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23eee%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20alignment-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23aaa%22%20font-size%3D%2214%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E";
 
 export const getProductImage = (product) => {
+  const prodId = product?.product_id ?? product?.id;
+  if (prodId) {
+    return `/images/${prodId}-Photoroom.png`;
+  }
   return (
     product?.cutout_url ??
     product?.thumbnail ??
@@ -51,74 +57,36 @@ export default function AnalyticsPage() {
         const data = await getAnalytics(reportSlug);
         if (!isMounted) return;
 
-        console.log("📊 [AnalyticsPage] 서버 응답:", data);
+        console.log("📊 [AnalyticsPage] 서버 리포트 원본 데이터:", data);
 
         if (data?.status === "pending") {
-          setIsPending(true);
-          pollTimerRef.current = setTimeout(loadReport, 2000);
+          navigate(`/analytics-loading?slug=${reportSlug}`, { replace: true });
           return;
         }
 
-        if (data?.status === "ready") {
+        if (data?.status === "ready" || data?.taste_profile || data?.summary) {
           setReport(data);
           setIsPending(false);
 
-          const candidateSlug =
-            slug || sessionStorage.getItem("report_slug");
-          let candidateSelectionApplied = false;
-
-          if (candidateSlug) {
-            try {
-              const candidates =
-                await getLookbookCandidates(candidateSlug);
-
-              if (!isMounted) return;
-
-              setCandidateProducts(candidates?.items ?? []);
-              setCandidateMaxSelect(
-                Number(candidates?.max_select) || 1
-              );
-              setCandidateMinSelect(
-                Number(candidates?.min_select) || 1
-              );
-
-              const preselected = Array.isArray(
-                candidates?.preselected
-              )
-                ? candidates.preselected
-                : [];
-
-              if (preselected.length > 0) {
-                candidateSelectionApplied = true;
-                const initialSelection = preselected.slice(
-                  0,
-                  Number(candidates?.max_select) || 1
-                );
-
-                setSelectedProductIds(initialSelection);
-                sessionStorage.setItem(
-                  "selected_products",
-                  JSON.stringify(initialSelection)
-                );
-              }
-            } catch (candidateError) {
-              console.warn(
-                "화보 후보 상품 조회 실패. 기존 추천 상품을 사용합니다.",
-                candidateError.response?.data || candidateError
-              );
-            }
-          }
-
-          const defaultSelectedId =
-            data.hero?.product_id ||
-            (data.recommendations && data.recommendations[0]?.product_id) ||
+          const defaultProduct =
+            data.hero ||
+            (Array.isArray(data.recommendations) && data.recommendations[0]) ||
             null;
 
-          if (defaultSelectedId && !candidateSelectionApplied) {
-            setSelectedProductIds([defaultSelectedId]);
+          if (defaultProduct) {
+            const defaultId = defaultProduct.product_id || defaultProduct.id;
+            if (defaultId) {
+              setSelectedProductIds([defaultId]);
+            }
+
             sessionStorage.setItem(
               "selected_products",
-              JSON.stringify([defaultSelectedId])
+              JSON.stringify([
+                {
+                  ...defaultProduct,
+                  imageUrl: getProductImage(defaultProduct),
+                },
+              ])
             );
           }
         }
@@ -132,18 +100,20 @@ export default function AnalyticsPage() {
 
     return () => {
       isMounted = false;
-      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+      if (pollTimerRef.current) {
+        clearTimeout(pollTimerRef.current);
+      }
     };
-  }, [reportSlug]);
+  }, [reportSlug, navigate]);
 
-  // 1~7번 진열대 체류 시간 계산
+  // ⭐️ 2. 체류 시간 정밀 계산 및 집계
   const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
     if (!report) {
       return {
         topZoneName: "진열대",
         totalMinutes: 0,
-        top1: { zone_name: "-", duration_min: 0 },
-        top2: { zone_name: "-", duration_min: 0 },
+        top1: { zone_name: "-", duration_min: 0, raw_sec: 0 },
+        top2: { zone_name: "-", duration_min: 0, raw_sec: 0 },
         etcMinutes: 0,
       };
     }
@@ -151,29 +121,40 @@ export default function AnalyticsPage() {
     const zoneSecMap = {};
     let totalSec = 0;
 
-    // (A) report.interested 파싱
+    // (A) 서버 리포트 내 scene / zones 요약 데이터 1순위 파싱
+    const sceneSummaries =
+      report.scenes ||
+      report.summary?.scenes ||
+      report.zone_summary ||
+      report.scene_stats ||
+      [];
+
+    if (Array.isArray(sceneSummaries) && sceneSummaries.length > 0) {
+      sceneSummaries.forEach((s) => {
+        const sec = Number(
+          s.dwell_sec ??
+          (s.dwell_ms ? Math.round(s.dwell_ms / 1000) : 0) ??
+          s.duration_sec ??
+          0
+        );
+        const name = s.zone_name || s.scene_name || `${s.scene_no || s.no || 1}번 진열대`;
+        zoneSecMap[name] = (zoneSecMap[name] || 0) + sec;
+        totalSec += sec;
+      });
+    }
+
+    // (B) report.interested 파싱 (초/밀리초/텍스트)
     if (Array.isArray(report.interested) && report.interested.length > 0) {
       report.interested.forEach((item, idx) => {
         let sec = 0;
-
-        if (typeof item.dwell_sec === "number") {
-          sec = item.dwell_sec;
-        } else if (typeof item.dwell_ms === "number") {
-          sec = Math.round(item.dwell_ms / 1000);
-        } else if (typeof item.reason === "string") {
-          const match =
-            item.reason.match(/체류\s*(\d+)\s*(?:초|s|sec)?/i) ||
-            item.reason.match(/(\d+)\s*(?:초|s|sec)/i);
-          if (match) {
-            sec = parseInt(match[1], 10);
-          } else if (item.reason.includes("대화") || item.reason.includes("챗봇")) {
-            const countMatch = item.reason.match(/(\d+)\s*회/);
-            const count = countMatch ? parseInt(countMatch[1], 10) : 1;
-            sec = count * 15;
-          }
+        if (typeof item.dwell_sec === "number") sec = item.dwell_sec;
+        else if (typeof item.dwell_ms === "number") sec = Math.round(item.dwell_ms / 1000);
+        else if (typeof item.reason === "string") {
+          const match = item.reason.match(/체류\s*(\d+)\s*(?:초|s|sec)?/i);
+          if (match) sec = parseInt(match[1], 10);
         }
 
-        let shelfNo = item.scene_no;
+        let shelfNo = item.scene_no || item.scene_id || item.zone_no;
         if (!shelfNo && item.product_id) {
           const pMatch = String(item.product_id).match(/p_(\d)/);
           if (pMatch) shelfNo = parseInt(pMatch[1], 10);
@@ -185,49 +166,52 @@ export default function AnalyticsPage() {
       });
     }
 
-    // (B) report.events 배열 파싱
-    if (Array.isArray(report.events) && report.events.length > 0) {
-      report.events.forEach((ev) => {
-        const ms = Number(
-          ev.payload?.dwell_time_ms ??
-            ev.metadata?.dwell_ms ??
-            ev.dwell_time_ms ??
-            0
-        );
-        const sec = Math.round(ms / 1000);
-        const rawZone = String(
-          ev.payload?.zone_id ?? ev.zone_id ?? ev.scene_id ?? ""
-        );
-        const numMatch = rawZone.match(/\d+/);
-        const zoneKey = numMatch ? `${numMatch[0]}번 진열대` : "기타 진열대";
+    // (C) 총 시간 필드가 서버에 명시된 경우 우선 반영
+    const serverTotalSec =
+      report.total_duration_sec ??
+      (report.total_dwell_ms ? Math.round(report.total_dwell_ms / 1000) : 0) ??
+      report.summary?.total_duration_sec;
 
-        zoneSecMap[zoneKey] = (zoneSecMap[zoneKey] || 0) + sec;
-        totalSec += sec;
-      });
+    if (serverTotalSec && serverTotalSec > totalSec) {
+      totalSec = serverTotalSec;
     }
 
-    // (C) 체류시간 내림차순 정렬
+    // (D) 정렬 및 최소 1분 단위 보정
     const sortedZones = Object.entries(zoneSecMap)
       .map(([zone_name, sec]) => ({
         zone_name,
         raw_sec: sec,
-        duration_min: sec > 0 ? Math.ceil(sec / 60) : 0,
+        duration_min: Math.max(1, Math.round(sec / 60) || 1),
       }))
       .sort((a, b) => b.raw_sec - a.raw_sec);
 
+    console.log("⏱️ [체류시간 파싱 결과]:", {
+      zoneSecMap,
+      totalSec,
+      sortedZones,
+    });
+
+// src/pages/AnalyticsPage.jsx (useMemo 내부 하단)
+
+    // 1. Top1, Top2 진열대 추출 (0초보다 크면 최소 1분 올림)
     const top1Zone = sortedZones[0] || { zone_name: "1번 진열대", duration_min: 0, raw_sec: 0 };
     const top2Zone = sortedZones[1] || { zone_name: "2번 진열대", duration_min: 0, raw_sec: 0 };
 
-    const calcTotalMin = totalSec > 0 ? Math.ceil(totalSec / 60) : 0;
-    const top2SumMin = top1Zone.duration_min + top2Zone.duration_min;
-    const calcEtcMin = Math.max(0, calcTotalMin - top2SumMin);
+    // 2. 3위 이하 나머지 진열대들의 체류시간 합산 (기타)
+    const etcRawSec = sortedZones
+      .slice(2)
+      .reduce((sum, zone) => sum + (zone.raw_sec || 0), 0);
+    const etcMin = etcRawSec > 0 ? Math.ceil(etcRawSec / 60) : 0;
+
+    // ⭐️ 3. 총 관람시간 = 아래 3개 알약의 단순 합산으로 일치화
+    const calcTotalMin = top1Zone.duration_min + top2Zone.duration_min + etcMin;
 
     return {
       topZoneName: top1Zone.zone_name,
-      totalMinutes: calcTotalMin,
+      totalMinutes: calcTotalMin, // Top1 + Top2 + 기타 합계 (예: 8 + 1 + 0 = 9분)
       top1: top1Zone,
       top2: top2Zone,
-      etcMinutes: calcEtcMin,
+      etcMinutes: etcMin,
     };
   }, [report]);
 
@@ -283,19 +267,11 @@ export default function AnalyticsPage() {
 
     return unique.slice(0, 6);
   }, [report]);
-  // 로딩 화면
-if (isPending) {
-    return (
-      <MobileLayout>
-        <S.Container style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
-          <S.MainTitle style={{ textAlign: "center", marginBottom: 8 }}>관람 기록을 분석하고 있어요</S.MainTitle>
-          <S.SubTitle style={{ textAlign: "center" }}>취향 분석 리포트를 준비 중입니다...</S.SubTitle>
-        </S.Container>
-      </MobileLayout>
-    );
+
+  if (isPending) {
+    return null;
   }
 
-  // 데이터 수신 실패 시
   if (!report) {
     return (
       <MobileLayout>
@@ -351,7 +327,6 @@ if (isPending) {
           {displayProducts.map((item, index) => {
             const productId = item.product_id || item.id || `temp_${index}`;
             const isSelected = selectedProductIds.includes(productId);
-            // ⭐️ 상단 getProductImage 함수를 통해 public/images 누끼 사진 우선 적용
             const imgSrc = getProductImage(item);
 
             return (
@@ -361,25 +336,10 @@ if (isPending) {
                 onClick={() => handleToggleSelect(productId)}
               >
                 <S.ImageContainer>
-                  {isSelected && (
-                    <S.CheckBadge>
-                      <svg
-                        width="14"
-                        height="10"
-                        viewBox="0 0 14 10"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M1 5L4.8 9L13 1"
-                          stroke="white"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </S.CheckBadge>
-                  )}
+                  <S.CheckIconImage
+                    src={isSelected ? checkActiveImg : checkInactiveImg}
+                    alt={isSelected ? "선택됨" : "선택 안 됨"}
+                  />
                   <S.ItemImage
                     src={imgSrc}
                     alt={item.name || "상품 이미지"}

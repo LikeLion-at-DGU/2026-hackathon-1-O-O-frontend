@@ -192,18 +192,19 @@ export const EnvelopeFlight = styled.div`
 
   z-index: 14;
 
-  width: 76%;
-  max-width: 305px;
+  width: 78%;
+  max-width: 314px;
 
   transform:
     translate(-50%, -50%)
-    translate(58px, -60vh)
+    translate(58vw, -60vh)
     rotate(28deg)
     scale(0.14);
 
-  filter: drop-shadow(
-    0 24px 30px rgba(0, 0, 0, 0.38)
-  );
+  filter:
+    drop-shadow(
+      0 20px 28px rgba(0, 0, 0, 0.28)
+    );
 
   will-change: transform, opacity;
 `;
@@ -213,117 +214,148 @@ export const Envelope = styled.div`
   position: relative;
 
   width: 100%;
+  aspect-ratio: 3 / 2;
 
-  aspect-ratio: 1.5;
+  /* hidden에서 변경 */
+  overflow: visible;
 
-  background: #e9d8c4;
+  border-radius: 20px;
+  border: 2px dashed var(--shelve, #d1ccc7);
 
-  box-shadow:
-    0 20px 52px rgba(0, 0, 0, 0.34);
+  background: #f3eee3;
+  box-sizing: border-box;
 
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+
+  perspective: 900px;
+  transform-style: preserve-3d;
+
+  /* 아래쪽 접힘선 코드는 그대로 */
+
+
+  /*
+    아래쪽 접힘선
+  */
   &::before {
     content: "";
 
     position: absolute;
+    left: 50%;
+    top: 56%;
 
-    inset: 0;
+    z-index: 5;
 
-    z-index: 3;
+    width: 56%;
+    height: 1px;
 
-    background:
-      linear-gradient(
-          150deg,
-          transparent 49.5%,
-          #d4bda4 50%
-        )
-        left / 50% 100%
-        no-repeat,
-      linear-gradient(
-          210deg,
-          transparent 49.5%,
-          #ddc8b2 50%
-        )
-        right / 50% 100%
-        no-repeat;
+    transform: rotate(32deg);
+    transform-origin: left center;
+
+    background: repeating-linear-gradient(
+      to right,
+      #d1ccc7 0,
+      #d1ccc7 6px,
+      transparent 6px,
+      transparent 11px
+    );
   }
 
+  /* 중앙에서 왼쪽 아래로 내려가는 선 */
   &::after {
     content: "";
 
     position: absolute;
+    left: 50%;
+    top: 56%;
 
-    inset: 0;
+    z-index: 5;
 
-    z-index: 8;
+    width: 56%;
+    height: 1px;
 
-    border:
-      1px solid rgba(78, 53, 35, 0.14);
+    transform: rotate(148deg);
+    transform-origin: left center;
+
+    background: repeating-linear-gradient(
+      to right,
+      #d1ccc7 0,
+      #d1ccc7 6px,
+      transparent 6px,
+      transparent 11px
+    );
   }
 `;
 
 // 봉투 뚜껑
 export const Flap = styled.div`
   position: absolute;
-
   left: 0;
-  right: 0;
   top: 0;
-
   z-index: 7;
 
-  height: 68%;
+  width: 100%;
+  height: 53%;
 
-  clip-path:
-    polygon(
-      0 0,
-      100% 0,
-      50% 100%
+  transform: rotateX(0deg);
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+
+  will-change: transform;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  path {
+    fill: #e5e3e0;
+    stroke: #d1ccc7;
+    stroke-width: 3;
+    stroke-dasharray: 10 10;
+    stroke-linejoin: round;
+
+    filter: drop-shadow(
+      0 2px 2px rgba(80, 70, 60, 0.12)
     );
-
-  background: #f1e1cd;
-
-  transform-origin: top;
+  }
 `;
 
 export const Seal = styled.div`
   position: absolute;
 
   left: 50%;
-  top: 53%;
+  top: 56%;
 
-  z-index: 9;
+  z-index: 10;
 
-  width: 58px;
-  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 54px;
+  height: 54px;
 
   transform: translate(-50%, -50%);
 
-  display: grid;
-  place-items: center;
-
-  border:
-    1px solid rgba(255, 255, 255, 0.2);
-
   border-radius: 50%;
 
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      #b87b51,
-      #60351f 72%
-    );
+  color: #ffffff;
+  background: #e9785d;
 
-  color: #ecd8c4;
+  font-family: var(--font-pretendard);
+  font-size: 14px;
+  font-weight: 700;
 
   box-shadow:
-    0 7px 14px rgba(0, 0, 0, 0.25);
+    0 3px 8px rgba(80, 40, 30, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.35);
 
-  font:
-    11px/1.05 Pretendard,
-    Pretendard;
-
-  text-align: center;
+  will-change: opacity;
 `;
+
 
 /* =========================
    초대장 종이 (편지지)
@@ -471,21 +503,61 @@ export const PaperWhiteout = styled.div`
   background: #f6f0e7;
 `;
 
-export const SkyCue = styled.div`
+export const ScrollArrow = styled.div`
   position: absolute;
 
-  left: 50%;
-  bottom: 6vh;
+  left: 20px;
+  top: 50%;
 
-  transform: translateX(-50%);
+  z-index: 20;
 
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
 
-  font-size: 9px;
-  letter-spacing: 0.16em;
+  color: #ffffff;
 
-  opacity: 0.48;
+  transform: translateY(-50%);
+  pointer-events: none;
+
+  animation: arrowFloat 1.5s ease-in-out infinite;
+
+  span {
+    width: 1px;
+    height: 55px;
+
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255, 255, 255, 0.95)
+    );
+  }
+
+  i {
+    margin-top: -8px;
+
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  @keyframes arrowFloat {
+    0%,
+    100% {
+      transform: translateY(-50%);
+      opacity: 0.45;
+    }
+
+    50% {
+      transform: translateY(calc(-50% + 9px));
+      opacity: 1;
+    }
+  }
 `;
+
 
 /* =========================================================
    02 / 1976 → 2026
