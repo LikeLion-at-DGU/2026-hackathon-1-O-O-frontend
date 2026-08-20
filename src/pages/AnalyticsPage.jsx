@@ -1,21 +1,19 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAnalytics } from "../api/analytics";
 import { getLookbookCandidates } from "../api/lookbooks";
 import * as S from "./AnalyticsPage.styled";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
-import Header from "../components/Header/Header";
 import checkActiveImg from "../assets/check.svg";
 import checkInactiveImg from "../assets/check.png";
 
 const defaultBagImg =
   "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23eee%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20alignment-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23aaa%22%20font-size%3D%2214%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E";
 
+const CANDIDATE_RETRY_DELAY = 2000;
+const CANDIDATE_MAX_RETRIES = 5;
+
 export const getProductImage = (product) => {
-  const prodId = product?.product_id ?? product?.id;
-  if (prodId) {
-    return `/images/${prodId}-Photoroom.png`;
-  }
   return (
     product?.cutout_url ??
     product?.thumbnail ??
@@ -36,10 +34,10 @@ export default function AnalyticsPage() {
     sessionStorage.getItem("visit_id");
 
   const [report, setReport] = useState(null);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [candidateProducts, setCandidateProducts] = useState([]);
-  const [candidateMaxSelect, setCandidateMaxSelect] = useState(1);
-  const [candidateMinSelect, setCandidateMinSelect] = useState(1);
+  const [candidateError, setCandidateError] = useState("");
   const [isPending, setIsPending] = useState(true);
   const pollTimerRef = useRef(null);
 
@@ -51,6 +49,48 @@ export default function AnalyticsPage() {
     }
 
     let isMounted = true;
+
+    const getCandidatesWithRetry = async (
+      retryCount = 0
+    ) => {
+      try {
+        return await getLookbookCandidates(
+          reportSlug
+        );
+      } catch (error) {
+        const shouldRetry =
+          error.response?.status === 409 &&
+          retryCount < CANDIDATE_MAX_RETRIES;
+
+        if (!shouldRetry) {
+          throw error;
+        }
+
+        console.info(
+          "[Lookbook] 후보 분석 대기 후 재조회",
+          {
+            reportSlug,
+            retryCount: retryCount + 1,
+            retryAfterMs:
+              CANDIDATE_RETRY_DELAY,
+          }
+        );
+
+        await new Promise((resolve) => {
+          pollTimerRef.current =
+            window.setTimeout(
+              resolve,
+              CANDIDATE_RETRY_DELAY
+            );
+        });
+
+        if (!isMounted) return null;
+
+        return getCandidatesWithRetry(
+          retryCount + 1
+        );
+      }
+    };
 
     const loadReport = async () => {
       try {
@@ -66,26 +106,104 @@ export default function AnalyticsPage() {
 
         if (data?.status === "ready" || data?.taste_profile || data?.summary) {
           setReport(data);
-          setIsPending(false);
 
-          const defaultProduct =
-            data.hero ||
-            (Array.isArray(data.recommendations) && data.recommendations[0]) ||
-            null;
+          try {
+            const candidates =
+              await getCandidatesWithRetry();
 
-          if (defaultProduct) {
-            const defaultId = defaultProduct.product_id || defaultProduct.id;
-            if (defaultId) {
-              const normalizedId = String(defaultId);
+            if (!isMounted || !candidates) return;
 
-              setSelectedProductIds([normalizedId]);
+            const items = Array.isArray(candidates?.items)
+              ? candidates.items.filter(
+                  (item) => item?.product_id
+                )
+              : [];
 
-              sessionStorage.setItem(
-                "selected_products",
-                JSON.stringify([normalizedId])
+            if (items.length === 0) {
+              throw new Error(
+                "선택 가능한 화보 상품이 없습니다."
               );
             }
+
+            setCandidateProducts(items);
+            setCandidateError("");
+
+            const savedCandidateText =
+              sessionStorage.getItem(
+                "selected_candidate"
+              );
+
+            let savedCandidate = null;
+
+            try {
+              savedCandidate = savedCandidateText
+                ? JSON.parse(savedCandidateText)
+                : null;
+            } catch {
+              savedCandidate = null;
+            }
+
+            const preselectedId = Array.isArray(
+              candidates?.preselected
+            )
+              ? candidates.preselected[0]
+              : null;
+
+            const initialCandidate =
+              items.find(
+                (item) =>
+                  item.product_id ===
+                  savedCandidate?.product_id
+              ) ||
+              items.find(
+                (item) =>
+                  item.product_id === preselectedId
+              ) ||
+              items[0];
+
+            const initialProductId = String(
+              initialCandidate.product_id
+            );
+
+            setSelectedCandidate(initialCandidate);
+            setSelectedProductIds([
+              initialProductId,
+            ]);
+
+            sessionStorage.setItem(
+              "selected_candidate",
+              JSON.stringify(initialCandidate)
+            );
+
+            sessionStorage.setItem(
+              "selected_products",
+              JSON.stringify([initialProductId])
+            );
+          } catch (candidateRequestError) {
+            console.error(
+              "화보 후보 상품 조회 실패:",
+              candidateRequestError.response?.data ||
+                candidateRequestError
+            );
+
+            if (!isMounted) return;
+
+            setCandidateProducts([]);
+            setSelectedCandidate(null);
+            setSelectedProductIds([]);
+            setCandidateError(
+              "화보 후보 상품을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+            );
+
+            sessionStorage.removeItem(
+              "selected_candidate"
+            );
+            sessionStorage.removeItem(
+              "selected_products"
+            );
           }
+
+          setIsPending(false);
         }
       } catch (err) {
         console.error("🚨 리포트 조회 실패:", err);
@@ -212,58 +330,67 @@ export default function AnalyticsPage() {
     };
   }, [report]);
 
-  const handleToggleSelect = (productId) => {
-    setSelectedProductIds((current) => {
-      const next = current.includes(productId)
-        ? current.filter((id) => id !== productId)
-        : [...current, productId].slice(-candidateMaxSelect);
+  const handleToggleSelect = (candidate) => {
+    const productId = candidate?.product_id;
 
+    if (!productId) return;
+
+    const normalizedProductId = String(productId);
+    const isAlreadySelected =
+      selectedCandidate?.product_id === productId;
+
+    if (isAlreadySelected) {
+      setSelectedCandidate(null);
+      setSelectedProductIds([]);
+      sessionStorage.removeItem(
+        "selected_candidate"
+      );
       sessionStorage.setItem(
         "selected_products",
-        JSON.stringify(next)
+        JSON.stringify([])
       );
+      return;
+    }
 
-      return next;
-    });
+    setSelectedCandidate(candidate);
+    setSelectedProductIds([
+      normalizedProductId,
+    ]);
+
+    sessionStorage.setItem(
+      "selected_candidate",
+      JSON.stringify(candidate)
+    );
+
+    sessionStorage.setItem(
+      "selected_products",
+      JSON.stringify([normalizedProductId])
+    );
   };
 
   const handleGoToCamera = () => {
-    if (selectedProductIds.length < candidateMinSelect) {
-      alert("화보에 담을 아이템을 1개 이상 선택해 주세요.");
+    if (!selectedCandidate?.product_id) {
+      alert("화보에 담을 아이템을 1개 선택해 주세요.");
       return;
     }
+
+    const productId = String(
+      selectedCandidate.product_id
+    );
+
+    sessionStorage.setItem(
+      "selected_candidate",
+      JSON.stringify(selectedCandidate)
+    );
+
     sessionStorage.setItem(
       "selected_products",
-      JSON.stringify(selectedProductIds)
+      JSON.stringify([productId])
     );
     navigate("/camera");
   };
 
-  const displayProducts = useMemo(() => {
-    if (candidateProducts.length > 0) {
-      return candidateProducts;
-    }
-
-    if (!report) return [];
-
-    const list = [];
-    if (report.hero) list.push(report.hero);
-    if (Array.isArray(report.recommendations)) list.push(...report.recommendations);
-    if (Array.isArray(report.items)) list.push(...report.items);
-    if (Array.isArray(report.interested)) list.push(...report.interested);
-
-    const unique = [];
-    const seen = new Set();
-    list.forEach((item) => {
-      const id = item.product_id || item.id;
-      if (id && !seen.has(id)) {
-        seen.add(id);
-        unique.push(item);
-      }
-    });
-
-    return unique.slice(0, 6);
-  }, [report]);
+  const displayProducts = candidateProducts;
 
   if (isPending) {
     return null;
@@ -318,11 +445,16 @@ export default function AnalyticsPage() {
           <S.SubTitle>
             오늘 가장 관심 있게 보신 상품을 미리 담아두었어요. 변경 하셔도 돼요!
           </S.SubTitle>
+          {candidateError && (
+            <S.SubTitle>
+              {candidateError}
+            </S.SubTitle>
+          )}
         </S.SectionHeader>
 
         <S.ItemGrid>
           {displayProducts.map((item, index) => {
-            const productId = item.product_id || item.id || `temp_${index}`;
+            const productId = item.product_id;
             const isSelected = selectedProductIds.includes(productId);
             const imgSrc = getProductImage(item);
 
@@ -330,7 +462,7 @@ export default function AnalyticsPage() {
               <S.ItemCard
                 key={productId}
                 $selected={isSelected}
-                onClick={() => handleToggleSelect(productId)}
+                onClick={() => handleToggleSelect(item)}
               >
                 <S.ImageContainer>
                   <S.CheckIconImage
@@ -362,7 +494,7 @@ export default function AnalyticsPage() {
         <S.CameraButton
           type="button"
           onClick={handleGoToCamera}
-          disabled={selectedProductIds.length < candidateMinSelect}
+          disabled={!selectedCandidate?.product_id}
         >
           선택한 상품으로 화보 만들기
         </S.CameraButton>

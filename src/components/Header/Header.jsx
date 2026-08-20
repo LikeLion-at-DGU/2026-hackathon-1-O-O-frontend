@@ -1,5 +1,4 @@
     // src/components/Header/Header.jsx
-    import React from "react";
     import * as S from "./Header.styled";
     import SoundButton from "../SoundButton";
     import { api } from "../../api/api";
@@ -63,10 +62,20 @@
     };
 
     const handlePhotoShoot = () => {
-        const saved = sessionStorage.getItem("selected_products");
-        const selectedProducts = saved ? JSON.parse(saved) : [];
+        const savedCandidate =
+        sessionStorage.getItem("selected_candidate");
 
-        if (selectedProducts.length === 0) {
+        let selectedCandidate;
+
+        try {
+        selectedCandidate = savedCandidate
+            ? JSON.parse(savedCandidate)
+            : null;
+        } catch {
+        selectedCandidate = null;
+        }
+
+        if (!selectedCandidate?.product_id) {
         alert("화보에 담을 아이템을 먼저 선택해 주세요.");
         return;
         }
@@ -76,7 +85,7 @@
 
     return (
         <S.HeaderContainer>
-        <Link to="/home" style={{ textDecoration: "none", color: "inherit" }}>
+        <Link to="/map" style={{ textDecoration: "none", color: "inherit" }}>
             <S.Logo>
             <S.LogoText>O</S.LogoText>
             <S.Ampersand>&</S.Ampersand>

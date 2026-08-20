@@ -4,7 +4,7 @@ import FloorMap from "../components/FloorMap/FloorMap";
 function MapPage() {
     return (
         <>
-            <FloorMap />
+            <FloorMap showGuideMessage/>
         </>
     );
 }

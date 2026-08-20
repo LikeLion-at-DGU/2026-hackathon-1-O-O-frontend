@@ -6,6 +6,8 @@ import PlusButton from "./icons/PlusButton";
 import FloorPlan1 from "./FloorPlan1";
 import * as S from "./FloorMap.style";
 
+const MAP_GUIDE_SEEN_KEY =
+  "map_guide_seen";
 const GUIDE_ITEMS = [
   { id: 1, text: "토트백" },
   { id: 2, text: "백팩" },
@@ -16,9 +18,22 @@ const GUIDE_ITEMS = [
   { id: 7, text: "F/W 신상" },
 ];
 
-export default function FloorMap({ showGuideMessage = false }) {
+export default function FloorMap({ showGuideMessage = false, guideClickPath = null, }) {
   const [activeZone, setActiveZone] = useState(null);
-  const [isGuideMessageVisible, setIsGuideMessageVisible] = useState(showGuideMessage);
+  const [
+  isGuideMessageVisible,
+  setIsGuideMessageVisible,
+] = useState(() => {
+  const hasSeenGuide =
+    sessionStorage.getItem(
+      MAP_GUIDE_SEEN_KEY
+    ) === "true";
+
+  return (
+    showGuideMessage &&
+    !hasSeenGuide
+  );
+});
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -43,10 +58,16 @@ export default function FloorMap({ showGuideMessage = false }) {
   };
 
   const handleFirstGuideClick = (event) => {
-    event.stopPropagation();
-    navigate("/map");
-  };
+  event.stopPropagation();
 
+  // 현재 FloorMap에서 안내 메시지 제거
+  setIsGuideMessageVisible(false);
+
+  // 이동할 주소가 전달된 경우에만 페이지 이동
+  if (guideClickPath) {
+    navigate(guideClickPath);
+  }
+};
   return (
     <S.MapRoot>
       {/* 1. 메인 지도 영역 */}

@@ -265,6 +265,27 @@ function LookbookPage() {
                     const retryable =
                         Boolean(job?.retryable);
 
+                    console.error(
+                        "[Lookbook] 화보 이미지 생성 실패",
+                        {
+                            jobId,
+                            shareSlug:
+                                job?.share_slug ||
+                                targetShareSlug,
+                            status,
+                            errorCode:
+                                errorCode || null,
+                            retryable,
+                            progress: job?.progress,
+                            stage: job?.stage,
+                            step: job?.step,
+                            pollAfterMs:
+                                job?.poll_after_ms,
+                            attempt: job?.attempt,
+                            response: job,
+                        }
+                    );
+
                     setJobFailure({
                         errorCode,
                         retryable,
@@ -724,7 +745,7 @@ function LookbookPage() {
              * 재생성 때마다 새 share_slug URL로 이동합니다.
              */
             navigate(
-                `/l/${result.share_slug}`,
+                `/lookbook/${result.share_slug}`,
                 {
                     replace: true,
                 }
@@ -791,6 +812,16 @@ function LookbookPage() {
             />
         );
     }
+
+    const remainingRegenerations = Number(
+        lookbook?.remaining_regenerations ??
+            sessionStorage.getItem(
+                "remaining_regenerations"
+            )
+    );
+
+    const hasRemainingRegenerations =
+        Number.isFinite(remainingRegenerations);
 
     return (
         <MobileLayout showHeader={false}>
@@ -951,7 +982,12 @@ function LookbookPage() {
                     >
                         {isRetrying
                             ? "다시 만드는 중..."
-                            : "화보 다시 만들기"}
+                            : hasRemainingRegenerations
+                              ? `화보 다시 만들기 (남은 ${Math.max(
+                                    0,
+                                    remainingRegenerations
+                                )}회)`
+                              : "화보 다시 만들기"}
                     </S.RetryButton>
                 </S.BottomSection>
             </S.LookbookContainer>

@@ -87,6 +87,12 @@ function Router() {
         완료되면 화보 화면을 렌더링합니다.
       */}
       <Route
+        path="/lookbook/:shareSlug"
+        element={<LookbookPage />}
+      />
+
+      {/* 이전 공유 주소 호환용 */}
+      <Route
         path="/l/:shareSlug"
         element={<LookbookPage />}
       />

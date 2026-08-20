@@ -10,9 +10,11 @@ export const api = axios.create({
     },
 });
 
-// 방문 토큰을 붙이면 안 되는 공개 엔드포인트 전용 클라이언트입니다.
 export const publicApi = axios.create({
     baseURL: BASE_URL,
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
 
 api.interceptors.request.use((config) => {
