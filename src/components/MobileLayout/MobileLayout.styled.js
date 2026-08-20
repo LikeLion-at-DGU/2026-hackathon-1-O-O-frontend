@@ -34,5 +34,8 @@ export const MainContent = styled.main`
   flex-direction: column;
   background-color: ${({ $showHeader }) =>
     $showHeader ? "#ffffff" : "#222222"};
-  overflow: hidden;
+  
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 `;
