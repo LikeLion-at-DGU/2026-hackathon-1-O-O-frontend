@@ -9,6 +9,9 @@ export const Content = styled.div`
   border-radius: 20px;
   /* background: #e5e3e0; */
   margin: 24px auto;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
 
   /* 휴대폰에서만 반응형 적용 */
   @media (max-width: 600px) {
@@ -28,13 +31,16 @@ export const Containerbottom = styled.div`
 
   /* 기존 코드 유지 */
   width: 100%;
-  height: calc(100vh - 103px);
-
+  height: calc(100vh - 430px);
+  background-color: #F4F2EE;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   /* 추가 */
   display: flex;
   flex-direction: column;
   max-height: 844px;
-
+/* 좌우는 완전히 제외하고 오직 상단 -> 하단으로만 떨어지는 그림자 */
+  box-shadow: inset 0 12px 14px -10px rgba(0, 0, 0, 0.14),
+              inset 0 4px 6px -3px rgba(0, 0, 0, 0.08);
   /* 나머지 기존 코드 유지 */
 
   @media (max-width: 600px) {
@@ -71,9 +77,39 @@ export const Chat = styled.div`
   gap: 10px;
 
   margin: 0 auto 16px;
+  padding: 16px 0 16px;
 
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  /* ⭐️ [핵심] 스크롤바 배경 투명화 및 슬림 바 디자인 */
+  &::-webkit-scrollbar {
+    width: 4px; /* 얇은 너비 */
+    background-color: transparent; /* 트랙 배경 완전 투명 */
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15); /* 반투명한 얇은 막대 */
+    border-radius: 4px;
+  }
+
+  /* Firefox 대응 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+
+  @media (max-width: 600px) {
+    width: calc(100% - 32px);
+    height: clamp(240px, 42dvh, 366px);
+
+    margin: 0 auto 12px;
+    padding: 20px 4px 16px 0;
+    gap: 10px;
+  }
 
   /* 기존 미디어쿼리도 그대로 유지 */
   @media (max-width: 600px) {
