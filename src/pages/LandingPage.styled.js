@@ -19,7 +19,11 @@ export const MobileContainer = styled.div`
   position: relative;
 
   width: 402px;
+
+  min-height: 100vh;
   min-height: 100dvh;
+
+
 
   margin: 0 auto;
 
@@ -120,7 +124,7 @@ export const StickyBase = styled.div`
   width: 100%;
 
   height: 100vh;
-  height: 100dvh;
+   height: 100lvh;
 
   overflow: hidden;
 `;
@@ -148,6 +152,24 @@ export const HeroChapter = styled.section`
 
   width: 100%;
   height: 330svh;
+
+  background:
+    radial-gradient(
+      circle at 15% 18%,
+      rgba(255, 255, 255, 0.045),
+      transparent 19%
+    ),
+    radial-gradient(
+      circle at 82% 16%,
+      rgba(78, 99, 164, 0.13),
+      transparent 25%
+    ),
+    linear-gradient(
+      180deg,
+      #05060a,
+      #090c14 67%,
+      #111119
+    );
 `;
 
 export const StickyNight = styled(StickyBase)`
@@ -579,6 +601,8 @@ export const ErasChapter = styled.section`
   height: 520svh;
 
   color: var(--ink);
+
+  background: #f6f0e7;
 `;
 
 export const EraSticky = styled(StickyBase)`
