@@ -59,6 +59,19 @@ const saveQueue = (events) => {
   sessionStorage.setItem(QUEUE_KEY, JSON.stringify(events));
 };
 
+// 전송을 시작한 뒤 새 이벤트가 큐에 추가될 수 있다. 성공 시 큐 전체를 비우면
+// 그 사이 들어온 체류 이벤트까지 유실되므로, 실제 전송한 id만 제거한다.
+const removeSentEvents = (sentEvents) => {
+  const sentIds = new Set(
+    sentEvents.map((event) => event.event_id)
+  );
+  saveQueue(
+    getQueue().filter(
+      (event) => !sentIds.has(event.event_id)
+    )
+  );
+};
+
 // 이벤트 데이터 포맷 검증 및 정제
 const sanitizeEvent = (event) => {
   const dwellMs =
@@ -185,8 +198,7 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
         throw new Error(`이벤트 전송 실패: ${response.status}`);
       }
 
-      // 전송 성공 시 큐 초기화
-      saveQueue([]);
+      removeSentEvents(events);
       return;
     }
 
@@ -194,7 +206,7 @@ export const flushEvents = async ({ keepalive = false } = {}) => {
     logger.debug("✅ [Events] 전송 성공:", response.data);
 
     // ⭐️ 전송 성공 확인 후 안전하게 큐 비우기
-    saveQueue([]);
+    removeSentEvents(events);
     return response.data;
   } catch (error) {
     const status = error.response?.status;

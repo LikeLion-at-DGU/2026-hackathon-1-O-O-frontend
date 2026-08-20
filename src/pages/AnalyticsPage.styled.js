@@ -156,6 +156,7 @@ line-height: 140%; /* 14px */
 export const ItemGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
   gap: 16px;
   width: 100%;
   box-sizing: border-box;
@@ -164,8 +165,9 @@ export const ItemGrid = styled.div`
 export const ItemCard = styled.div`
   background-color: #D1CCC7; /* 하단 텍스트 영역 배경색 (베이지 그레이) */
   border-radius: 20px;
-  height: 169px;
-  width: 110px;
+  min-height: 220px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -182,7 +184,8 @@ export const ItemCard = styled.div`
 export const ImageContainer = styled.div`
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 110px;
+  flex-shrink: 0;
   background-color: #ffffff;
   border-radius: 20px; /* 흰색 상단 영역 곡률 */
   display: flex;
@@ -211,16 +214,19 @@ export const ItemImage = styled.img`
 
 export const ItemInfo = styled.div`
   width: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 8px 6px 12px;
   text-align: center;
   box-sizing: border-box;
 `;
 
 export const ItemName = styled.p`
-    width: 84px;
+    width: 100%;
     color: var(--Deep-Slate, #222);
     text-align: center;
     font-family: Pretendard;
@@ -228,25 +234,22 @@ export const ItemName = styled.p`
     font-style: normal;
     font-weight: var(--Font-weight-Light, 300);
     line-height: 140%; /* 16.8px */
-    margin: 6px 0 0;
-    display: -webkit-box;          /* Flexbox 모델 사용 */
-  -webkit-line-clamp: 2;         /* 2줄까지만 표시 */
-  -webkit-box-orient: vertical;  /* 세로 방향 정렬 */
-  overflow: hidden;              /* 넘치는 부분 숨김 */
-  text-overflow: ellipsis;
+    margin: 0;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
 `;
 
 export const ReasonBadge = styled.span`
+  width: 100%;
   max-width: 92px;
-  margin-top: 2px;
-  overflow: hidden;
 
   color: #746f6a;
   font-family: Pretendard, sans-serif;
   font-size: 9px;
   line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 `;
 
 export const CameraButton = styled.button`

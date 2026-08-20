@@ -11,6 +11,7 @@ import { useDwellTimer } from "../hooks/useDwellTimer";
 
 import ProductInfo from "../components/Product/ProductInfo";
 import BackButton from "../components/Shelf/icon/BackButton";
+import { getLocalProductImage } from "../utils/productImage";
 
 function ProductPage() {
   const { productId } = useParams();
@@ -25,9 +26,9 @@ function ProductPage() {
   // 서버 id 형식(p_101-Photoroom.png)과 같아 productId를 그대로 쓴다.
   const productImage =
     product?.images?.[0] ??
-    `/images/${productId}-Photoroom.png`;
+    getLocalProductImage(productId);
 
-  const { sendQuestionClick } = useProductEvent(productId);
+  useProductEvent(productId);
 
   const selectedProduct = useChatStore((state) => state.selectedProduct);
 
@@ -51,11 +52,6 @@ function ProductPage() {
     minDwellMs: 1000,
   });
 
-  const handleQuestionClick = async (question) => {
-    await sendQuestionClick(question);
-    console.log(`${productName}에 대한 질문: ${question}`);
-  };
-
   return (
     <S.PageContainer>
       {/* ⭐️ 선반과 100% 동일한 363x300 기준 박스 */}
@@ -75,10 +71,7 @@ function ProductPage() {
           product={product}
           productName={productName}
           productImage={productImage}
-          productId={productId}
-          imageId={imageId}
           loading={loading}
-          onQuestionClick={handleQuestionClick}
         />
       </div>
     </S.PageContainer>

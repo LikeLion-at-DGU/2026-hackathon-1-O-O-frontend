@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import loadingBear from "../assets/LoadingBear.png";
-import loadingBear2 from "../assets/LoadingBear2.png";
 import * as S from "./LookbookLoadingPage.styled";
 
 const FILL_RANGES = [
@@ -29,20 +28,11 @@ function LookbookLoadingPage({
     Math.max(0, Number(progress) || 0)
   );
 
-  const [bearIndex, setBearIndex] = useState(0);
   const [fillLevels, setFillLevels] = useState([
     102,
     124,
     56,
   ]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setBearIndex((current) => (current === 0 ? 1 : 0));
-    }, 800);
-
-    return () => window.clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const updateFillLevels = () => {
@@ -58,8 +48,6 @@ function LookbookLoadingPage({
 
     return () => window.clearInterval(timer);
   }, []);
-
-  const loadingBears = [loadingBear, loadingBear2];
 
   const stageLabel =
     step ||
@@ -187,7 +175,7 @@ function LookbookLoadingPage({
 
             <S.ProgressSection>
               <S.Character
-                src={loadingBears[bearIndex]}
+                src={loadingBear}
                 alt=""
               />
 
