@@ -8,6 +8,7 @@ import bearImage from "../assets/bear.png";
 import Header from "../components/Header/Header";
 import useChatStore from "../stores/useChatStore";
 import { getChatMessages, streamChat } from "../api/chat";
+import { useDwellTimer } from "../hooks/useDwellTimer";
 
 function ChatPage() {
   const navigate = useNavigate();
@@ -18,6 +19,12 @@ function ChatPage() {
     startAssistantMessage,
     appendAssistantDelta,
   } = useChatStore();
+
+  useDwellTimer({
+    eventType: "chat_dwell",
+    targetId: "chat_room",
+    minDwellMs: 1000, // 1초 이상 머물렀을 때 전송
+  });
 
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -178,7 +185,7 @@ const ChatPageContainer = styled.div`
   height: calc(100dvh - 72px);
   min-height: 0;
 
-  background: #ffffff;
+  background: #F4F2EE;
 `;
 
 const MessageArea = styled.div`
@@ -196,6 +203,30 @@ const MessageArea = styled.div`
 
   /* iPhone에서 부드럽게 스크롤 */
   -webkit-overflow-scrolling: touch;
+/* ⭐️ 1. 스크롤바 너비 및 배경 투명화 */
+  &::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent; /* 스크롤바 전체 배경 투명 */
+  }
+
+  /* ⭐️ 2. 스크롤 트랙(레일) 투명화 */
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  /* ⭐️ 3. 움직이는 스크롤 바(Thumb) 디자인 */
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15); /* 은은한 반투명 막대 */
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  /* Firefox 전용 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 `;
 
 const BottomArea = styled.div`
@@ -203,7 +234,7 @@ const BottomArea = styled.div`
   padding: 8px 20px
     calc(12px + env(safe-area-inset-bottom));
 
-  background: #ffffff;
+  background: #F4F2EE;
   border-top: 1px solid #f1f1f3;
 `;
 
@@ -239,7 +270,7 @@ const ChatForm = styled.form`
 
   border: 1px solid #e4e4e7;
   border-radius: 24px;
-  background: #ffffff;
+  background: #F4F2EE;
 
   &:focus-within {
     border-color: #18181b;
@@ -279,7 +310,7 @@ const SendButton = styled.button`
   border: none;
   border-radius: 50%;
   background: #18181b;
-  color: #ffffff;
+  color: #F4F2EE;
   cursor: pointer;
 
   &:disabled {

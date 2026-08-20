@@ -106,12 +106,16 @@ useEffect(() => {
     <div
       style={{
         width: "100%",
-        height: "300px",
+        height: "330px",
         backgroundColor: "#FFFFFF",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         position: "relative",
+        paddingBottom: "16px",
+        boxShadow: "0 6px 18px rgba(0, 0, 0, 0.08)",
+        zIndex: 10,
+        boxSizing: "border-box",
       }}
     >
       <style>

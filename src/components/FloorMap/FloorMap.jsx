@@ -60,7 +60,6 @@ export default function FloorMap({ showGuideMessage = false }) {
             style={{
                 width: "100%",
                 height: "300px",
-                backgroundColor: "#FFFFFF",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",

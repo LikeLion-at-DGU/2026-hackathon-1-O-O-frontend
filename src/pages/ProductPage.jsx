@@ -69,6 +69,7 @@
             productId={productId}
             imageId={imageId}
             loading={loading}
+            onQuestionClick={handleQuestionClick}
         />
         </S.PageContainer>
     );
