@@ -1,55 +1,80 @@
-    // src/hooks/useDwellTimer.js
-    import { useEffect, useRef } from "react";
-    import { sendEvent } from "../api/events";
+// src/hooks/useDwellTimer.js
+import { useEffect, useRef } from "react";
+import { sendEvent } from "../api/events";
 
-    export function useDwellTimer({
-    eventType,
-    targetId,
-    extra = {},
-    minDwellMs = 1000,
-    }) {
-    const enterTimeRef = useRef(Date.now());
-    const extraRef = useRef(extra);
-    extraRef.current = extra;
+export function useDwellTimer({
+  eventType,
+  targetId,
+  extra = {},
+  minDwellMs = 1000,
+}) {
+  const enterTimeRef = useRef(null);
+  const extraRef = useRef(extra);
+  extraRef.current = extra;
+  
+  // 현재 측정 중인 targetId를 추적하여 중복 실행 방지
+  const activeTargetRef = useRef(null);
 
-    const flushTimer = () => {
-        if (!enterTimeRef.current || !targetId) return;
+  const flushTimer = () => {
+    // 이미 정산되었거나 targetId가 없으면 무시
+    if (!enterTimeRef.current || !activeTargetRef.current) return;
 
-        const dwellMs = Date.now() - enterTimeRef.current;
-        enterTimeRef.current = null; // 중복 전송 방지
+    const dwellMs = Date.now() - enterTimeRef.current;
+    const currentTarget = activeTargetRef.current;
+    
+    // 초기화하여 중복 플러시 원천 차단
+    enterTimeRef.current = null;
+    activeTargetRef.current = null;
 
-        if (dwellMs >= minDwellMs) {
-        console.log(`⏱️ [체류 정산] ${eventType} (${targetId}) -> ${Math.round(dwellMs / 1000)}초 (${dwellMs}ms)`);
+    if (dwellMs >= minDwellMs) {
+      const sec = Math.round(dwellMs / 1000);
+      console.log(`⏱️ [체류 정산] ${eventType} (${currentTarget}) -> ${sec}초 (${dwellMs}ms)`);
 
-        sendEvent({
-            event_type: eventType,
-            ...(eventType === "scene_dwell" ? { scene_id: String(targetId) } : {}),
-            ...(eventType === "product_dwell"
-            ? {
-                product_id: String(targetId),
-                ...(extraRef.current.scene_id ? { scene_id: String(extraRef.current.scene_id) } : {}),
-                }
-            : {}),
-            dwell_ms: dwellMs,
-            metadata: {
-            dwell_ms: dwellMs,
-            ...extraRef.current,
-            },
-        });
-        }
-    };
+      // 💡 [추가] scene_dwell 이벤트일 때 세션 스토리지에 시간 누적 저장하기
+      if (eventType === "scene_dwell") {
+        const zoneName = extraRef.current.zone_name || `${currentTarget}번 진열대`;
+        const existingMap = JSON.parse(sessionStorage.getItem("local_zone_sec_map") || "{}");
+        
+        existingMap[zoneName] = (existingMap[zoneName] || 0) + sec;
+        sessionStorage.setItem("local_zone_sec_map", JSON.stringify(existingMap));
+      }
 
-    useEffect(() => {
-        if (!targetId) return;
-
-        enterTimeRef.current = Date.now();
-
-        // ⭐️ Header에서 관람 마치기 눌렀을 때 즉시 정산
-        window.addEventListener("force_flush_dwell_timer", flushTimer);
-
-        return () => {
-        window.removeEventListener("force_flush_dwell_timer", flushTimer);
-        flushTimer();
-        };
-    }, [eventType, targetId, minDwellMs]);
+      sendEvent({
+        event_type: eventType,
+        ...(eventType === "scene_dwell" ? { scene_id: String(currentTarget) } : {}),
+        ...(eventType === "product_dwell"
+          ? {
+              product_id: String(currentTarget),
+              ...(extraRef.current.scene_id ? { scene_id: String(extraRef.current.scene_id) } : {}),
+            }
+          : {}),
+        dwell_ms: dwellMs,
+        metadata: {
+          dwell_ms: dwellMs,
+          ...extraRef.current,
+        },
+      });
     }
+  };
+
+  useEffect(() => {
+    if (!targetId) return;
+
+    // 1. 만약 이전 타이머가 아직 돌고 있다면 강제로 먼저 끝냄 (꼬임 방지)
+    if (enterTimeRef.current && activeTargetRef.current !== targetId) {
+      flushTimer();
+    }
+
+    // 2. 새로운 타이널 시작
+    enterTimeRef.current = Date.now();
+    activeTargetRef.current = targetId;
+
+    window.addEventListener("force_flush_dwell_timer", flushTimer);
+
+    return () => {
+      window.removeEventListener("force_flush_dwell_timer", flushTimer);
+      // 컴포넌트가 언마운트되거나 targetId가 바뀔 때 딱 1번만 정산
+      flushTimer();
+    };
+  }, [eventType, targetId, minDwellMs]);
+}
