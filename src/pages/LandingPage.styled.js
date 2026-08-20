@@ -148,6 +148,8 @@ export const HeroChapter = styled.section`
 
   width: 100%;
   height: 330svh;
+
+  background: #06070b;
 `;
 
 export const StickyNight = styled(StickyBase)`
@@ -579,6 +581,8 @@ export const ErasChapter = styled.section`
   height: 520svh;
 
   color: var(--ink);
+
+  background: #f6f0e7;
 `;
 
 export const EraSticky = styled(StickyBase)`
