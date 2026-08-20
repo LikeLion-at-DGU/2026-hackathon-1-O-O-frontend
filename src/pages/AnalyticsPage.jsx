@@ -221,74 +221,66 @@ export default function AnalyticsPage() {
     };
   }, [reportSlug, navigate]);
 
-  // ⭐️ 2. 체류 시간 정밀 계산 및 집계
-  // ⭐️ 2. 체류 시간 정밀 계산 및 집계 (세션 스토리지 기반 연동)
+
+// ⭐️ 2. 체류 시간 정밀 계산 및 집계 (서버 신규 필드 기반)
   const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
-    const zoneSecMap = {};
-    let totalSec = 0;
-
-    // 1순위: 세션 스토리지에 프론트엔드가 직접 쌓아둔 로컬 체류 시간 데이터 가져오기
-    try {
-      const localMap = JSON.parse(sessionStorage.getItem("local_zone_sec_map") || "{}");
-      if (localMap && Object.keys(localMap).length > 0) {
-        Object.entries(localMap).forEach(([zoneName, sec]) => {
-          const validSec = Number(sec) || 0;
-          if (validSec > 0) {
-            zoneSecMap[zoneName] = (zoneSecMap[zoneName] || 0) + validSec;
-            totalSec += validSec;
-          }
-        });
-      }
-    } catch (e) {
-      console.warn("로컬 체류 시간 파싱 실패:", e);
+    if (!report) {
+      return {
+        topZoneName: "진열대",
+        totalMinutes: 0,
+        top1: { zone_name: "-", duration_min: 0, raw_sec: 0 },
+        top2: { zone_name: "-", duration_min: 0, raw_sec: 0 },
+        etcMinutes: 0,
+      };
     }
 
-    // 만약 스토리지에 데이터가 없다면 서버 데이터(혹시 들어오는 경우) 백업 파싱
-    if (Object.keys(zoneSecMap).length === 0 && report) {
-      const sceneSummaries = report.zone_summary || report.scenes || [];
-      if (Array.isArray(sceneSummaries) && sceneSummaries.length > 0) {
-        sceneSummaries.forEach((s) => {
-          const sec = Number(s.dwell_sec || (s.dwell_ms ? Math.round(s.dwell_ms / 1000) : 0) || 0);
-          const name = s.zone_name || s.scene_name || "진열대";
-          if (sec > 0) {
-            zoneSecMap[name] = (zoneSecMap[name] || 0) + sec;
-            totalSec += sec;
-          }
-        });
-      }
-    }
+    // 1. 서버에서 이미 체류시간 긴 순으로 정렬되어 내려오는 scenes 사용
+    const rawScenes = report.scenes || [];
 
-    // (D) 정렬 및 최소 1분 단위 보정
-    const sortedZones = Object.entries(zoneSecMap)
-      .map(([zone_name, sec]) => ({
-        zone_name,
+    const sortedZones = rawScenes.map((s) => {
+      const sec = Math.round((s.dwell_ms ?? 0) / 1000);
+      return {
+        zone_name: s.scene_name || `${s.scene_no}번 진열대`,
         raw_sec: sec,
-        duration_min: Math.max(1, Math.round(sec / 60) || 1),
-      }))
-      .sort((a, b) => b.raw_sec - a.raw_sec);
-
-    console.log("⏱️ [최종 체류시간 집계 결과]:", {
-      zoneSecMap,
-      totalSec,
-      sortedZones,
+        duration_min: Math.max(1, Math.round(sec / 60) || 1), // 최소 1분 단위 보정
+      };
     });
 
-    // 1. Top1, Top2 진열대 추출
-    const top1Zone = sortedZones[0] || { zone_name: "1번 진열대", duration_min: 0, raw_sec: 0 };
-    const top2Zone = sortedZones[1] || { zone_name: "2번 진열대", duration_min: 0, raw_sec: 0 };
+    // 2. Top 1, Top 2 진열대 추출 (없을 경우 기본값)
+    const top1Zone = sortedZones[0] || {
+      zone_name: "1번 진열대",
+      duration_min: 0,
+      raw_sec: 0,
+    };
+    const top2Zone = sortedZones[1] || {
+      zone_name: "2번 진열대",
+      duration_min: 0,
+      raw_sec: 0,
+    };
 
-    // 2. 3위 이하 나머지 진열대들의 체류시간 합산 (기타)
+    // 3. 3위 이하 나머지 진열대 합산 (기타)
     const etcRawSec = sortedZones
       .slice(2)
       .reduce((sum, zone) => sum + (zone.raw_sec || 0), 0);
-    const etcMin = etcRawSec > 0 ? Math.ceil(etcRawSec / 60) : 0;
+    const etcMin = etcRawSec > 0 ? Math.max(1, Math.round(etcRawSec / 60)) : 0;
 
-    // 3. 총 관람시간 = Top1 + Top2 + 기타 합계
-    const calcTotalMin = top1Zone.duration_min + top2Zone.duration_min + etcMin;
+    // 4. 총 관람시간 (서버 total_dwell_ms가 있으면 분 변환, 없으면 알약 합산)
+    const serverTotalSec = Math.round(
+      (report.visit_summary?.total_dwell_ms ?? 0) / 1000
+    );
+    const calcTotalMin =
+      serverTotalSec > 0
+        ? Math.max(1, Math.round(serverTotalSec / 60))
+        : top1Zone.duration_min + top2Zone.duration_min + etcMin;
+
+    console.log("⏱️ [체류시간 서버 데이터 파싱 완료]:", {
+      sortedZones,
+      totalMinutes: calcTotalMin,
+    });
 
     return {
       topZoneName: top1Zone.zone_name,
-      totalMinutes: calcTotalMin > 0 ? calcTotalMin : (totalSec > 0 ? Math.ceil(totalSec / 60) : 1),
+      totalMinutes: calcTotalMin,
       top1: top1Zone,
       top2: top2Zone,
       etcMinutes: etcMin,
