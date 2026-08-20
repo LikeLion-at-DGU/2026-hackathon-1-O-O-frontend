@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
 import Layout from "../components/Layout/Layout";
+import RouteFallback from "../components/RouteFallback";
 import { getVisitId } from "../utils/storage";
 import { PATHS } from "./paths";
 
@@ -52,7 +53,7 @@ function Router() {
   }, [location.pathname, navigate]);
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       {/* 로딩 디자인 확인용 — 개발 환경에서만 연다 */}
       {import.meta.env.DEV && (

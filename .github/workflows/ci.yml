@@ -24,6 +24,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test
+        run: npm test
+
       # format:check는 기존 코드 전체가 아직 Prettier 포맷이 아니라 넣지 않았다.
       # 팀 전체가 한 번에 `npm run format`을 돌리는 커밋 이후에 추가한다.
       - name: Build

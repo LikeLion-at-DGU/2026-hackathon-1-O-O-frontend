@@ -47,9 +47,6 @@ export default function useLandingPage() {
     const slotStateRef = useRef(null);
     const slotRef = useRef(null);
 
-    const photoRefs = [photoRef1, photoRef2, photoRef3];
-    const imageRefs = [imageRef1, imageRef2, imageRef3];
-
     const refs = {
         heroRef,
         eraRef,
@@ -76,8 +73,14 @@ export default function useLandingPage() {
         collectionVisualRef,
         collectionCopyRef,
         collectionLineRef,
-        photoRefs,
-        imageRefs,
+        // 렌더 중 ref 배열 인덱싱(react-hooks/refs 위반)을 피하기 위해
+        // 섹션에는 개별 ref로 전달한다. 배열은 이 훅 내부 연출 로직에서만 쓴다.
+        photoRef1,
+        photoRef2,
+        photoRef3,
+        imageRef1,
+        imageRef2,
+        imageRef3,
         paddyImgRef,
         speechHintRef,
         slotNumberRef,
@@ -114,6 +117,11 @@ export default function useLandingPage() {
 
     useEffect(() => {
         let animationFrame = null;
+
+        // 개별 ref 자체는 안정된 값이라 의존성 배열이 필요 없다.
+        // 렌더마다 새 배열이 만들어지지 않도록 이펙트 안에서만 묶는다.
+        const photoRefs = [photoRef1, photoRef2, photoRef3];
+        const imageRefs = [imageRef1, imageRef2, imageRef3];
 
         const sectionProgress = (ref) => {
             if (!ref.current) return 0;

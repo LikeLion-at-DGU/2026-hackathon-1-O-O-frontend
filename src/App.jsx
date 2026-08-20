@@ -1,7 +1,12 @@
 import Router from "./router/Router";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function App() {
-  return <Router />;
+  return (
+    <ErrorBoundary>
+      <Router />
+    </ErrorBoundary>
+  );
 }
 
 export default App;

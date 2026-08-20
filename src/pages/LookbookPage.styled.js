@@ -32,7 +32,7 @@ export const TopSection = styled.div`
   flex-shrink: 0;
 `;
 
-export const Logo = styled.button`
+export const Logo = styled.div`
   display: flex;
   align-items: center;
   width: fit-content;
@@ -40,9 +40,6 @@ export const Logo = styled.button`
   padding: 0;
 
   color: #f3eee3;
-  background: none;
-  border: none;
-  cursor: pointer;
 `;
 
 export const LogoMain = styled.span`
@@ -133,7 +130,7 @@ export const DownloadButton = styled.button`
   padding: 16px;
 
   color: #e5e3e0;
-  font-family: Pretendard, sans-serif;
+  font-family: Pretendard;
   font-size: 20px;
   font-weight: 600;
   line-height: 140%;

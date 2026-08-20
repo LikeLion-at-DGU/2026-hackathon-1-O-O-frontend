@@ -1,6 +1,6 @@
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import * as S from "./AnalyticsLoadingPage.style";
-import paddyThinkImg from "../assets/paddy-think.png";
+import paddyThinkImg from "../assets/think-bear.png";
 import useAnalyticsPolling from "../hooks/useAnalyticsPolling";
 
 export default function AnalyticsLoadingPage() {
