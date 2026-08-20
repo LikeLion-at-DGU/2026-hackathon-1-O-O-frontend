@@ -10,7 +10,6 @@ import { PATHS } from "./paths";
 
 // 매장 핵심 동선(지도·진열대·상품)은 즉시 로드하고, 크고 늦게 열리는
 // 화면은 라우트 단위로 분할한다 — 초기 번들이 550KB를 넘고 있었다.
-import HomePage from "../pages/HomePage";
 import MapPage from "../pages/MapPage";
 import ShelfPage from "../pages/ShelfPage";
 import ProductPage from "../pages/ProductPage";
@@ -73,12 +72,6 @@ function Router() {
       <Route
         path={PATHS.LANDING}
         element={<LandingPage />}
-      />
-
-      {/* 홈 페이지 */}
-      <Route
-        path={PATHS.HOME}
-        element={<HomePage />}
       />
 
       {/* 채팅 페이지 */}
