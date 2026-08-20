@@ -222,73 +222,40 @@ export default function AnalyticsPage() {
   }, [reportSlug, navigate]);
 
   // ⭐️ 2. 체류 시간 정밀 계산 및 집계
+  // ⭐️ 2. 체류 시간 정밀 계산 및 집계 (세션 스토리지 기반 연동)
   const { topZoneName, totalMinutes, top1, top2, etcMinutes } = useMemo(() => {
-    if (!report) {
-      return {
-        topZoneName: "진열대",
-        totalMinutes: 0,
-        top1: { zone_name: "-", duration_min: 0, raw_sec: 0 },
-        top2: { zone_name: "-", duration_min: 0, raw_sec: 0 },
-        etcMinutes: 0,
-      };
-    }
-
     const zoneSecMap = {};
     let totalSec = 0;
 
-    // (A) 서버 리포트 내 scene / zones 요약 데이터 1순위 파싱
-    const sceneSummaries =
-      report.scenes ||
-      report.summary?.scenes ||
-      report.zone_summary ||
-      report.scene_stats ||
-      [];
-
-    if (Array.isArray(sceneSummaries) && sceneSummaries.length > 0) {
-      sceneSummaries.forEach((s) => {
-        const sec = Number(
-          s.dwell_sec ??
-          (s.dwell_ms ? Math.round(s.dwell_ms / 1000) : 0) ??
-          s.duration_sec ??
-          0
-        );
-        const name = s.zone_name || s.scene_name || `${s.scene_no || s.no || 1}번 진열대`;
-        zoneSecMap[name] = (zoneSecMap[name] || 0) + sec;
-        totalSec += sec;
-      });
+    // 1순위: 세션 스토리지에 프론트엔드가 직접 쌓아둔 로컬 체류 시간 데이터 가져오기
+    try {
+      const localMap = JSON.parse(sessionStorage.getItem("local_zone_sec_map") || "{}");
+      if (localMap && Object.keys(localMap).length > 0) {
+        Object.entries(localMap).forEach(([zoneName, sec]) => {
+          const validSec = Number(sec) || 0;
+          if (validSec > 0) {
+            zoneSecMap[zoneName] = (zoneSecMap[zoneName] || 0) + validSec;
+            totalSec += validSec;
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("로컬 체류 시간 파싱 실패:", e);
     }
 
-    // (B) report.interested 파싱 (초/밀리초/텍스트)
-    if (Array.isArray(report.interested) && report.interested.length > 0) {
-      report.interested.forEach((item, idx) => {
-        let sec = 0;
-        if (typeof item.dwell_sec === "number") sec = item.dwell_sec;
-        else if (typeof item.dwell_ms === "number") sec = Math.round(item.dwell_ms / 1000);
-        else if (typeof item.reason === "string") {
-          const match = item.reason.match(/체류\s*(\d+)\s*(?:초|s|sec)?/i);
-          if (match) sec = parseInt(match[1], 10);
-        }
-
-        let shelfNo = item.scene_no || item.scene_id || item.zone_no;
-        if (!shelfNo && item.product_id) {
-          const pMatch = String(item.product_id).match(/p_(\d)/);
-          if (pMatch) shelfNo = parseInt(pMatch[1], 10);
-        }
-
-        const zoneKey = shelfNo ? `${shelfNo}번 진열대` : `${idx + 1}번 진열대`;
-        zoneSecMap[zoneKey] = (zoneSecMap[zoneKey] || 0) + sec;
-        totalSec += sec;
-      });
-    }
-
-    // (C) 총 시간 필드가 서버에 명시된 경우 우선 반영
-    const serverTotalSec =
-      report.total_duration_sec ??
-      (report.total_dwell_ms ? Math.round(report.total_dwell_ms / 1000) : 0) ??
-      report.summary?.total_duration_sec;
-
-    if (serverTotalSec && serverTotalSec > totalSec) {
-      totalSec = serverTotalSec;
+    // 만약 스토리지에 데이터가 없다면 서버 데이터(혹시 들어오는 경우) 백업 파싱
+    if (Object.keys(zoneSecMap).length === 0 && report) {
+      const sceneSummaries = report.zone_summary || report.scenes || [];
+      if (Array.isArray(sceneSummaries) && sceneSummaries.length > 0) {
+        sceneSummaries.forEach((s) => {
+          const sec = Number(s.dwell_sec || (s.dwell_ms ? Math.round(s.dwell_ms / 1000) : 0) || 0);
+          const name = s.zone_name || s.scene_name || "진열대";
+          if (sec > 0) {
+            zoneSecMap[name] = (zoneSecMap[name] || 0) + sec;
+            totalSec += sec;
+          }
+        });
+      }
     }
 
     // (D) 정렬 및 최소 1분 단위 보정
@@ -300,15 +267,13 @@ export default function AnalyticsPage() {
       }))
       .sort((a, b) => b.raw_sec - a.raw_sec);
 
-    console.log("⏱️ [체류시간 파싱 결과]:", {
+    console.log("⏱️ [최종 체류시간 집계 결과]:", {
       zoneSecMap,
       totalSec,
       sortedZones,
     });
 
-// src/pages/AnalyticsPage.jsx (useMemo 내부 하단)
-
-    // 1. Top1, Top2 진열대 추출 (0초보다 크면 최소 1분 올림)
+    // 1. Top1, Top2 진열대 추출
     const top1Zone = sortedZones[0] || { zone_name: "1번 진열대", duration_min: 0, raw_sec: 0 };
     const top2Zone = sortedZones[1] || { zone_name: "2번 진열대", duration_min: 0, raw_sec: 0 };
 
@@ -318,12 +283,12 @@ export default function AnalyticsPage() {
       .reduce((sum, zone) => sum + (zone.raw_sec || 0), 0);
     const etcMin = etcRawSec > 0 ? Math.ceil(etcRawSec / 60) : 0;
 
-    // ⭐️ 3. 총 관람시간 = 아래 3개 알약의 단순 합산으로 일치화
+    // 3. 총 관람시간 = Top1 + Top2 + 기타 합계
     const calcTotalMin = top1Zone.duration_min + top2Zone.duration_min + etcMin;
 
     return {
       topZoneName: top1Zone.zone_name,
-      totalMinutes: calcTotalMin, // Top1 + Top2 + 기타 합계 (예: 8 + 1 + 0 = 9분)
+      totalMinutes: calcTotalMin > 0 ? calcTotalMin : (totalSec > 0 ? Math.ceil(totalSec / 60) : 1),
       top1: top1Zone,
       top2: top2Zone,
       etcMinutes: etcMin,
