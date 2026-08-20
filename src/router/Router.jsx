@@ -1,4 +1,5 @@
 import {
+  Navigate,
   Route,
   Routes,
   useNavigate, useLocation
@@ -153,6 +154,12 @@ function Router() {
           element={<GuidePage />}
         />
       </Route>
+
+      {/* 존재하지 않는 주소는 흰 화면 대신 랜딩으로 돌려보낸다 */}
+      <Route
+        path="*"
+        element={<Navigate to={PATHS.LANDING} replace />}
+      />
     </Routes>
     </Suspense>
   );

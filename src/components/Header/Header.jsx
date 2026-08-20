@@ -58,14 +58,10 @@ import { showToast } from "../../utils/toast";
 
         // ⭐️ 마지막 머문 시간까지 포함된 잔여 이벤트 전량 회수
         const remainingEvents = drainEventBuffer();
+        // X-Visit-Token은 api 인스턴스의 요청 인터셉터가 자동으로 붙인다.
         const response = await api.post(
             `/visits/${visitId}/finish`,
-            { events: remainingEvents },
-            {
-            headers: {
-                "X-Visit-Token": visitToken,
-            },
-            }
+            { events: remainingEvents }
         );
 
         const slug = response.data?.slug;
