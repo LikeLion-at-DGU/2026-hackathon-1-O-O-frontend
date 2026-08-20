@@ -124,8 +124,6 @@ export const StickyBase = styled.div`
   width: 100%;
 
   height: 100vh;
-  height: 100dvh;
-
    height: 100lvh;
 
   overflow: hidden;
@@ -155,7 +153,23 @@ export const HeroChapter = styled.section`
   width: 100%;
   height: 330svh;
 
-  background: #06070b;
+  background:
+    radial-gradient(
+      circle at 15% 18%,
+      rgba(255, 255, 255, 0.045),
+      transparent 19%
+    ),
+    radial-gradient(
+      circle at 82% 16%,
+      rgba(78, 99, 164, 0.13),
+      transparent 25%
+    ),
+    linear-gradient(
+      180deg,
+      #05060a,
+      #090c14 67%,
+      #111119
+    );
 `;
 
 export const StickyNight = styled(StickyBase)`
