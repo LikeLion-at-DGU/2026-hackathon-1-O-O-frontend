@@ -1,8 +1,8 @@
 import * as S from "../LandingPage.styled";
 
-import MCM from "../../../assets/MCM.png";
-import mcmbag1 from "../../../assets/mcmbag1.png";
-import mcmbag2 from "../../../assets/mcmbag2.png";
+import MCM from "../../assets/MCM.png";
+import mcmbag1 from "../../assets/mcmbag1.png";
+import mcmbag2 from "../../assets/mcmbag2.png";
 
 export default function CollectionSection({ refs }) {
     const {

@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { enterStore } from "../../../api/visits";
-import { shelfData } from "../../../components/Shelf/ShelfData";
-import { BgmManager } from "../../../utils/bgmManager";
-import { clamp, INITIAL_MUSE_NO, lerp, MAP_ROUTE, mixColor } from "../constants";
-
+import { enterStore } from "../api/visits";
+import { shelfData } from "../components/Shelf/ShelfData";
+import { BgmManager } from "../utils/bgmManager";
+import { clamp, INITIAL_MUSE_NO, lerp, MAP_ROUTE, mixColor,} from "../pages/LandingPage/constants";
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function useLandingPage() {

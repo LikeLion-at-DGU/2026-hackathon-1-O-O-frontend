@@ -1,7 +1,7 @@
 import * as S from "../LandingPage.styled";
 
-import hellopaddy from "../../../assets/hellopaddy.png";
-import heartpaddy from "../../../assets/heartpaddy.png";
+import hellopaddy from "../../assets/hellopaddy.png";
+import heartpaddy from "../../assets/heartpaddy.png";
 
 export default function RegisterSection({
     refs,
