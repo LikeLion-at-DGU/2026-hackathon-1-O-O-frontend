@@ -1,9 +1,7 @@
 // src/components/Product/ProductInfo.jsx
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // ⭐️ 1. useNavigate 추가
 import { sendEvent } from "../../api/events";
 import * as S from "./ProductInfo.styled";
-import BackButton from "../Shelf/icon/BackButton"; // ⭐️ 2. BackButton 컴포넌트 import
 
 const PRESET_BUTTONS = [
   { key: "price", label: "가격" },
@@ -18,7 +16,6 @@ function ProductInfo({
   productId,
   onQuestionClick,
 }) {
-  const navigate = useNavigate(); // ⭐️ 3. navigate 선언
   const [selectedPreset, setSelectedPreset] = useState(null);
 
   // 프리셋 모달 체류시간 측정을 위한 Ref

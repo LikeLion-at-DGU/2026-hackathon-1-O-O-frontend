@@ -2,14 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as S from "./LandingPage.styled";
 
-import { BgmManager } from "../components/SoundButton";
+import { BgmManager } from "../utils/bgmManager";
 import { shelfData } from "../components/Shelf/ShelfData";
 import { enterStore } from "../api/visits";
 
 import paddyChoice from "../assets/paddy-choice.png";
 import paddyThink from "../assets/paddy-think.png";
 import paddyCheer from "../assets//paddy-cheer.png";
-import paddyWalk from "../assets/paddy-walk.png";
 import munich1 from "../assets/munich-1.png";
 import munich2 from "../assets/munich-2.png";
 import munich3 from "../assets/munich-3.png";
@@ -260,7 +259,7 @@ export default function LandingPage() {
                 introRef.current.style.opacity = `${1 - clamp((p - 0.12) / 0.1)}`;
             }
 
-            let year = "1976";
+            let year;
             let code = "MÜNCHEN / ARCHITECTURE / MUSIC / MOVEMENT";
 
             if (p < 0.18) {

@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { COLORS } from "../FloorMap/FloorMap.style";
 
 // src/components/Shelf/Shelf.style.js
 

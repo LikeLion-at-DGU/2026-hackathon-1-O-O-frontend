@@ -1,5 +1,5 @@
 // src/components/Shelf/Shelf.jsx
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
@@ -24,23 +24,22 @@ export default function Shelf() {
   const { zoneId } = useParams();
   const navigate = useNavigate();
   const swiperRef = useRef(null);
-  const [serverScenes, setServerScenes] = useState([]);
+  const [serverScenes] = useState(() => {
+    try {
+      return JSON.parse(
+        sessionStorage.getItem("scenes") ?? "[]"
+      );
+    } catch (error) {
+      console.error("선반 데이터 파싱 실패:", error);
+      return [];
+    }
+  });
 
   const selectShelf = useChatStore((s) => s.selectShelf);
   const selectProduct = useChatStore((s) => s.selectProduct);
   const addServerMessages = useChatStore((s) => s.addServerMessages);
 
   const urlZone = clamp(zoneId);
-
-  useEffect(() => {
-    try {
-      const parsedScenes = JSON.parse(sessionStorage.getItem("scenes") ?? "[]");
-      setServerScenes(parsedScenes);
-    } catch (error) {
-      console.error("선반 데이터 파싱 실패:", error);
-      setServerScenes([]);
-    }
-  }, []);
 
   const selfWroteZoneRef = useRef(urlZone);
   const swiperZoneRef = useRef(urlZone);

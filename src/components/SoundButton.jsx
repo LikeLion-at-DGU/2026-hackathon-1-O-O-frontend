@@ -1,29 +1,7 @@
-import React, { useState, useEffect } from "react";
-import SoundOnIcon from "../assets/soundon.svg";
-import SoundOffIcon from "../assets/soundoff.svg";
+import { useState, useEffect } from "react";
+import { BgmManager } from "../utils/bgmManager";
 
 // 🚀 전역 오디오 객체 생성 (화면에 SoundButton이 없어도 접근 가능)
-
-export class BgmManager {
-    static audio = new Audio("/bgm.mp3");
-    static isInitialized = false;
-
-    static init() {
-        if (!this.isInitialized) {
-            this.audio.loop = true;
-            this.isInitialized = true;
-        }
-    }
-
-    static play() {
-        this.init();
-        return this.audio.play();
-    }
-
-    static pause() {
-        this.audio.pause();
-    }
-}
 
 export default function SoundButton() {
     const [isMuted, setIsMuted] = useState(BgmManager.audio.paused);
@@ -54,7 +32,6 @@ export default function SoundButton() {
         }
     };
 
-    const currentIcon = isMuted ? SoundOffIcon : SoundOnIcon;
     const iconColor = "#F3EEE3";
 
     return (

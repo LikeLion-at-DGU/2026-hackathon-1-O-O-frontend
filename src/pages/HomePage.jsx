@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import MobileLayout from "../components/MobileLayout/MobileLayout";
 import FloorMap from "../components/FloorMap/FloorMap";
 import HomeContent from "../components/HomeContent/HomeContent";

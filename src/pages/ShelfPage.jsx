@@ -1,4 +1,4 @@
-    import React, { useEffect, useRef, useMemo } from "react";
+    import { useEffect, useRef, useMemo } from "react";
     import { useParams } from "react-router-dom";
 
     import Shelf from "../components/Shelf/Shelf";
@@ -45,7 +45,7 @@
         selectShelf(zoneId);
 
         if (!currentScene?.scene_id) return;
-        if (Boolean(sessionStorage.getItem("report_slug"))) return;
+        if (sessionStorage.getItem("report_slug")) return;
 
         try {
             const response = await createChatMessage({

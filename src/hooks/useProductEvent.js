@@ -2,14 +2,10 @@ import { useEffect, useRef } from "react";
 import { sendEvent } from "../api/events";
 
 export default function useProductEvent(productId) {
-  const enterTimeRef = useRef(Date.now());
+  const enterTimeRef = useRef(null);
 
   // 1. 상품 상세 진입 시 조회(product_view) 전송 & 이탈 시 체류(product_dwell) 전송
   useEffect(() => {
-    const isFinished = 
-      sessionStorage.getItem("is_visit_finished") === "true" ||
-      Boolean(sessionStorage.getItem("report_slug"));
-      
     if (!productId) return;
 
     // 진입 시각 기록
